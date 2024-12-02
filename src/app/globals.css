@@ -229,3 +229,64 @@ body {
 }
 
 /* Fin de estilos de review section */
+
+/* Instagram section */
+.instagram-section {
+  background-color: #1c1f28;
+}
+
+.instagram-section .text-white {
+  color: white;
+}
+
+.instagram-section .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.instagram-section .bg-white {
+  background-color: white;
+}
+
+.instagram-section .p-4 {
+  padding: 16px;
+}
+
+.instagram-section .text-lg {
+  font-size: 1.125rem;
+}
+
+.instagram-section .text-xl {
+  font-size: 1.25rem;
+}
+
+.instagram-section .text-4xl {
+  font-size: 2.25rem;
+}
+
+.instagram-section .ml-2 {
+  margin-left: 8px;
+}
+
+.instagram-section .rounded-lg {
+  border-radius: 12px;
+}
+
+.instagram-section .shadow-md {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.instagram-section .w-full {
+  width: 100%;
+}
+
+.instagram-section .h-64 {
+  height: 16rem;
+}
+
+.instagram-section .object-cover {
+  object-fit: cover;
+}
+
+/* fin de seccion instagram */

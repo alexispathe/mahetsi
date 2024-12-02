@@ -8,6 +8,7 @@ import ProductCarousel from "./components/ProductCarousel";
 import ProductSection from "./components/ProductSection";
 import ProductExtras from "./components/ProductExtras";
 import ReviewSection from "./components/ReviewSection";
+import InstagramSection from "./components/InstagramSection";
 export default function HomePage() {
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
@@ -27,6 +28,7 @@ export default function HomePage() {
       <ProductSection/>
       <ProductExtras/>
       <ReviewSection/>
+      <InstagramSection/>
       {/* Modals */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
