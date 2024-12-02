@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { FaSearch, FaHeart, FaUser, FaShoppingCart } from "react-icons/fa";
 
-export default function Header({ onSearchClick, onCartClick }) {
+export default function Header({ onSearchClick, onCartClick, cartCount }) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <header
-      className={`fixed top-0 left-0 w-full z-50 ${
-        isHovered ? "bg-white shadow-md" : "bg-transparent"
-      } transition-all duration-300`}
+      className={`fixed top-0 left-0 w-full z-50 ${isHovered ? "bg-white shadow-md" : "bg-transparent"} transition-all duration-300`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -23,11 +21,7 @@ export default function Header({ onSearchClick, onCartClick }) {
         {/* Categories */}
         <nav className="flex space-x-6">
           <div className="group relative">
-            <span
-              className={`cursor-pointer ${
-                isHovered ? "text-black" : "text-white"
-              }`}
-            >
+            <span className={`cursor-pointer ${isHovered ? "text-black" : "text-white"}`}>
               Shampoos Sólidos
             </span>
             {/* Submenu */}
@@ -39,50 +33,52 @@ export default function Header({ onSearchClick, onCartClick }) {
               </ul>
             </div>
           </div>
-          <span
-            className={`cursor-pointer ${
-              isHovered ? "text-black" : "text-white"
-            }`}
-          >
-            Jabones Orgánicos
-          </span>
-          <span
-            className={`cursor-pointer ${
-              isHovered ? "text-black" : "text-white"
-            }`}
-          >
-            Contacto
-          </span>
+          <span className={`cursor-pointer ${isHovered ? "text-black" : "text-white"}`}>Jabones Orgánicos</span>
+          <span className={`cursor-pointer ${isHovered ? "text-black" : "text-white"}`}>Contacto</span>
         </nav>
 
         {/* Icons */}
         <div className="flex items-center space-x-4">
           {/* Search Icon */}
           <FaSearch
-            className={`cursor-pointer text-lg ${
-              isHovered ? "text-black" : "text-white"
-            } hover:text-gray-700`}
+            className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
             onClick={onSearchClick}
           />
           {/* Favorites Icon */}
           <FaHeart
-            className={`cursor-pointer text-lg ${
-              isHovered ? "text-black" : "text-white"
-            } hover:text-gray-700`}
+            className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
           />
           {/* User Icon */}
           <FaUser
-            className={`cursor-pointer text-lg ${
-              isHovered ? "text-black" : "text-white"
-            } hover:text-gray-700`}
+            className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
           />
           {/* Cart Icon */}
-          <FaShoppingCart
-            className={`cursor-pointer text-lg ${
-              isHovered ? "text-black" : "text-white"
-            } hover:text-gray-700`}
-            onClick={onCartClick}
-          />
+          <div className="relative">
+            <FaShoppingCart
+              className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
+              onClick={onCartClick}
+            />
+            {cartCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: "-13px", // Ajusta este valor para mover el número hacia arriba
+                  right: "-11px", // Ajusta este valor para mover el número hacia la derecha
+                  backgroundColor: "#F44336", // Rojo
+                  color: "white",
+                  fontSize: "12px", // Tamaño del texto
+                  borderRadius: "10%", // Hacerlo redondo
+                  width: "18px", // Tamaño del círculo
+                  height: "18px", // Tamaño del círculo
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                {cartCount}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </header>
