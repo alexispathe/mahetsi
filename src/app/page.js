@@ -9,10 +9,17 @@ export default function HomePage() {
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
 
+  const handleSearchClick = () => setSearchOpen(true);
+  const handleCartClick = () => setCartOpen(true);
+
   return (
     <div>
-      <Header />
+      <Header
+        onSearchClick={handleSearchClick}
+        onCartClick={handleCartClick}
+      />
       <Hero />
+      {/* Modals */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
     </div>

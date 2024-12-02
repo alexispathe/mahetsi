@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { FaSearch, FaHeart, FaUser, FaShoppingCart } from "react-icons/fa";
 
-export default function Header() {
+export default function Header({ onSearchClick, onCartClick }) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -12,33 +13,76 @@ export default function Header() {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="container mx-auto flex items-center justify-between py-4 px-6">
-        <div className="flex items-center space-x-4">
-          {/* Logo */}
-          <div className="text-lg font-bold">Mahetsi & Boho</div>
-          {/* Categories */}
-          <nav className="flex space-x-6">
-            <div className="group relative">
-              <span className="cursor-pointer">Shampoos Sólidos</span>
-              {/* Submenu */}
-              <div className="absolute top-full left-0 hidden group-hover:block bg-white shadow-lg p-4">
-                <ul>
-                  <li>Hidratación Profunda</li>
-                  <li>Para Hombre</li>
-                  <li>Veganos</li>
-                  {/* Add more categories */}
-                </ul>
-              </div>
-            </div>
-            <span>Jabones Orgánicos</span>
-            <span>Contacto</span>
-          </nav>
+        {/* Logo */}
+        <div className="text-lg font-bold">
+          <span className={`${isHovered ? "text-black" : "text-white"}`}>
+            Mahets'i & Boho
+          </span>
         </div>
+
+        {/* Categories */}
+        <nav className="flex space-x-6">
+          <div className="group relative">
+            <span
+              className={`cursor-pointer ${
+                isHovered ? "text-black" : "text-white"
+              }`}
+            >
+              Shampoos Sólidos
+            </span>
+            {/* Submenu */}
+            <div className="absolute top-full left-0 hidden group-hover:block bg-white shadow-lg p-4">
+              <ul>
+                <li className="py-1 hover:text-gray-700">Hidratación Profunda</li>
+                <li className="py-1 hover:text-gray-700">Para Hombre</li>
+                <li className="py-1 hover:text-gray-700">Veganos</li>
+              </ul>
+            </div>
+          </div>
+          <span
+            className={`cursor-pointer ${
+              isHovered ? "text-black" : "text-white"
+            }`}
+          >
+            Jabones Orgánicos
+          </span>
+          <span
+            className={`cursor-pointer ${
+              isHovered ? "text-black" : "text-white"
+            }`}
+          >
+            Contacto
+          </span>
+        </nav>
+
         {/* Icons */}
         <div className="flex items-center space-x-4">
-          <button>🔍</button>
-          <button>🤍</button>
-          <button>👤</button>
-          <button>🛒</button>
+          {/* Search Icon */}
+          <FaSearch
+            className={`cursor-pointer text-lg ${
+              isHovered ? "text-black" : "text-white"
+            } hover:text-gray-700`}
+            onClick={onSearchClick}
+          />
+          {/* Favorites Icon */}
+          <FaHeart
+            className={`cursor-pointer text-lg ${
+              isHovered ? "text-black" : "text-white"
+            } hover:text-gray-700`}
+          />
+          {/* User Icon */}
+          <FaUser
+            className={`cursor-pointer text-lg ${
+              isHovered ? "text-black" : "text-white"
+            } hover:text-gray-700`}
+          />
+          {/* Cart Icon */}
+          <FaShoppingCart
+            className={`cursor-pointer text-lg ${
+              isHovered ? "text-black" : "text-white"
+            } hover:text-gray-700`}
+            onClick={onCartClick}
+          />
         </div>
       </div>
     </header>
