@@ -96,8 +96,8 @@ export default function CartDrawer({ isOpen, onClose }) {
 
         {/* Action Buttons */}
         <div className="mt-4 space-y-2">
-          <button className="w-full bg-green-600 text-white py-2 rounded-lg">Pagar</button>
-          <button className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg">Ver Carrito</button>
+          <button className="w-full bg-green-600 text-white py-2 rounded-lg"><a href="/summary">Pagar</a></button>
+          <button className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg"><a href="/cart">Ver carrito</a></button>
         </div>
       </div>
     </div>

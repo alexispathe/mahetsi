@@ -1,6 +1,7 @@
 'use client';
 import '../styles/product.css';
 import React, { useState } from "react";
+import Header from '../components/Header';
 
 export default function ProductDetail() {
   const [mainImage, setMainImage] = useState(
@@ -19,7 +20,8 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="product-detail-container">
+    <>
+     <div className="product-detail-container">
       <div className="product-detail">
         {/* Imagenes del lado izquierdo */}
         <div className="product-images">
@@ -79,5 +81,8 @@ export default function ProductDetail() {
         </div>
       </div>
     </div>
+      <Header/>
+    </>
+   
   );
 }

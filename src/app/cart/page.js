@@ -1,7 +1,7 @@
 'use client'
 
 import { FaPaypal } from 'react-icons/fa'; // Usando el ícono de Paypal
-
+import Header from '../components/Header';
 // Componente para mostrar los productos en el carrito
 function CartItems() {
   const items = [
@@ -29,6 +29,9 @@ function CartItems() {
   ];
 
   return (
+    <>
+   
+    <Header/>
     <section className="cart-items py-8 px-6 bg-white shadow-lg rounded-lg mb-8">
       <h2 className="text-2xl font-bold mb-6">Your Cart</h2>
       <div className="">
@@ -50,6 +53,7 @@ function CartItems() {
         ))}
       </div>
     </section>
+    </>
   );
 }
 

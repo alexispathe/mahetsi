@@ -5,6 +5,7 @@ import CategoryFilter from './CategoryFilter';
 import PriceFilter from './PriceFilter';
 import BrandFilter from './BrandFilter';
 import ProductList from './ProductList';
+import Header from '../components/Header';
 
 export default function ProductPage() {
   const [minPrice, setMinPrice] = useState(60);
@@ -21,6 +22,8 @@ export default function ProductPage() {
   );
 
   return (
+    <>
+      <Header></Header>
     <div className="product-page flex gap-8">
       <div className="filter-section w-1/4">
         <CategoryFilter />
@@ -31,5 +34,7 @@ export default function ProductPage() {
         <ProductList products={filteredProducts} />
       </div>
     </div>
+    </>
+
   );
 }

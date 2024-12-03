@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { FaSearch, FaHeart, FaUser, FaShoppingCart } from "react-icons/fa";
+import SearchModal from "./SearchModal";
+import CartDrawer from "./CartDrawer";
 
-export default function Header({ onSearchClick, onCartClick, cartCount }) {
-  const [isHovered, setIsHovered] = useState(false);
+export default function Header({ cartCount }) {
+  const [isHovered, setIsHovered] = useState(false); // Define el estado de isHovered
+  const [isSearchOpen, setSearchOpen] = useState(false);
+  const [isCartOpen, setCartOpen] = useState(false);
+
+  const handleSearchClick = () => setSearchOpen(true);
+  const handleCartClick = () => setCartOpen(true);
 
   return (
     <header
@@ -13,9 +20,12 @@ export default function Header({ onSearchClick, onCartClick, cartCount }) {
       <div className="container mx-auto flex items-center justify-between py-4 px-6">
         {/* Logo */}
         <div className="text-lg font-bold">
+          <a href="/">
           <span className={`${isHovered ? "text-black" : "text-white"}`}>
             Mahets'i & Boho
           </span>
+          </a>
+         
         </div>
 
         {/* Categories */}
@@ -42,7 +52,7 @@ export default function Header({ onSearchClick, onCartClick, cartCount }) {
           {/* Search Icon */}
           <FaSearch
             className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
-            onClick={onSearchClick}
+            onClick={handleSearchClick}
           />
           {/* Favorites Icon */}
           <FaHeart
@@ -56,20 +66,20 @@ export default function Header({ onSearchClick, onCartClick, cartCount }) {
           <div className="relative">
             <FaShoppingCart
               className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
-              onClick={onCartClick}
+              onClick={handleCartClick}
             />
             {cartCount > 0 && (
               <span
                 style={{
                   position: "absolute",
-                  top: "-13px", // Ajusta este valor para mover el número hacia arriba
-                  right: "-11px", // Ajusta este valor para mover el número hacia la derecha
-                  backgroundColor: "#F44336", // Rojo
+                  top: "-13px",
+                  right: "-11px",
+                  backgroundColor: "#F44336",
                   color: "white",
-                  fontSize: "12px", // Tamaño del texto
-                  borderRadius: "10%", // Hacerlo redondo
-                  width: "18px", // Tamaño del círculo
-                  height: "18px", // Tamaño del círculo
+                  fontSize: "12px",
+                  borderRadius: "10%",
+                  width: "18px",
+                  height: "18px",
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
@@ -81,6 +91,9 @@ export default function Header({ onSearchClick, onCartClick, cartCount }) {
           </div>
         </div>
       </div>
+      {/* Modals */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
+      <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
     </header>
   );
 }
