@@ -9,6 +9,7 @@ import ProductSection from "./components/ProductSection";
 import ProductExtras from "./components/ProductExtras";
 import ReviewSection from "./components/ReviewSection";
 import InstagramSection from "./components/InstagramSection";
+import Footer from "./components/Footer";
 export default function HomePage() {
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
@@ -29,6 +30,7 @@ export default function HomePage() {
       <ProductExtras/>
       <ReviewSection/>
       <InstagramSection/>
+      <Footer/>
       {/* Modals */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
