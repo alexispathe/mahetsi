@@ -7,7 +7,7 @@ import ProductExtras from "./components/ProductExtras";
 import ReviewSection from "./components/ReviewSection";
 import InstagramSection from "./components/InstagramSection";
 import Footer from "./components/Footer";
-
+import './styles/home.css'
 export default function HomePage() {
   return (
     <div>
