@@ -1,5 +1,5 @@
 'use client'
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import '../styles/productSection.css'
 
 export default function ProductSection() {
   const products = [

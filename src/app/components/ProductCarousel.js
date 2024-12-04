@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import "swiper/css"; // Estilos de Swiper
+import '../styles/ProductCarousel.css'
 
 export default function ProductCarousel() {
   const swiperRef = useRef(null); // Usamos useRef para acceder a la instancia de Swiper

@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* productCarousel.css */
+.product-carousel {
+    padding: 10px;
+  }
+  
+  .product-carousel img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .product-carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2rem;
+    color: black;
+    cursor: pointer;
+  }
+  
+  .swiper-button-prev,
+  .swiper-button-next {
+    z-index: 10;
+  }
+  
+  .product-carousel-slide {
+    text-align: center;
+  }
+  

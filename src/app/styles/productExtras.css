@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* productExtras.css */
+.product-extras-container {
+    width: 100%;
+    height: 500px;
+    background: #2e2b2b;
+    position: relative;
+  }
+  
+  .product-extras-title {
+    font-size: 2rem;
+    color: white;
+  }
+  
+  .product-button {
+    background-color: #7a3b3b;
+    color: white;
+    padding: 15px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  .product-button:hover {
+    background-color: #5c2929;
+  }
+  
+  .cta-button {
+    background-color: #6c6f6f;
+    color: white;
+    padding: 20px 30px;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .cta-button:hover {
+    background-color: #545c5c;
+  }
+  

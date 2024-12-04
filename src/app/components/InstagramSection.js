@@ -1,26 +1,29 @@
-'use client'
-import { FaInstagram } from 'react-icons/fa'; // Usando React Icons para Instagram
-import { FaWhatsapp, FaTruck, FaSyncAlt } from 'react-icons/fa'; // Para los otros íconos
-import { useState } from 'react'; // Para manejar el estado de la imagen grande
+'use client';
+import { FaInstagram, FaWhatsapp, FaTruck, FaSyncAlt } from 'react-icons/fa'; // Importando los iconos necesarios
+import { useState } from 'react'; // Para manejar el estado del modal de imagen
+import '../styles/instagramSection.css'
 
 export default function InstagramSection() {
-  const [isZoomed, setIsZoomed] = useState(false); // Controlar el zoom de la imagen
-  const [currentImage, setCurrentImage] = useState(""); // Para almacenar la imagen seleccionada
+  const [isZoomed, setIsZoomed] = useState(false); // Controla la visibilidad del modal
+  const [currentImage, setCurrentImage] = useState(''); // Almacena la URL de la imagen seleccionada
 
+  // Función para abrir el modal con la imagen seleccionada
   const handleZoom = (imageUrl) => {
     setIsZoomed(true);
     setCurrentImage(imageUrl);
   };
 
+  // Función para cerrar el modal
   const closeZoom = () => {
     setIsZoomed(false);
-    setCurrentImage("");
+    setCurrentImage('');
   };
 
   return (
     <section className="instagram-section bg-[#1c1f28] py-10">
-      <div className=" mx-auto px-6" style={{width: "80%"}}>
-        {/* Estructura flex para que la imagen grande esté a la izquierda y las otras imágenes a la derecha */}
+      {/* Contenedor principal limitado al 80% del ancho */}
+      <div className="mx-auto px-6 limited-width-container">
+        {/* Estructura flex para la imagen grande y las pequeñas */}
         <div className="flex flex-col lg:flex-row items-center justify-between">
           {/* Lado izquierdo con la imagen grande */}
           <div className="lg:w-2/5 mb-6 lg:mb-0 relative">
@@ -28,61 +31,31 @@ export default function InstagramSection() {
               src="https://mahetsipage.web.app/assets/images/products/img-5.jpeg"
               alt="Producto destacado"
               className="w-full h-72 object-cover rounded-md cursor-pointer"
-              onClick={() => handleZoom("https://mahetsipage.web.app/assets/images/products/img-5.jpeg")} // Imagen grande al hacer click
+              onClick={() => handleZoom('https://mahetsipage.web.app/assets/images/products/img-5.jpeg')} // Abre el modal al hacer click
             />
-            {/* Lupa al pasar el mouse sobre la imagen */}
+            {/* Puedes agregar un icono de lupa aquí si lo deseas */}
           </div>
 
-          {/* Lado derecho con las imágenes en 4 columnas y 2 filas */}
+          {/* Lado derecho con las imágenes pequeñas */}
           <div className="lg:w-3/5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            <div className=" p-1 cursor-pointer">
-              <img
-                src="https://mahetsipage.web.app/assets/images/products/img-6.jpeg"
-                alt="Producto 1"
-                className="w-full h-48 object-cover rounded-md"
-                onClick={() => handleZoom("https://mahetsipage.web.app/assets/images/products/img-6.jpeg")}
-              />
-            </div>
-            <div className=" p-1 cursor-pointer">
-              <img
-                src="https://mahetsipage.web.app/assets/images/products/img-1.jpeg"
-                alt="Producto 2"
-                className="w-full h-48 object-cover rounded-md"
-                onClick={() => handleZoom("https://mahetsipage.web.app/assets/images/products/img-1.jpeg")}
-              />
-            </div>
-            <div className=" p-1 cursor-pointer">
-              <img
-                src="https://mahetsipage.web.app/assets/images/products/img-2.jpeg"
-                alt="Producto 3"
-                className="w-full h-48 object-cover rounded-md"
-                onClick={() => handleZoom("https://mahetsipage.web.app/assets/images/products/img-2.jpeg")}
-              />
-            </div>
-            <div className=" p-1 cursor-pointer">
-              <img
-                src="https://mahetsipage.web.app/assets/images/products/img-3.jpeg"
-                alt="Producto 4"
-                className="w-full h-48 object-cover rounded-md"
-                onClick={() => handleZoom("https://mahetsipage.web.app/assets/images/products/img-3.jpeg")}
-              />
-            </div>
-            <div className=" p-1 cursor-pointer">
-              <img
-                src="https://mahetsipage.web.app/assets/images/products/img-4.jpeg"
-                alt="Producto 5"
-                className="w-full h-48 object-cover rounded-md"
-                onClick={() => handleZoom("https://mahetsipage.web.app/assets/images/products/img-4.jpeg")}
-              />
-            </div>
-            <div className=" p-1 cursor-pointer">
-              <img
-                src="https://mahetsipage.web.app/assets/images/products/img-1.jpeg"
-                alt="Producto 6"
-                className="w-full h-48 object-cover rounded-md"
-                onClick={() => handleZoom("https://mahetsipage.web.app/assets/images/products/img-1.jpeg")}
-              />
-            </div>
+            {/* Repite este bloque para cada imagen pequeña */}
+            {[
+              'https://mahetsipage.web.app/assets/images/products/img-6.jpeg',
+              'https://mahetsipage.web.app/assets/images/products/img-1.jpeg',
+              'https://mahetsipage.web.app/assets/images/products/img-2.jpeg',
+              'https://mahetsipage.web.app/assets/images/products/img-3.jpeg',
+              'https://mahetsipage.web.app/assets/images/products/img-4.jpeg',
+              'https://mahetsipage.web.app/assets/images/products/img-1.jpeg',
+            ].map((imgSrc, index) => (
+              <div key={index} className="p-1 cursor-pointer">
+                <img
+                  src={imgSrc}
+                  alt={`Producto ${index + 1}`}
+                  className="w-full h-48 object-cover rounded-md"
+                  onClick={() => handleZoom(imgSrc)} // Abre el modal al hacer click
+                />
+              </div>
+            ))}
           </div>
         </div>
 
@@ -92,31 +65,43 @@ export default function InstagramSection() {
           <a
             href="https://www.instagram.com/mahetsi"
             className="text-white text-lg ml-2"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Síguenos en Instagram @mahetsi
           </a>
         </div>
+      </div>
 
-        {/* Información adicional */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          <div className="flex items-center justify-center p-4 bg-white rounded-lg shadow-md">
-            <FaWhatsapp className="text-2xl text-[#25D366]" />
-            <span className="ml-2 text-lg">Servicio al cliente</span>
+      {/* Sección de Información adicional que ocupa todo el ancho */}
+      <div className="full-width-info">
+        <div className="info-container">
+          {/* Contenedor 1: Servicio al cliente */}
+          <div className="info-box">
+            <FaWhatsapp className="info-icon whatsapp-icon" />
+            <span className="info-text">Servicio al cliente</span>
           </div>
-          <div className="flex items-center justify-center p-4 bg-white rounded-lg shadow-md">
-            <FaTruck className="text-2xl text-[#1E40AF]" />
-            <span className="ml-2 text-lg">Entrega Nacional Gratis!!</span>
+
+          {/* Contenedor 2: Entrega Nacional Gratis */}
+          <div className="info-box">
+            <FaTruck className="info-icon truck-icon" />
+            <span className="info-text">Entrega Nacional Gratis!!</span>
           </div>
-          <div className="flex items-center justify-center p-4 bg-white rounded-lg shadow-md">
-            <FaSyncAlt className="text-2xl text-[#D97706]" />
-            <span className="ml-2 text-lg">Devoluciones</span>
+
+          {/* Contenedor 3: Devoluciones */}
+          <div className="info-box">
+            <FaSyncAlt className="info-icon sync-icon" />
+            <span className="info-text">Devoluciones</span>
           </div>
         </div>
       </div>
 
       {/* Modal para la imagen ampliada */}
       {isZoomed && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={closeZoom}>
+        <div
+          className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={closeZoom} // Cierra el modal al hacer click en el fondo
+        >
           <div className="relative">
             <img
               src={currentImage}
@@ -125,7 +110,7 @@ export default function InstagramSection() {
             />
             <button
               onClick={closeZoom}
-              className="absolute top-4 right-4 text-white text-2xl"
+              className="absolute top-4 right-4 text-white text-3xl font-bold"
             >
               &times;
             </button>

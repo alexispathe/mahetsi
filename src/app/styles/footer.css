@@ -1,0 +1,33 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* footer.css */
+.footer {
+    background-color: #1c1f28;
+    color: white;
+    padding: 20px 0;
+  }
+  
+  .footer-links a {
+    color: white;
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+  
+  .footer-links a:hover {
+    color: #ffcc00;
+  }
+  
+  .footer .social-icons img {
+    width: 30px;
+    margin-right: 10px;
+  }
+  
+  .footer p {
+    text-align: center;
+    margin-top: 20px;
+  }
+  

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FaSearch, FaHeart, FaUser, FaShoppingCart } from "react-icons/fa";
+import '../styles/header.css'
 import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
 
