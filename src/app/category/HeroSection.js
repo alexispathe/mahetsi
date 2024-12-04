@@ -8,7 +8,7 @@ export default function HeroSection() {
         alt="Outdoor adventure"
         className="w-full h-full object-cover"
       />
-      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center pl-10">
         <div className="max-w-2xl text-left text-white px-4">
           <nav className="text-xs sm:text-sm mb-2">
             <span>Home</span> / <span>Activities</span> / <span>Clothing</span>
