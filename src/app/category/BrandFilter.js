@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react';
-import '../styles/brandFilter.css';
 
 export default function BrandFilter() {
   const [selectedBrands, setSelectedBrands] = useState([]);
@@ -33,7 +32,8 @@ export default function BrandFilter() {
   };
 
   return (
-    <div className="filter-brands p-4 bg-white rounded-lg shadow-md mb-6">
+    <div className="p-4 bg-white rounded-lg shadow-md mb-6">
+      {/* Brands */}
       <h4 className="text-lg font-semibold mb-4">Brands</h4>
       <input
         type="text"
@@ -42,21 +42,23 @@ export default function BrandFilter() {
         value={searchBrand}
         onChange={(e) => setSearchBrand(e.target.value)}
       />
-      <ul className="brand-list space-y-2">
+      <ul className="space-y-2 mb-6">
         {brands.filter(brand => brand.toLowerCase().includes(searchBrand.toLowerCase())).map((brand, index) => (
-          <li key={index} className="flex items-center space-x-2">
+          <li key={index} className="flex items-center space-x-2 hover:bg-gray-100 rounded-md p-1 cursor-pointer">
             <input
               type="checkbox"
               id={brand}
               onChange={() => toggleBrand(brand)}
               checked={selectedBrands.includes(brand)}
+              className="form-checkbox h-4 w-4 text-blue-600"
             />
-            <label htmlFor={brand} className="text-sm">{brand}</label>
+            <label htmlFor={brand} className="text-sm text-gray-700">{brand}</label>
           </li>
         ))}
       </ul>
 
-      <h4 className="text-lg font-semibold mb-4 mt-6">Type</h4>
+      {/* Types */}
+      <h4 className="text-lg font-semibold mb-4">Type</h4>
       <input
         type="text"
         placeholder="Search Type"
@@ -64,22 +66,24 @@ export default function BrandFilter() {
         value={searchType}
         onChange={(e) => setSearchType(e.target.value)}
       />
-      <ul className="brand-list space-y-2">
+      <ul className="space-y-2 mb-6">
         {types.filter(type => type.toLowerCase().includes(searchType.toLowerCase())).map((type, index) => (
-          <li key={index} className="flex items-center space-x-2">
+          <li key={index} className="flex items-center space-x-2 hover:bg-gray-100 rounded-md p-1 cursor-pointer">
             <input
               type="checkbox"
               id={type}
               onChange={() => toggleType(type)}
               checked={selectedTypes.includes(type)}
+              className="form-checkbox h-4 w-4 text-blue-600"
             />
-            <label htmlFor={type} className="text-sm">{type}</label>
+            <label htmlFor={type} className="text-sm text-gray-700">{type}</label>
           </li>
         ))}
       </ul>
 
-      <h4 className="text-lg font-semibold mb-4 mt-6">Sizes</h4>
-      <ul className="brand-list grid grid-cols-4 gap-2">
+      {/* Sizes */}
+      <h4 className="text-lg font-semibold mb-4">Sizes</h4>
+      <ul className="grid grid-cols-3 gap-2">
         {sizes.map((size, index) => (
           <li key={index} className="flex items-center space-x-2">
             <input
@@ -87,8 +91,9 @@ export default function BrandFilter() {
               id={size}
               onChange={() => toggleSize(size)}
               checked={selectedSizes.includes(size)}
+              className="form-checkbox h-4 w-4 text-blue-600"
             />
-            <label htmlFor={size} className="text-sm">{size}</label>
+            <label htmlFor={size} className="text-sm text-gray-700">{size}</label>
           </li>
         ))}
       </ul>

@@ -10,7 +10,7 @@ export default function PriceFilter({ onPriceChange }) {
   };
 
   return (
-    <div className="filter-price p-4 bg-white rounded-lg shadow-md mb-6">
+    <div className="p-4 bg-white rounded-lg shadow-md mb-6">
       <h4 className="text-lg font-semibold mb-4">Precio</h4>
       <Range
         step={1}
@@ -56,8 +56,8 @@ export default function PriceFilter({ onPriceChange }) {
           );
         }}
       />
-      <div className="input-container flex justify-between mt-4">
-        <div className="input-box flex items-center border border-gray-300 rounded">
+      <div className="flex justify-between mt-4">
+        <div className="flex items-center border border-gray-300 rounded">
           <span className="px-2">$</span>
           <input
             type="number"
@@ -68,12 +68,12 @@ export default function PriceFilter({ onPriceChange }) {
               setValues([value, values[1]]);
               onPriceChange(value, values[1]);
             }}
-            className="input-field w-20 p-2 outline-none"
+            className="w-20 p-2 outline-none"
             min="0"
             max="1000"
           />
         </div>
-        <div className="input-box flex items-center border border-gray-300 rounded">
+        <div className="flex items-center border border-gray-300 rounded">
           <span className="px-2">$</span>
           <input
             type="number"
@@ -84,7 +84,7 @@ export default function PriceFilter({ onPriceChange }) {
               setValues([values[0], value]);
               onPriceChange(values[0], value);
             }}
-            className="input-field w-20 p-2 outline-none"
+            className="w-20 p-2 outline-none"
             min="0"
             max="1000"
           />

@@ -7,8 +7,6 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/a11y";
-// Importa Tailwind CSS en tu archivo global o en el componente
-import '../styles/ProductCarousel.css'; // Mantén solo si es necesario
 
 export default function ProductCarousel() {
   const swiperRef = useRef(null);

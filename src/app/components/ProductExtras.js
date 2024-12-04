@@ -1,6 +1,5 @@
 'use client';
 import { FaStopwatch } from 'react-icons/fa'; // Importamos el icono para "Productos Extra"
-import '../styles/productExtras.css';
 
 export default function ProductExtras() {
   return (

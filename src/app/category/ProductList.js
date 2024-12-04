@@ -20,48 +20,57 @@ export default function ProductList({ products }) {
   return (
     <div>
       {/* Header de Filtro y Orden */}
-      <div className="filter-bar flex justify-between items-center mb-4">
-        <div className="filters flex items-center">
-          <span className="mr-2 text-xs">Filtered by:</span>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
+        {/* Filtros Activos */}
+        <div className="flex items-center mb-2 sm:mb-0">
+          <span className="mr-2 text-xs text-gray-600">Filtered by:</span>
           {selectedFilter && (
-            <span className="filter-tag bg-gray-200 px-2 py-1 rounded-md mr-2 text-xs">
+            <span className="flex items-center bg-gray-200 px-2 py-1 rounded-md mr-2 text-xs">
               Type: {selectedFilter} 
               <button
                 onClick={() => setSelectedFilter('')}
                 className="ml-1 text-red-500 font-bold text-xs"
+                aria-label="Remove filter"
               >
                 ×
               </button>
             </span>
           )}
-          <button onClick={clearFilters} className="text-blue-500 underline text-xs">
+          <button 
+            onClick={clearFilters} 
+            className="text-blue-500 underline text-xs"
+          >
             Clear All
           </button>
         </div>
-        <div className="sort-dropdown relative">
+        {/* Sort Dropdown */}
+        <div className="relative">
           <button 
-            className="sort-button bg-gray-200 px-4 py-2 rounded-md text-xs"
+            className="bg-gray-200 px-4 py-2 rounded-md text-xs flex items-center"
             onClick={() => setIsSortOpen(!isSortOpen)} // Cambiar el estado para abrir/cerrar el menú
           >
-            SORT BY ▼
+            SORT BY 
+            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
           </button>
           {isSortOpen && ( // Mostrar el menú solo si isSortOpen es true
-            <div className="sort-options absolute bg-white shadow-md rounded-md mt-2">
+            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md">
               <button
                 onClick={() => handleSort('price: hi low')}
-                className="block px-4 py-2 hover:bg-gray-100 text-xs"
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-xs"
               >
                 PRICE: HI LOW
               </button>
               <button
                 onClick={() => handleSort('price: low hi')}
-                className="block px-4 py-2 hover:bg-gray-100 text-xs"
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-xs"
               >
                 PRICE: LOW HI
               </button>
               <button
                 onClick={() => handleSort('name')}
-                className="block px-4 py-2 hover:bg-gray-100 text-xs"
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-xs"
               >
                 NAME
               </button>
@@ -71,12 +80,12 @@ export default function ProductList({ products }) {
       </div>
 
       {/* Lista de Productos */}
-      <div className="product-list grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product, index) => (
-          <div key={index} className="product-item bg-white p-4 rounded-lg shadow-md">
+          <div key={index} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
             <img src={product.image} alt={product.name} className="w-full h-48 object-cover mb-4 rounded-md" />
-            <h4 className="text-sm font-semibold">{product.name}</h4>
-            <p className="text-sm text-gray-500">${product.price}</p>
+            <h4 className="text-sm font-semibold text-gray-800">{product.name}</h4>
+            <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
           </div>
         ))}
       </div>

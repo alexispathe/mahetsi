@@ -1,6 +1,4 @@
 'use client'
-import '../styles/productSection.css' // Mantener solo si es necesario
-
 export default function ProductSection() {
   const products = [
     {

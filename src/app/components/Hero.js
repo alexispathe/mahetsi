@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { FaArrowRight } from "react-icons/fa";
-import '../styles/hero.css'; // Puedes eliminar esto si no usas estilos personalizados
 
 export default function Hero() {
   const [imageIndex, setImageIndex] = useState(0);
