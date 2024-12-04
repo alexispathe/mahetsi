@@ -4,7 +4,7 @@ import '../styles/header.css'
 import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
 
-export default function Header({ cartCount, textColor}) { // default a 'text-white'
+export default function Header({ cartCount, textColor }) { // default a 'text-white'
   const [isHovered, setIsHovered] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
@@ -33,20 +33,20 @@ export default function Header({ cartCount, textColor}) { // default a 'text-whi
         {/* Menú de Navegación para Pantallas Grandes */}
         <nav className="hidden md:flex space-x-6">
           <div className="group relative">
-            <span className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
+            <a href="/category" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
               Shampoos Sólidos
-            </span>
+            </a>
             {/* Submenu */}
             <div className="absolute top-full left-0 hidden group-hover:block bg-white shadow-lg p-4">
               <ul>
-                <li className="py-1 hover:text-gray-700">Hidratación Profunda</li>
-                <li className="py-1 hover:text-gray-700">Para Hombre</li>
-                <li className="py-1 hover:text-gray-700">Veganos</li>
+                <li><a href="/shampoos-solidos/hidratacion-profunda" className="py-1 hover:text-gray-700">Hidratación Profunda</a></li>
+                <li><a href="/shampoos-solidos/para-hombre" className="py-1 hover:text-gray-700">Para Hombre</a></li>
+                <li><a href="/shampoos-solidos/veganos" className="py-1 hover:text-gray-700">Veganos</a></li>
               </ul>
             </div>
           </div>
-          <span className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>Jabones Orgánicos</span>
-          <span className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>Contacto</span>
+          <a href="/jabones-organicos" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>Jabones Orgánicos</a>
+          <a href="/contacto" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>Contacto</a>
         </nav>
 
         {/* Iconos y Menú Móvil */}
@@ -98,9 +98,9 @@ export default function Header({ cartCount, textColor}) { // default a 'text-whi
       {isMenuOpen && (
         <nav className="md:hidden bg-white shadow-lg">
           <ul className="flex flex-col space-y-4 p-4">
-            <li className="cursor-pointer hover:text-gray-700">Shampoos Sólidos</li>
-            <li className="cursor-pointer hover:text-gray-700">Jabones Orgánicos</li>
-            <li className="cursor-pointer hover:text-gray-700">Contacto</li>
+            <li><a href="/category" className="cursor-pointer hover:text-gray-700">Shampoos Sólidos</a></li>
+            <li><a href="/jabones-organicos" className="cursor-pointer hover:text-gray-700">Jabones Orgánicos</a></li>
+            <li><a href="/contacto" className="cursor-pointer hover:text-gray-700">Contacto</a></li>
           </ul>
         </nav>
       )}
