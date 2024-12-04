@@ -4,7 +4,7 @@ import '../styles/header.css'
 import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
 
-export default function Header({ cartCount }) {
+export default function Header({ cartCount, textColor}) { // default a 'text-white'
   const [isHovered, setIsHovered] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
@@ -24,7 +24,7 @@ export default function Header({ cartCount }) {
         {/* Logo */}
         <div className="text-lg font-bold">
           <a href="/">
-            <span className={`${isHovered ? "text-black" : "text-white"} text-xl`}>
+            <span className={`${isHovered ? "text-black" : textColor} text-xl`}>
               Mahets'i & Boho
             </span>
           </a>
@@ -33,7 +33,7 @@ export default function Header({ cartCount }) {
         {/* Menú de Navegación para Pantallas Grandes */}
         <nav className="hidden md:flex space-x-6">
           <div className="group relative">
-            <span className={`cursor-pointer ${isHovered ? "text-black" : "text-white"}`}>
+            <span className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
               Shampoos Sólidos
             </span>
             {/* Submenu */}
@@ -45,29 +45,29 @@ export default function Header({ cartCount }) {
               </ul>
             </div>
           </div>
-          <span className={`cursor-pointer ${isHovered ? "text-black" : "text-white"}`}>Jabones Orgánicos</span>
-          <span className={`cursor-pointer ${isHovered ? "text-black" : "text-white"}`}>Contacto</span>
+          <span className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>Jabones Orgánicos</span>
+          <span className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>Contacto</span>
         </nav>
 
         {/* Iconos y Menú Móvil */}
         <div className="flex items-center space-x-4">
           {/* Icono de Búsqueda */}
           <FaSearch
-            className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
+            className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
             onClick={handleSearchClick}
           />
           {/* Icono de Favoritos */}
           <FaHeart
-            className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
+            className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
           />
           {/* Icono de Usuario */}
           <FaUser
-            className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
+            className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
           />
           {/* Icono de Carrito */}
           <div className="relative">
             <FaShoppingCart
-              className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
+              className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
               onClick={handleCartClick}
             />
             {cartCount > 0 && (
@@ -86,9 +86,9 @@ export default function Header({ cartCount }) {
             aria-expanded={isMenuOpen}
           >
             {isMenuOpen ? (
-              <FaTimes className={`text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`} />
+              <FaTimes className={`text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`} />
             ) : (
-              <FaBars className={`text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`} />
+              <FaBars className={`text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`} />
             )}
           </button>
         </div>

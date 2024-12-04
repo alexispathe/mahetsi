@@ -10,7 +10,7 @@ import Footer from "./components/Footer";
 export default function HomePage() {
   return (
     <div>
-      <Header cartCount={2} />
+      <Header cartCount={2} textColor={'text-white'} />
       <Hero />
       <ProductCarousel />
       <ProductSection />

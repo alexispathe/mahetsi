@@ -30,8 +30,8 @@ function CartItems() {
 
   return (
     <>
-      <Header />
-      <section className="cart-items py-8 px-6 bg-white shadow-lg rounded-lg mb-8">
+      <Header  />
+      <section className="cart-items py-8 px-6 bg-white shadow-lg rounded-lg  mb-8">
         <h2 className="text-2xl font-bold mb-6">Your Cart</h2>
         <div className="">
           {items.map((item, index) => (
@@ -60,7 +60,7 @@ function CartItems() {
 // Componente principal para la página del carrito
 export default function CartPage() {
   return (
-    <div className="cart-page mx-auto p-6">
+    <div className="cart-page mx-auto pt-20  p-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2"> {/* Aumentar el ancho del carrito de compras */ }
           <CartItems />

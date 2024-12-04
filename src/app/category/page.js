@@ -67,7 +67,7 @@ export default function ProductPage() {
 
   return (
     <>
-      <Header />
+      <Header textColor={'text-white'}/>
       <HeroSection />
       <div className="container mx-auto px-4 py-6">
         {/* Botón para abrir filtros en móviles */}
