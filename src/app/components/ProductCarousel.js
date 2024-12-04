@@ -2,14 +2,16 @@
 
 import { useEffect, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from 'swiper/modules'; // Importación correcta desde 'swiper'
+import { Navigation, A11y } from 'swiper/modules';
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import "swiper/css"; // Estilos básicos de Swiper
-import "swiper/css/navigation"; // Estilos de navegación de Swiper
-import '../styles/ProductCarousel.css'; // Tus estilos personalizados
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/a11y";
+// Importa Tailwind CSS en tu archivo global o en el componente
+import '../styles/ProductCarousel.css'; // Mantén solo si es necesario
 
 export default function ProductCarousel() {
-  const swiperRef = useRef(null); // Referencia para la instancia de Swiper
+  const swiperRef = useRef(null);
 
   const products = [
     {
@@ -71,10 +73,12 @@ export default function ProductCarousel() {
   }, []);
 
   return (
-    <section className="py-10">
-      <div className="mx-auto px-6" style={{ width: '90%' }}>
-        <h2 className="text-3xl font-bold mb-6">Nuestros Productos</h2>
-        <p className="mb-10">Consiente tu piel con productos Naturales y con increíbles beneficios</p>
+    <section className="py-10 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-bold mb-4 text-center">Nuestros Productos</h2>
+        <p className="mb-8 text-center text-gray-600">
+          Consiente tu piel con productos naturales y con increíbles beneficios
+        </p>
 
         {/* Carrusel de productos con Swiper */}
         <div className="relative">
@@ -82,36 +86,56 @@ export default function ProductCarousel() {
             onSwiper={(swiper) => {
               swiperRef.current = swiper;
             }}
-            modules={[Navigation]} // Añade el módulo de navegación
+            modules={[Navigation, A11y]}
             spaceBetween={30}
             slidesPerView={3}
             loop={true}
             navigation={{
-              prevEl: ".swiper-button-prev",
-              nextEl: ".swiper-button-next",
+              prevEl: ".custom-swiper-button-prev",
+              nextEl: ".custom-swiper-button-next",
             }}
             breakpoints={{
+              1280: { // Pantallas grandes
+                slidesPerView: 4,
+              },
               1024: {
                 slidesPerView: 3,
               },
               768: {
                 slidesPerView: 2,
               },
-              480: {
+              640: {
                 slidesPerView: 1,
               },
+              200: {
+                slidesPerView: 1,
+              },
+            }}
+            a11y={{
+              prevSlideMessage: 'Slide anterior',
+              nextSlideMessage: 'Slide siguiente',
+              firstSlideMessage: 'Este es el primer slide',
+              lastSlideMessage: 'Este es el último slide',
             }}
             className="product-swiper"
           >
             {products.map((product, index) => (
-              <SwiperSlide key={index} className="flex flex-col items-center justify-center p-4">
-                <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded-md mb-4" />
-                <h3 className="text-lg font-semibold">{product.name}</h3>
+              <SwiperSlide key={index} className="flex flex-col items-center p-4">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-48 object-cover rounded-md mb-4"
+                  loading="lazy"
+                />
+                <h3 className="text-lg font-semibold mb-2 text-center">{product.name}</h3>
                 <div className="flex items-center mb-2">
-                  <span className="text-yellow-500">
-                    {"★".repeat(Math.floor(product.rating))}
-                    {"☆".repeat(5 - Math.floor(product.rating))}
-                  </span>
+                  <div className="flex text-yellow-500">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <span key={i}>
+                        {i < Math.floor(product.rating) ? "★" : "☆"}
+                      </span>
+                    ))}
+                  </div>
                   <span className="text-gray-500 text-sm ml-2">({product.reviews})</span>
                 </div>
                 <p className="text-xl font-bold">{product.price}</p>
@@ -120,12 +144,18 @@ export default function ProductCarousel() {
           </Swiper>
 
           {/* Botones de navegación personalizados */}
-          <FaChevronLeft
-            className="swiper-button-prev absolute top-1/2 left-2 transform -translate-y-1/2 text-2xl text-black cursor-pointer z-10"
-          />
-          <FaChevronRight
-            className="swiper-button-next absolute top-1/2 right-2 transform -translate-y-1/2 text-2xl text-black cursor-pointer z-10"
-          />
+          <button
+            className="custom-swiper-button-prev absolute top-1/2 left-2 transform -translate-y-1/2 bg-white bg-opacity-75 hover:bg-opacity-100 p-3 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 transition z-20"
+            aria-label="Slide anterior"
+          >
+            <FaChevronLeft className="text-xl text-gray-800" />
+          </button>
+          <button
+            className="custom-swiper-button-next absolute top-1/2 right-2 transform -translate-y-1/2 bg-white bg-opacity-75 hover:bg-opacity-100 p-3 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 transition z-20"
+            aria-label="Slide siguiente"
+          >
+            <FaChevronRight className="text-xl text-gray-800" />
+          </button>
         </div>
       </div>
     </section>

@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { FaSearch, FaHeart, FaUser, FaShoppingCart } from "react-icons/fa";
+import { FaSearch, FaHeart, FaUser, FaShoppingCart, FaBars, FaTimes } from "react-icons/fa";
 import '../styles/header.css'
 import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
 
 export default function Header({ cartCount }) {
-  const [isHovered, setIsHovered] = useState(false); // Define el estado de isHovered
+  const [isHovered, setIsHovered] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
+  const [isMenuOpen, setMenuOpen] = useState(false);
 
   const handleSearchClick = () => setSearchOpen(true);
   const handleCartClick = () => setCartOpen(true);
+  const toggleMenu = () => setMenuOpen(!isMenuOpen);
 
   return (
     <header
@@ -22,15 +24,14 @@ export default function Header({ cartCount }) {
         {/* Logo */}
         <div className="text-lg font-bold">
           <a href="/">
-          <span className={`${isHovered ? "text-black" : "text-white"}`}>
-            Mahets'i & Boho
-          </span>
+            <span className={`${isHovered ? "text-black" : "text-white"} text-xl`}>
+              Mahets'i & Boho
+            </span>
           </a>
-         
         </div>
 
-        {/* Categories */}
-        <nav className="flex space-x-6">
+        {/* Menú de Navegación para Pantallas Grandes */}
+        <nav className="hidden md:flex space-x-6">
           <div className="group relative">
             <span className={`cursor-pointer ${isHovered ? "text-black" : "text-white"}`}>
               Shampoos Sólidos
@@ -48,22 +49,22 @@ export default function Header({ cartCount }) {
           <span className={`cursor-pointer ${isHovered ? "text-black" : "text-white"}`}>Contacto</span>
         </nav>
 
-        {/* Icons */}
+        {/* Iconos y Menú Móvil */}
         <div className="flex items-center space-x-4">
-          {/* Search Icon */}
+          {/* Icono de Búsqueda */}
           <FaSearch
             className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
             onClick={handleSearchClick}
           />
-          {/* Favorites Icon */}
+          {/* Icono de Favoritos */}
           <FaHeart
             className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
           />
-          {/* User Icon */}
+          {/* Icono de Usuario */}
           <FaUser
             className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
           />
-          {/* Cart Icon */}
+          {/* Icono de Carrito */}
           <div className="relative">
             <FaShoppingCart
               className={`cursor-pointer text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`}
@@ -71,27 +72,39 @@ export default function Header({ cartCount }) {
             />
             {cartCount > 0 && (
               <span
-                style={{
-                  position: "absolute",
-                  top: "-13px",
-                  right: "-11px",
-                  backgroundColor: "#F44336",
-                  color: "white",
-                  fontSize: "12px",
-                  borderRadius: "10%",
-                  width: "18px",
-                  height: "18px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+                className="absolute -top-3 -right-3 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex justify-center items-center"
               >
                 {cartCount}
               </span>
             )}
           </div>
+          {/* Icono de Menú Hamburguesa (Visible en Móviles) */}
+          <button
+            className="md:hidden focus:outline-none"
+            onClick={toggleMenu}
+            aria-label="Toggle Menu"
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? (
+              <FaTimes className={`text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`} />
+            ) : (
+              <FaBars className={`text-lg ${isHovered ? "text-black" : "text-white"} hover:text-gray-700`} />
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Menú Móvil */}
+      {isMenuOpen && (
+        <nav className="md:hidden bg-white shadow-lg">
+          <ul className="flex flex-col space-y-4 p-4">
+            <li className="cursor-pointer hover:text-gray-700">Shampoos Sólidos</li>
+            <li className="cursor-pointer hover:text-gray-700">Jabones Orgánicos</li>
+            <li className="cursor-pointer hover:text-gray-700">Contacto</li>
+          </ul>
+        </nav>
+      )}
+
       {/* Modals */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
