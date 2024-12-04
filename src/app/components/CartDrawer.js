@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import '../styles/cartDrawer.css';
 
 export default function CartDrawer({ isOpen, onClose }) {
   // Cerrar el carrito cuando se hace clic fuera de él
@@ -23,25 +24,25 @@ export default function CartDrawer({ isOpen, onClose }) {
 
   const products = [
     {
-      name: "Jabón Artesanal Agua de Mar",
-      aroma: "Calido",
-      type: "Hidratante",
-      price: 250,
-      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg" // Cambia la ruta de la imagen según tus recursos
+      name: "Mens StormBreaker Jacket",
+      size: "Medium",
+      qty: 1,
+      price: 85.00,
+      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg" // Reemplaza con la ruta correcta
     },
     {
-      name: "Jabón Artesanal Aguacate",
-      aroma: "Fresco",
-      type: "Hidratante",
-      price: 250,
-      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg" // Cambia la ruta de la imagen según tus recursos
+      name: "Mens Torrent Terrain Jacket",
+      size: "Medium",
+      qty: 1,
+      price: 99.00,
+      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg" // Reemplaza con la ruta correcta
     },
   ];
 
   const subtotal = products.reduce((total, product) => total + product.price, 0);
-  const shippingThreshold = 200;
+  const shippingThreshold = 255; // Ajuste para el umbral de envío gratis
   const shippingProgress = (subtotal >= shippingThreshold ? 100 : (subtotal / shippingThreshold) * 100);
-  
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end z-50">
       {/* Overlay que cubre toda la pantalla */}
@@ -51,13 +52,13 @@ export default function CartDrawer({ isOpen, onClose }) {
           ❌
         </button>
         
-        <h2 className="text-2xl font-bold mb-4">Tu carrito</h2>
+        <h2 className="text-2xl font-bold mb-4">Your Cart</h2>
 
         {/* Shipping Progress */}
         <div className="mb-4">
           <div className="flex justify-between">
-            <span>¡$200 Para Envio gratis!</span>
-            <span>${subtotal < shippingThreshold ? shippingThreshold - subtotal : 0} para envío gratis</span>
+            <span className="text-sm">$22 away from free delivery</span>
+            <span className="text-sm">${subtotal < shippingThreshold ? shippingThreshold - subtotal : 0} for free shipping</span>
           </div>
           <div className="h-1 bg-gray-200 rounded-full mt-1">
             <div
@@ -75,29 +76,29 @@ export default function CartDrawer({ isOpen, onClose }) {
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="w-16 h-16 object-cover rounded-md"
+                  className="w-24 h-24 object-cover rounded-md"
                 />
                 <div>
                   <p className="font-semibold">{product.name}</p>
-                  <p className="text-sm text-gray-600">Aroma: {product.aroma}</p>
-                  <p className="text-sm text-gray-600">{product.type}</p>
+                  <p className="text-sm text-gray-600">Size: {product.size}</p>
+                  <p className="text-sm text-gray-600">Qty: {product.qty}</p>
                 </div>
               </div>
-              <span className="font-semibold">${product.price}</span>
+              <span className="font-semibold text-lg">${product.price}</span>
             </div>
           ))}
         </div>
 
         {/* Subtotal */}
-        <div className="flex justify-between mt-4 font-semibold">
+        <div className="flex justify-between mt-4 font-semibold text-lg">
           <span>Subtotal</span>
           <span>${subtotal}</span>
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-4 space-y-2">
-        <a href="/summary"><button className="w-full bg-green-600 text-white py-2 rounded-lg">Pagar</button></a>
-        <a href="/cart"><button className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg">Ver carrito</button></a>
+        <div className="mt-6 space-y-4">
+          <a href="/checkout"><button className="w-full bg-orange-600 text-white py-3 rounded-lg">Checkout</button></a>
+          <a href="/cart"><button className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg">View Cart</button></a>
         </div>
       </div>
     </div>

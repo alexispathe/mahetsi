@@ -3,7 +3,7 @@
 import UserDetails from './UserDetails'; // Componente de los datos del usuario
 import CartSummary from './CartSummary'; // Componente del resumen de compra
 import Header from '../components/Header';
-import '../styles/summary.css'
+import '../styles/cart.css'
 export default function CartPage() {
   return (
     <>

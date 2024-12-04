@@ -1,28 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-/* Estilos de la seccion de summary */
-/* Sección de la dirección y forma de pago */
-.user-details-container {
-    background-color: #fff;
-    padding: 40px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-  }
-  
-  .user-details-container h2 {
-    font-size: 24px;
-    font-weight: 700;
-    color: #1c1f28;
-  }
-  
-  .user-details-container .text-lg {
-    font-size: 16px;
-  }
-  
-  
-  /* Fin */
-  /* Estilos para la sección del carrito */
+/* Estilos para la sección del carrito */
   .cart-summary {
     background-color: #ffffff;
     padding: 24px;

@@ -1,0 +1,82 @@
+/* Estilos generales */
+.order-summary {
+    background-color: #1c1f28; /* Fondo oscuro */
+    color: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .order-summary h3 {
+    font-size: 28px; /* Tamaño más grande para el título */
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  
+  .order-summary .font-semibold {
+    font-weight: 600;
+  }
+  
+  .order-summary .text-sm {
+    font-size: 14px; /* Tamaño ajustado para texto */
+  }
+  
+  .order-summary .text-xs {
+    font-size: 12px; /* Tamaño pequeño para texto adicional */
+  }
+  
+  .order-summary .w-full {
+    width: 100%;
+  }
+  
+  .order-summary input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  
+  .order-summary button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+  }
+  
+  .order-summary button:hover {
+    opacity: 0.9;
+  }
+  
+  .order-summary .bg-white {
+    background-color: white;
+  }
+  
+  
+  .order-summary .bg-gray-200 {
+    background-color: #e5e7eb;
+  }
+  
+  .order-summary .hover\:bg-gray-200:hover {
+    background-color: #d1d5db;
+  }
+  
+  .order-summary .hover\:bg-orange-600:hover {
+    background-color: #fb923c;
+  }
+  
+  .order-summary .space-y-4 {
+    gap: 16px;
+  }
+  
+  .order-summary .mb-4 {
+    margin-bottom: 16px;
+  }
+  
+  .order-summary input {
+    border-radius: 8px;
+  }
+  

@@ -20,20 +20,18 @@ export default function InstagramSection() {
   };
 
   return (
-    <section className="instagram-section bg-[#1c1f28] py-10">
-      {/* Contenedor principal limitado al 80% del ancho */}
-      <div className="mx-auto px-6 limited-width-container">
+    <section className="instagram-section">
+      <div className="container mx-auto">
         {/* Estructura flex para la imagen grande y las pequeñas */}
-        <div className="flex flex-col lg:flex-row items-center justify-between">
+        <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-between mb-8">
           {/* Lado izquierdo con la imagen grande */}
-          <div className="lg:w-2/5 mb-6 lg:mb-0 relative">
+          <div className="lg:w-2/5 mb-4">
             <img
               src="https://mahetsipage.web.app/assets/images/products/img-5.jpeg"
               alt="Producto destacado"
-              className="w-full h-72 object-cover rounded-md cursor-pointer"
+              className="main-image"
               onClick={() => handleZoom('https://mahetsipage.web.app/assets/images/products/img-5.jpeg')} // Abre el modal al hacer click
             />
-            {/* Puedes agregar un icono de lupa aquí si lo deseas */}
           </div>
 
           {/* Lado derecho con las imágenes pequeñas */}
@@ -51,7 +49,7 @@ export default function InstagramSection() {
                 <img
                   src={imgSrc}
                   alt={`Producto ${index + 1}`}
-                  className="w-full h-48 object-cover rounded-md"
+                  className="small-image"
                   onClick={() => handleZoom(imgSrc)} // Abre el modal al hacer click
                 />
               </div>
@@ -73,22 +71,19 @@ export default function InstagramSection() {
         </div>
       </div>
 
-      {/* Sección de Información adicional que ocupa todo el ancho */}
-      <div className="full-width-info">
+      {/* Sección de Información adicional */}
+      <div className="info-section">
         <div className="info-container">
-          {/* Contenedor 1: Servicio al cliente */}
           <div className="info-box">
             <FaWhatsapp className="info-icon whatsapp-icon" />
             <span className="info-text">Servicio al cliente</span>
           </div>
 
-          {/* Contenedor 2: Entrega Nacional Gratis */}
           <div className="info-box">
             <FaTruck className="info-icon truck-icon" />
             <span className="info-text">Entrega Nacional Gratis!!</span>
           </div>
 
-          {/* Contenedor 3: Devoluciones */}
           <div className="info-box">
             <FaSyncAlt className="info-icon sync-icon" />
             <span className="info-text">Devoluciones</span>
@@ -106,7 +101,7 @@ export default function InstagramSection() {
             <img
               src={currentImage}
               alt="Imagen ampliada"
-              className="w-full h-auto max-w-4xl object-contain rounded-md transition-all duration-500 ease-in-out"
+              className="zoomed-image"
             />
             <button
               onClick={closeZoom}

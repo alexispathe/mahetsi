@@ -1,5 +1,5 @@
 'use client'
-
+import '../styles/cartSummary.css'
 export default function CartSummary() {
   const items = [
     {
