@@ -1,8 +1,5 @@
 'use client'
 import { FaStar } from "react-icons/fa"; // Usamos React Icons para las estrellas
-// Eliminamos el import del CSS personalizado
-// import '../styles/reviewSection.css'
-
 export default function ReviewsSection() {
   const reviews = [
     {

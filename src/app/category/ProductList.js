@@ -1,5 +1,4 @@
 'use client'
-import '../styles/productList.css'
 import { useState } from 'react';
 
 export default function ProductList({ products }) {
