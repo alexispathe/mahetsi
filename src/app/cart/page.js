@@ -2,7 +2,6 @@
 
 import OrderSummary from './orderSummary';
 import Header from '../components/Header';
-import '../styles/cart.css'
 // Componente para mostrar los productos en el carrito
 function CartItems() {
   const items = [

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, A11y } from 'swiper/modules';
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import Link from 'next/link'; // Importa el componente Link
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/a11y";
@@ -13,28 +14,28 @@ export default function ProductCarousel() {
 
   const products = [
     {
-      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg",
+      image: "https://mahetsipage.web.app/assets/images/products/img-1.jpeg",
       name: "Jabón Manzana Canela",
       rating: 4.8,
       reviews: 189,
       price: "$100.00"
     },
     {
-      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg",
+      image: "https://mahetsipage.web.app/assets/images/products/img-2.jpeg",
       name: "Bálsamo Lavanda Betabel",
       rating: 4.5,
       reviews: 1567,
       price: "$115.00"
     },
     {
-      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg",
+      image: "https://mahetsipage.web.app/assets/images/products/img-3.jpeg",
       name: "Bálsamo Patitas y Nariz",
       rating: 4.5,
       reviews: 1567,
       price: "$120.00"
     },
     {
-      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg",
+      image: "https://mahetsipage.web.app/assets/images/products/img-4.jpeg",
       name: "Shampoo Sólido Lavanda Aloe",
       rating: 4.5,
       reviews: 1567,
@@ -48,14 +49,14 @@ export default function ProductCarousel() {
       price: "$90.00"
     },
     {
-      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg",
+      image: "https://mahetsipage.web.app/assets/images/products/img-1.jpeg",
       name: "Jabón",
       rating: 4.7,
       reviews: 200,
       price: "$90.00"
     },
     {
-      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg",
+      image: "https://mahetsipage.web.app/assets/images/products/img-2.jpeg",
       name: "Natural de Menta",
       rating: 4.7,
       reviews: 200,
@@ -119,24 +120,29 @@ export default function ProductCarousel() {
           >
             {products.map((product, index) => (
               <SwiperSlide key={index} className="flex flex-col items-center p-4">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-48 object-cover rounded-md mb-4"
-                  loading="lazy"
-                />
-                <h3 className="text-lg font-semibold mb-2 text-center">{product.name}</h3>
-                <div className="flex items-center mb-2">
-                  <div className="flex text-yellow-500">
-                    {Array.from({ length: 5 }, (_, i) => (
-                      <span key={i}>
-                        {i < Math.floor(product.rating) ? "★" : "☆"}
-                      </span>
-                    ))}
+                <Link 
+                  href="/product" 
+                  className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md"
+                >
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-72 object-cover rounded-md mb-4" // Hacer la imagen principal ocupar todo el ancho
+                    loading="lazy"
+                  />
+                  <h3 className="text-lg font-semibold mb-2 text-center">{product.name}</h3>
+                  <div className="flex items-center mb-2">
+                    <div className="flex text-yellow-500">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <span key={i}>
+                          {i < Math.floor(product.rating) ? "★" : "☆"}
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-gray-500 text-sm ml-2">({product.reviews})</span>
                   </div>
-                  <span className="text-gray-500 text-sm ml-2">({product.reviews})</span>
-                </div>
-                <p className="text-xl font-bold">{product.price}</p>
+                  <p className="text-xl font-bold">{product.price}</p>
+                </Link>
               </SwiperSlide>
             ))}
           </Swiper>

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa'; // Importar ícono de cierre
+import Link from 'next/link'; // Importar Link de Next.js
 
 export default function ProductList({ 
   products, 
@@ -133,9 +134,15 @@ export default function ProductList({
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-4 gap-6">
         {sortedProducts.map((product, index) => (
           <div key={index} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-            <img src={product.image} alt={product.name} className="w-full h-48 object-cover mb-4 rounded-md" />
-            <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
-            <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
+            <Link href={`/product`} className="block">
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="w-full h-48 object-cover mb-4 rounded-md"  // Ajustamos para que la imagen ocupe el 100% del contenedor
+              />
+              <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
+              <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
+            </Link>
           </div>
         ))}
       </div>

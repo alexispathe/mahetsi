@@ -1,4 +1,7 @@
 'use client'
+
+import Link from 'next/link';
+
 export default function ProductSection() {
   const products = [
     {
@@ -38,13 +41,18 @@ export default function ProductSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Producto destacado */}
           <div className="flex flex-col items-center">
-            <img 
-              src={products[0].image} 
-              alt={products[0].name} 
-              className="w-full h-72 object-cover rounded-md mb-4"
-            />
-            <h3 className="text-lg font-semibold text-center">{products[0].name}</h3>
-            <p className="text-xl font-bold text-red-600">{products[0].price}</p>
+            <Link 
+              href="/product" 
+              className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md border-none hover:border-2 hover:border-gray-600" // Borde normal al pasar el mouse
+            >
+              <img 
+                src={products[0].image} 
+                alt={products[0].name} 
+                className="w-full h-72 object-cover rounded-md mb-4"
+              />
+              <h3 className="text-lg font-semibold text-center">{products[0].name}</h3>
+              <p className="text-xl font-bold text-red-600">{products[0].price}</p>
+            </Link>
           </div>
 
           {/* Productos adicionales */}
@@ -52,13 +60,18 @@ export default function ProductSection() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {products.slice(1, 6).map((product, index) => (
                 <div key={index} className="flex flex-col items-center">
-                  <img 
-                    src={product.image} 
-                    alt={product.name} 
-                    className="w-full h-48 object-cover rounded-md mb-4"
-                  />
-                  <h3 className="text-lg font-semibold text-center">{product.name}</h3>
-                  <p className="text-xl font-bold text-red-600">{product.price}</p>
+                  <Link 
+                    href="/product" 
+                    className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md border-none hover:border-2 hover:border-gray-600" // Borde normal al pasar el mouse
+                  >
+                    <img 
+                      src={product.image} 
+                      alt={product.name} 
+                      className="w-full h-48 object-cover rounded-md mb-4"
+                    />
+                    <h3 className="text-lg font-semibold text-center">{product.name}</h3>
+                    <p className="text-xl font-bold text-red-600">{product.price}</p>
+                  </Link>
                 </div>
               ))}
             </div>
