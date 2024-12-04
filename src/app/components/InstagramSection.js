@@ -57,10 +57,10 @@ export default function InstagramSection() {
 
         {/* Enlace a Instagram */}
         <div className="flex justify-center items-center mb-12">
-          <FaInstagram className="text-5xl text-pink-500" />
+          <FaInstagram className="text-5xl text-white" />
           <a
             href="https://www.instagram.com/mahetsi"
-            className="text-pink-500 text-lg ml-3 underline"
+            className="text-white text-lg ml-3 underline"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -70,7 +70,7 @@ export default function InstagramSection() {
       </div>
 
       {/* Sección de Información adicional */}
-      <div className="bg-gray-800 py-8">
+      <div className="bg-gray-900 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap justify-center gap-6">
           <div className="flex items-center bg-white p-4 rounded-lg shadow-md min-w-[200px]">
             <FaWhatsapp className="text-green-500 text-3xl mr-4" />

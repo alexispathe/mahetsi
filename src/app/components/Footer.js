@@ -4,7 +4,7 @@ import '../styles/footer.css'
 
 export default function Footer() {
   return (
-    <footer className="bg-[#1c1f28] text-white py-10">
+    <footer className="bg-gray-900 text-white py-10">
          <div className="border-t border-[gray] mt-8 pt-6 text-center">
         </div>
       <div className="container mx-auto px-6">
