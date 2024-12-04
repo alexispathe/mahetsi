@@ -1,64 +1,86 @@
 'use client'
+import '../styles/productList.css'
+import { useState } from 'react';
 
-import React from "react";
+export default function ProductList({ products }) {
+  const [selectedFilter, setSelectedFilter] = useState('Slip On');
+  const [sortOption, setSortOption] = useState('');
+  const [isSortOpen, setIsSortOpen] = useState(false); // Estado para controlar la visibilidad del menú de orden
 
-// Componente para mostrar los productos
-function ProductList() {
-  const products = [
-    {
-      image: 'https://mahetsipage.web.app/assets/images/products/img-5.jpeg',
-      name: 'Full Zip Hoodie',
-      price: 1129.99,
-      discount: 25, // 25% off
-      originalPrice: 1500.00,
-      rating: 4.7,
-      reviews: 456
-    },
-    {
-      image: 'https://mahetsipage.web.app/assets/images/products/img-6.jpeg',
-      name: 'Mens Sherpa Hoodie',
-      price: 599.55,
-      discount: 65, // 65% off
-      originalPrice: 150.00,
-      rating: 4.4,
-      reviews: 1289
-    },
-    {
-      image: 'https://mahetsipage.web.app/assets/images/products/img-1.jpeg',
-      name: 'Womens Essentials Hoodie',
-      price: 779.55,
-      discount: 50, // 50% off
-      originalPrice: 1100.00,
-      rating: 4.7,
-      reviews: 754
-    },
-  ];
+  const handleSort = (option) => {
+    setSortOption(option);
+    setIsSortOpen(false); // Cierra el menú después de seleccionar una opción
+    // Lógica para ordenar productos (puedes implementarla después)
+  };
+
+  const clearFilters = () => {
+    setSelectedFilter('');
+    // Lógica para limpiar filtros (puedes implementarla después)
+  };
 
   return (
-    <section className="product-list grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {products.map((product, index) => (
-        <div key={index} className="product-item bg-white p-4 rounded-lg shadow-md">
-          <img src={product.image} alt={product.name} className="w-full h-64 object-cover rounded-md mb-4" />
-          <h3 className="text-xl font-semibold">{product.name}</h3>
-          <div className="flex items-center space-x-2">
-            <p className="text-lg font-bold text-gray-800">${product.price.toFixed(2)}</p>
-            {product.discount > 0 && (
-              <p className="text-sm text-red-500">-{product.discount}%</p>
-            )}
-          </div>
-          <p className="text-sm text-gray-500 line-through">${product.originalPrice.toFixed(2)}</p>
-          <div className="flex items-center space-x-2 mt-2">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <span key={i} className={`text-yellow-400 ${i < product.rating ? 'text-yellow-400' : 'text-gray-300'}`}>★</span>
-              ))}
-            </div>
-            <span className="text-sm text-gray-500">({product.reviews})</span>
-          </div>
+    <div>
+      {/* Header de Filtro y Orden */}
+      <div className="filter-bar flex justify-between items-center mb-4">
+        <div className="filters flex items-center">
+          <span className="mr-2 text-xs">Filtered by:</span>
+          {selectedFilter && (
+            <span className="filter-tag bg-gray-200 px-2 py-1 rounded-md mr-2 text-xs">
+              Type: {selectedFilter} 
+              <button
+                onClick={() => setSelectedFilter('')}
+                className="ml-1 text-red-500 font-bold text-xs"
+              >
+                ×
+              </button>
+            </span>
+          )}
+          <button onClick={clearFilters} className="text-blue-500 underline text-xs">
+            Clear All
+          </button>
         </div>
-      ))}
-    </section>
+        <div className="sort-dropdown relative">
+          <button 
+            className="sort-button bg-gray-200 px-4 py-2 rounded-md text-xs"
+            onClick={() => setIsSortOpen(!isSortOpen)} // Cambiar el estado para abrir/cerrar el menú
+          >
+            SORT BY ▼
+          </button>
+          {isSortOpen && ( // Mostrar el menú solo si isSortOpen es true
+            <div className="sort-options absolute bg-white shadow-md rounded-md mt-2">
+              <button
+                onClick={() => handleSort('price: hi low')}
+                className="block px-4 py-2 hover:bg-gray-100 text-xs"
+              >
+                PRICE: HI LOW
+              </button>
+              <button
+                onClick={() => handleSort('price: low hi')}
+                className="block px-4 py-2 hover:bg-gray-100 text-xs"
+              >
+                PRICE: LOW HI
+              </button>
+              <button
+                onClick={() => handleSort('name')}
+                className="block px-4 py-2 hover:bg-gray-100 text-xs"
+              >
+                NAME
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Lista de Productos */}
+      <div className="product-list grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+        {products.map((product, index) => (
+          <div key={index} className="product-item bg-white p-4 rounded-lg shadow-md">
+            <img src={product.image} alt={product.name} className="w-full h-48 object-cover mb-4 rounded-md" />
+            <h4 className="text-sm font-semibold">{product.name}</h4>
+            <p className="text-sm text-gray-500">${product.price}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
-
-export default ProductList;
