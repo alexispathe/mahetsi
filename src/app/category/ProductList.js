@@ -1,7 +1,9 @@
+// ProductList.js 
 'use client';
 import { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa'; // Importar ícono de cierre
 import Link from 'next/link'; // Importar Link de Next.js
+import { brands, types } from './data'; // Importar marcas y tipos
 
 export default function ProductList({ 
   products, 
@@ -48,8 +50,8 @@ export default function ProductList({
       setSelectedSizes(selectedSizes.filter(item => item !== value));
     } else if (type === 'Price') {
       // Opcional: puedes restablecer el rango de precios a valores predeterminados
-      // setMinPrice(60);
-      // setMaxPrice(900);
+      // setMinPrice(0);
+      // setMaxPrice(1000);
     }
   };
 
@@ -66,13 +68,24 @@ export default function ProductList({
     activeFilters.push({ type: 'Price', value: `${minPrice} - ${maxPrice}` });
   }
 
+  // Función auxiliar para obtener el nombre de la marca y el tipo
+  const getBrandName = (brandID) => {
+    const brand = brands.find(b => b.uniqueID === brandID);
+    return brand ? brand.name : '';
+  };
+
+  const getTypeName = (typeID) => {
+    const type = types.find(t => t.uniqueID === typeID);
+    return type ? type.name : '';
+  };
+
   return (
     <div>
       {/* Header de Filtro y Orden */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
         {/* Filtros Activos */}
         <div className="flex items-center flex-wrap mb-2 sm:mb-0">
-          <span className="mr-2 text-xs text-gray-600">Filtered by:</span>
+          <span className="mr-2 text-xs text-gray-600">Filtrado por:</span>
           {activeFilters.map((filter, index) => (
             <span key={index} className="flex items-center bg-gray-200 px-2 py-1 rounded-md mr-2 mb-2">
               <span className="text-xs">{filter.type}: {filter.value}</span>
@@ -90,7 +103,7 @@ export default function ProductList({
               onClick={clearAllFilters} 
               className="text-blue-500 underline text-xs"
             >
-              Clear All
+              Limpiar Todo
             </button>
           )}
         </div>
@@ -100,7 +113,7 @@ export default function ProductList({
             className="bg-gray-200 px-4 py-2 rounded-md text-xs flex items-center"
             onClick={() => setIsSortOpen(!isSortOpen)}
           >
-            SORT BY 
+            ORDENAR POR 
             <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
             </svg>
@@ -111,19 +124,19 @@ export default function ProductList({
                 onClick={() => handleSort('price: hi low')}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-xs"
               >
-                PRICE: HI LOW
+                PRECIO: MAYOR A MENOR
               </button>
               <button
                 onClick={() => handleSort('price: low hi')}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-xs"
               >
-                PRICE: LOW HI
+                PRECIO: MENOR A MAYOR
               </button>
               <button
                 onClick={() => handleSort('name')}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-xs"
               >
-                NAME
+                NOMBRE
               </button>
             </div>
           )}
@@ -132,16 +145,18 @@ export default function ProductList({
 
       {/* Lista de Productos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-4 gap-6">
-        {sortedProducts.map((product, index) => (
-          <div key={index} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-            <Link href={`/product`} className="block">
+        {sortedProducts.map((product) => (
+          <div key={product.uniqueID} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+            <Link href={`/product/${product.uniqueID}`} className="block">
               <img 
-                src={product.image} 
+                src={product.images[0]} 
                 alt={product.name} 
                 className="w-full h-48 object-cover mb-4 rounded-md"  // Ajustamos para que la imagen ocupe el 100% del contenedor
               />
               <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
               <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
+              <p className="text-xs text-gray-400">{getBrandName(product.brandID)}</p>
+              <p className="text-xs text-gray-400">{getTypeName(product.typeID)}</p>
             </Link>
           </div>
         ))}
