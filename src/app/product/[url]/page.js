@@ -1,20 +1,30 @@
 'use client';
 import React, { useState, useRef, useEffect } from "react";
-import Header from '../components/Header';
+import { useParams } from "next/navigation"; // Si usas Next.js 13 con el App Router
+import Header from "../../components/Header";
+import { products, brands, types } from "../../category/data";
 
 export default function ProductDetail() {
-  const [mainImage, setMainImage] = useState(
-    "https://mahetsipage.web.app/assets/images/products/img-5.jpeg"
-  );
-  const [showModal, setShowModal] = useState(false); // Para controlar la visualización del modal
-  const modalRef = useRef(null); // Referencia para el contenedor del modal
+  const params = useParams();
+  const product = products.find((p) => p.url === params.url);
 
-  const thumbnails = [
-    "https://mahetsipage.web.app/assets/images/products/img-1.jpeg",
-    "https://mahetsipage.web.app/assets/images/products/img-2.jpeg",
-    "https://mahetsipage.web.app/assets/images/products/img-3.jpeg",
-    "https://mahetsipage.web.app/assets/images/products/img-4.jpeg",
-  ];
+  // Si el producto no existe, puedes manejar el caso:
+  if (!product) {
+    return (
+      <>
+        <Header />
+        <div className="flex justify-center items-center my-10 px-4">
+          <h2 className="text-2xl font-bold">Producto no encontrado</h2>
+        </div>
+      </>
+    );
+  }
+
+  const [mainImage, setMainImage] = useState(product.images[0]);
+  const [showModal, setShowModal] = useState(false);
+  const modalRef = useRef(null);
+
+  const thumbnails = product.images; // Usa las imágenes del producto
 
   const handleThumbnailClick = (image) => {
     setMainImage(image);
@@ -28,7 +38,6 @@ export default function ProductDetail() {
     setShowModal(false);
   };
 
-  // Manejar clics fuera del modal para cerrarlo
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (modalRef.current && !modalRef.current.contains(e.target)) {
@@ -46,6 +55,9 @@ export default function ProductDetail() {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [showModal]);
+
+  const brandName = brands.find((b) => b.uniqueID === product.brandID)?.name || "";
+  const typeName = types.find((t) => t.uniqueID === product.typeID)?.name || "";
 
   return (
     <>
@@ -84,25 +96,22 @@ export default function ProductDetail() {
 
           {/* Sección de Información del Producto */}
           <div className="space-y-6">
-            <p className="text-gray-500 text-sm">HOME / ACTIVITIES / NATURAL PRODUCTS</p>
-            <h1 className="text-3xl font-bold">Aloe Vera Handmade Soap</h1>
+            {/* Puedes ajustar el breadcrumb según tu lógica */}
+            <p className="text-gray-500 text-sm">HOME / {brandName.toUpperCase()} / {typeName.toUpperCase()}</p>
+            <h1 className="text-3xl font-bold">{product.name}</h1>
             <div className="flex items-center space-x-2">
               <div className="text-yellow-500 text-lg">⭐⭐⭐⭐☆</div>
-              <p className="text-sm text-gray-600">(1288 Reviews)</p>
+              <p className="text-sm text-gray-600">({product.numReviews} Reviews)</p>
             </div>
             <div className="flex items-baseline space-x-4">
-              <p className="text-2xl text-red-600 font-semibold">$15.99</p>
-              <p className="line-through text-gray-500">$20.00</p>
-              <p className="text-green-600">Save $4.01</p>
+              <p className="text-2xl text-red-600 font-semibold">${product.price.toFixed(2)}</p>
+              {/* Aquí podrías manejar descuentos o no */}
+              {/* <p className="line-through text-gray-500">$20.00</p>
+              <p className="text-green-600">Save $4.01</p> */}
             </div>
             <div>
               <div className="mb-4">
-                <p className="text-sm font-medium">COLOUR: GREEN</p>
-                <div className="flex space-x-2 mt-2">
-                  <div className="w-5 h-5 rounded-full bg-green-500 border border-gray-300 cursor-pointer"></div>
-                  <div className="w-5 h-5 rounded-full bg-blue-500 border border-gray-300 cursor-pointer"></div>
-                  <div className="w-5 h-5 rounded-full bg-red-500 border border-gray-300 cursor-pointer"></div>
-                </div>
+                <p className="text-sm font-medium">CATEGORÍA: {typeName}</p>
               </div>
               <div>
                 <label htmlFor="size-select" className="block text-sm font-medium">

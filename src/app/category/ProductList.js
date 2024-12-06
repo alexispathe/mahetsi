@@ -144,8 +144,8 @@ export default function ProductList({
       {/* Lista de Productos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-4 gap-6">
         {currentProducts.map((product) => (
-          <div key={product.uniqueID} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-            <Link href={`/product/${product.uniqueID}`} className="block">
+          <div key={product.url} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+            <Link href={`/product/${product.url}`} className="block">
               <img 
                 src={product.images[0]} 
                 alt={product.name} 
