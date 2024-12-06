@@ -1,9 +1,9 @@
-// ProductList.js 
 'use client';
-import { useState, useEffect } from 'react';
-import { FaTimes } from 'react-icons/fa'; // Importar ícono de cierre
-import Link from 'next/link'; // Importar Link de Next.js
-import { brands, types } from './data'; // Importar marcas y tipos
+import { useState } from 'react';
+import { FaTimes } from 'react-icons/fa'; 
+import Link from 'next/link'; 
+import { brands, types } from './data'; 
+import Pagination from './Pagination'; // Importa el componente
 
 export default function ProductList({ 
   products, 
@@ -20,15 +20,10 @@ export default function ProductList({
   setSelectedSizes
 }) {
   const [sortOption, setSortOption] = useState('');
-  const [isSortOpen, setIsSortOpen] = useState(false); // Estado para controlar la visibilidad del menú de orden
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 1; 
 
-  const handleSort = (option) => {
-    setSortOption(option);
-    setIsSortOpen(false);
-    // Aquí puedes implementar la lógica de ordenamiento si lo deseas
-  };
-
-  // Ordenar los productos según la opción seleccionada
   const sortedProducts = [...products];
   if (sortOption === 'price: hi low') {
     sortedProducts.sort((a, b) => b.price - a.price);
@@ -38,7 +33,6 @@ export default function ProductList({
     sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  // Función para eliminar un filtro específico
   const removeFilter = (type, value) => {
     if (type === 'Category') {
       setSelectedCategories(selectedCategories.filter(item => item !== value));
@@ -48,14 +42,9 @@ export default function ProductList({
       setSelectedTypes(selectedTypes.filter(item => item !== value));
     } else if (type === 'Size') {
       setSelectedSizes(selectedSizes.filter(item => item !== value));
-    } else if (type === 'Price') {
-      // Opcional: puedes restablecer el rango de precios a valores predeterminados
-      // setMinPrice(0);
-      // setMaxPrice(1000);
     }
   };
 
-  // Preparar los filtros activos para mostrar
   const activeFilters = [
     ...selectedCategories.map(category => ({ type: 'Category', value: category })),
     ...selectedBrands.map(brand => ({ type: 'Brand', value: brand })),
@@ -63,12 +52,10 @@ export default function ProductList({
     ...selectedSizes.map(size => ({ type: 'Size', value: size })),
   ];
 
-  // Agregar el filtro de precio si está dentro de un rango
   if (minPrice > 0 || maxPrice < 1000) {
     activeFilters.push({ type: 'Price', value: `${minPrice} - ${maxPrice}` });
   }
 
-  // Función auxiliar para obtener el nombre de la marca y el tipo
   const getBrandName = (brandID) => {
     const brand = brands.find(b => b.uniqueID === brandID);
     return brand ? brand.name : '';
@@ -77,6 +64,17 @@ export default function ProductList({
   const getTypeName = (typeID) => {
     const type = types.find(t => t.uniqueID === typeID);
     return type ? type.name : '';
+  };
+
+  // Calcular paginación
+  const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const endIndex = startIndex + productsPerPage;
+  const currentProducts = sortedProducts.slice(startIndex, endIndex);
+
+  const handleSort = (option) => {
+    setSortOption(option);
+    setIsSortOpen(false);
   };
 
   return (
@@ -145,13 +143,13 @@ export default function ProductList({
 
       {/* Lista de Productos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-4 gap-6">
-        {sortedProducts.map((product) => (
+        {currentProducts.map((product) => (
           <div key={product.uniqueID} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
             <Link href={`/product/${product.uniqueID}`} className="block">
               <img 
                 src={product.images[0]} 
                 alt={product.name} 
-                className="w-full h-48 object-cover mb-4 rounded-md"  // Ajustamos para que la imagen ocupe el 100% del contenedor
+                className="w-full h-48 object-cover mb-4 rounded-md"
               />
               <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
               <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
@@ -161,6 +159,13 @@ export default function ProductList({
           </div>
         ))}
       </div>
+
+      {/* Paginación */}
+      <Pagination 
+        currentPage={currentPage} 
+        totalPages={totalPages} 
+        onPageChange={setCurrentPage} 
+      />
     </div>
   );
 }
