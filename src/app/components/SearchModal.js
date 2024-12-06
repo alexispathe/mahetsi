@@ -1,19 +1,47 @@
-import { useEffect } from "react";
+'use client'
+
+import { useEffect, useState } from "react";
+import Link from 'next/link';
+import { products, categories, subcategories } from "../category/data"; // Ajusta la ruta si es necesario
 
 export default function SearchModal({ isOpen, onClose }) {
-  // Cerrar el modal si el usuario hace clic fuera de él
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filtered, setFiltered] = useState([]);
+
+  useEffect(() => {
+    const query = searchQuery.toLowerCase().trim();
+
+    // Filtrado de productos
+    // Compararemos el query con el nombre del producto, su descripción,
+    // el nombre de su categoría y el de su subcategoría.
+    const results = products.filter((p) => {
+      const productName = p.name.toLowerCase();
+      const productDesc = p.description.toLowerCase();
+
+      const categoryName = categories.find(cat => cat.uniqueID === p.categoryID)?.name?.toLowerCase() || '';
+      const subcategoryName = subcategories.find(sub => sub.uniqueID === p.subcategoryID)?.name?.toLowerCase() || '';
+
+      return (
+        productName.includes(query) ||
+        productDesc.includes(query) ||
+        categoryName.includes(query) ||
+        subcategoryName.includes(query)
+      );
+    });
+
+    setFiltered(results);
+  }, [searchQuery]);
+
+  // Cerrar el modal al hacer clic fuera
   useEffect(() => {
     if (isOpen) {
       const handleClickOutside = (event) => {
         if (event.target.closest(".search-modal") === null) {
-          onClose();  // Cerrar el modal
+          onClose();
         }
       };
 
-      // Agregar el evento de clic
       document.addEventListener("mousedown", handleClickOutside);
-
-      // Limpiar el evento cuando se cierra el modal
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
@@ -21,12 +49,6 @@ export default function SearchModal({ isOpen, onClose }) {
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
-
-  // Datos de ejemplo de los productos
-  const products = [
-    { name: "Mens Pennie II Waterproof Jacket", price: 325.66, image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg" },
-    { name: "Mens Storm Waterproof Jacket", price: 499.99, image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg" }
-  ];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -42,29 +64,37 @@ export default function SearchModal({ isOpen, onClose }) {
         
         <input
           type="text"
-          placeholder="Search by product or category name..."
+          placeholder="Busca por producto, categoría, subcategoría o descripción..."
           className="w-full p-3 border border-gray-300 rounded-lg mb-4"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
         
-        <div className="text-sm mb-4">
-          <span>2 resultados para "jabón lavanda"</span>
-        </div>
+        {searchQuery && (
+          <div className="text-sm mb-4">
+            <span>{filtered.length} resultado(s) para "{searchQuery}"</span>
+          </div>
+        )}
 
         <div className="space-y-4">
-          {products.map((product, index) => (
-            <div key={index} className="flex items-center justify-between">
+          {filtered.map((product) => (
+            <Link 
+              key={product.uniqueID} 
+              href={`/product/${product.url}`}
+              className="flex items-center justify-between hover:bg-gray-100 p-2 rounded-md transition-colors"
+            >
               <div className="flex items-center space-x-4">
                 <img
-                  src={product.image}
+                  src={product.images[0]}
                   alt={product.name}
                   className="w-16 h-16 object-cover rounded-md"
                 />
                 <div>
                   <p className="font-semibold">{product.name}</p>
-                  <p className="text-sm text-gray-600">${product.price}</p>
+                  <p className="text-sm text-gray-600">${product.price.toFixed(2)}</p>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
         

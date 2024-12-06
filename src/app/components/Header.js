@@ -1,14 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaSearch, FaHeart, FaUser, FaShoppingCart, FaBars, FaTimes } from "react-icons/fa";
 import '../styles/header.css'
 import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
 
-export default function Header({ cartCount, textColor }) { // default a 'text-white'
+export default function Header({ textColor = 'text-white' }) { 
   const [isHovered, setIsHovered] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const totalCount = cart.reduce((acc, item) => acc + item.qty, 0);
+    setCartCount(totalCount);
+  }, [isCartOpen]); 
+  // Puedes ajustar la dependencia si deseas que se actualice la cuenta en otras interacciones.
+  // Por ejemplo, si tienes un contexto global del carrito, podrías actualizar también.
+  // Por ahora, se recalcula cuando se abre/cierra el drawer.
 
   const handleSearchClick = () => setSearchOpen(true);
   const handleCartClick = () => setCartOpen(true);
