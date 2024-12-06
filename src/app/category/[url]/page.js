@@ -3,13 +3,13 @@
 
 import { useState, useEffect } from 'react';
 import { FaFilter, FaTimes } from 'react-icons/fa'; // Importar íconos de react-icons
-import CategoryFilter from './CategoryFilter';
-import PriceFilter from './PriceFilter'; 
-import BrandFilter from './BrandFilter';
-import ProductList from './ProductList';
-import Header from '../components/Header';
-import HeroSection from './HeroSection';
-import { products, categories, brands, types, subcategories } from './data'; // Importar las colecciones
+import CategoryFilter from '../CategoryFilter';
+import PriceFilter from '../PriceFilter'; 
+import BrandFilter from '../BrandFilter';
+import ProductList from '../ProductList';
+import Header from '../../components/Header';
+import HeroSection from '../HeroSection';
+import { products, categories, brands, types, subcategories } from '../data'; // Importar las colecciones
 
 export default function ProductPage() {
   const [minPrice, setMinPrice] = useState(0);

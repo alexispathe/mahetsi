@@ -1,8 +1,11 @@
+'use client'
+
 import { useState, useEffect } from "react";
 import { FaSearch, FaHeart, FaUser, FaShoppingCart, FaBars, FaTimes } from "react-icons/fa";
 import '../styles/header.css'
 import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
+import { categories, subcategories } from '../category/data'; // Ajusta la ruta si es necesario
 
 export default function Header({ textColor = 'text-white' }) { 
   const [isHovered, setIsHovered] = useState(false);
@@ -16,9 +19,6 @@ export default function Header({ textColor = 'text-white' }) {
     const totalCount = cart.reduce((acc, item) => acc + item.qty, 0);
     setCartCount(totalCount);
   }, [isCartOpen]); 
-  // Puedes ajustar la dependencia si deseas que se actualice la cuenta en otras interacciones.
-  // Por ejemplo, si tienes un contexto global del carrito, podrías actualizar también.
-  // Por ahora, se recalcula cuando se abre/cierra el drawer.
 
   const handleSearchClick = () => setSearchOpen(true);
   const handleCartClick = () => setCartOpen(true);
@@ -42,21 +42,40 @@ export default function Header({ textColor = 'text-white' }) {
 
         {/* Menú de Navegación para Pantallas Grandes */}
         <nav className="hidden md:flex space-x-6">
-          <div className="group relative">
-            <a href="/category" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
-              Shampoos Sólidos
-            </a>
-            {/* Submenu */}
-            <div className="absolute top-full left-0 hidden group-hover:block bg-white shadow-lg p-4">
-              <ul>
-                <li><a href="/shampoos-solidos/hidratacion-profunda" className="py-1 hover:text-gray-700">Hidratación Profunda</a></li>
-                <li><a href="/shampoos-solidos/para-hombre" className="py-1 hover:text-gray-700">Para Hombre</a></li>
-                <li><a href="/shampoos-solidos/veganos" className="py-1 hover:text-gray-700">Veganos</a></li>
-              </ul>
-            </div>
-          </div>
-          <a href="/jabones-organicos" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>Jabones Orgánicos</a>
-          <a href="/contacto" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>Contacto</a>
+          {categories.map((category) => {
+            // Subcategorías de esta categoría
+            const filteredSubcategories = subcategories.filter(sub => sub.categoryID === category.uniqueID);
+            return (
+              <div key={category.uniqueID} className="group relative">
+                <a
+                  href={`/category/${category.url}`}
+                  className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}
+                >
+                  {category.name}
+                </a>
+                {filteredSubcategories.length > 0 && (
+                  <div className="absolute top-full left-0 hidden group-hover:block bg-white shadow-lg p-4">
+                    <ul>
+                      {filteredSubcategories.map((subcat) => (
+                        <li key={subcat.uniqueID}>
+                          <a 
+                            href={`/category/${category.url}/${subcat.url}`} 
+                            className="py-1 hover:text-gray-700 block"
+                          >
+                            {subcat.name}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          {/* Link adicional (ej: Contacto) si lo deseas estático */}
+          <a href="/contacto" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
+            Contacto
+          </a>
         </nav>
 
         {/* Iconos y Menú Móvil */}
@@ -108,8 +127,30 @@ export default function Header({ textColor = 'text-white' }) {
       {isMenuOpen && (
         <nav className="md:hidden bg-white shadow-lg">
           <ul className="flex flex-col space-y-4 p-4">
-            <li><a href="/category" className="cursor-pointer hover:text-gray-700">Shampoos Sólidos</a></li>
-            <li><a href="/jabones-organicos" className="cursor-pointer hover:text-gray-700">Jabones Orgánicos</a></li>
+            {categories.map((category) => {
+              const filteredSubcategories = subcategories.filter(sub => sub.categoryID === category.uniqueID);
+              return (
+                <li key={category.uniqueID}>
+                  <a href={`/category/${category.url}`} className="cursor-pointer hover:text-gray-700 block">
+                    {category.name}
+                  </a>
+                  {filteredSubcategories.length > 0 && (
+                    <ul className="pl-4 mt-2 space-y-2">
+                      {filteredSubcategories.map(subcat => (
+                        <li key={subcat.uniqueID}>
+                          <a 
+                            href={`/category/${category.url}/${subcat.url}`} 
+                            className="cursor-pointer hover:text-gray-700 block text-sm"
+                          >
+                            {subcat.name}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              )
+            })}
             <li><a href="/contacto" className="cursor-pointer hover:text-gray-700">Contacto</a></li>
           </ul>
         </nav>

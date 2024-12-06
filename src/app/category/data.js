@@ -132,6 +132,27 @@ export const categories = [
       ownerId: "user123",
       url: "jabon-de-menta-refrescante",
     },
+    {
+      uniqueID: "prod002",
+      name: "Jabón de Chetos",
+      description: "Jabón líquido con extracto de menta, perfecto para una limpieza revitalizante.",
+      price: 9.99,
+      stockQuantity: 200,
+      categoryID: "cat001",
+      subcategoryID: "subcat002",
+      brandID: "brand002",
+      typeID: "type002",
+      images: [
+        "https://mahetsipage.web.app/assets/images/products/img-4.jpeg",
+        "https://mahetsipage.web.app/assets/images/products/img-3.jpeg",
+      ],
+      averageRating: 4.7,
+      numReviews: 45,
+      dateCreated: new Date("2024-03-15T10:30:00Z"),
+      dateModified: new Date("2024-06-25T16:20:00Z"),
+      ownerId: "user123",
+      url: "jabon-de-chetos",
+    },
     // Añade más productos según sea necesario
   ];
   
