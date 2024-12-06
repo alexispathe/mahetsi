@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect } from "react";
-import { useParams } from "next/navigation"; // Si usas Next.js 13 con el App Router
+import { useParams } from "next/navigation";
 import Header from "../../components/Header";
 import { products, brands, types } from "../../category/data";
 
@@ -8,7 +8,6 @@ export default function ProductDetail() {
   const params = useParams();
   const product = products.find((p) => p.url === params.url);
 
-  // Si el producto no existe, puedes manejar el caso:
   if (!product) {
     return (
       <>
@@ -24,7 +23,7 @@ export default function ProductDetail() {
   const [showModal, setShowModal] = useState(false);
   const modalRef = useRef(null);
 
-  const thumbnails = product.images; // Usa las imágenes del producto
+  const thumbnails = product.images;
 
   const handleThumbnailClick = (image) => {
     setMainImage(image);
@@ -58,6 +57,35 @@ export default function ProductDetail() {
 
   const brandName = brands.find((b) => b.uniqueID === product.brandID)?.name || "";
   const typeName = types.find((t) => t.uniqueID === product.typeID)?.name || "";
+
+  const handleAddToCart = () => {
+    // Obtenemos el carrito del localStorage (o inicializamos uno vacío)
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    // Puedes añadir propiedades extra como la cantidad o el size
+    const itemToAdd = {
+      uniqueID: product.uniqueID,
+      name: product.name,
+      price: product.price,
+      image: product.images[0], 
+      size: "Medium", // Esto sería dinámico si implementas la lógica de tamaños
+      qty: 1
+    };
+
+    // Comprobar si el producto ya está en el carrito
+    const existingItemIndex = cart.findIndex((item) => item.uniqueID === product.uniqueID);
+    if (existingItemIndex !== -1) {
+      // Si ya existe, incrementamos la cantidad
+      cart[existingItemIndex].qty += 1;
+    } else {
+      // Si no existe, lo agregamos
+      cart.push(itemToAdd);
+    }
+
+    // Guardamos de nuevo en localStorage
+    localStorage.setItem("cart", JSON.stringify(cart));
+    alert("Producto agregado al carrito");
+  };
 
   return (
     <>
@@ -96,7 +124,6 @@ export default function ProductDetail() {
 
           {/* Sección de Información del Producto */}
           <div className="space-y-6">
-            {/* Puedes ajustar el breadcrumb según tu lógica */}
             <p className="text-gray-500 text-sm">HOME / {brandName.toUpperCase()} / {typeName.toUpperCase()}</p>
             <h1 className="text-3xl font-bold">{product.name}</h1>
             <div className="flex items-center space-x-2">
@@ -105,9 +132,6 @@ export default function ProductDetail() {
             </div>
             <div className="flex items-baseline space-x-4">
               <p className="text-2xl text-red-600 font-semibold">${product.price.toFixed(2)}</p>
-              {/* Aquí podrías manejar descuentos o no */}
-              {/* <p className="line-through text-gray-500">$20.00</p>
-              <p className="text-green-600">Save $4.01</p> */}
             </div>
             <div>
               <div className="mb-4">
@@ -123,13 +147,16 @@ export default function ProductDetail() {
                 >
                   <option>Please Select Size</option>
                   <option>Small</option>
-                  <option>Medium</option>
+                  <option selected>Medium</option>
                   <option>Large</option>
                 </select>
               </div>
             </div>
             <div className="flex space-x-4">
-              <button className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700">
+              <button 
+                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
+                onClick={handleAddToCart}
+              >
                 Add To Cart
               </button>
               <button className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500">
@@ -150,23 +177,21 @@ export default function ProductDetail() {
             className="relative"
             ref={modalRef}
           >
-            {/* Botón "X" para cerrar el modal */}
             <button
               className="absolute top-2 right-2 text-white text-3xl font-bold z-10"
               onClick={(e) => {
-                e.stopPropagation(); // Prevenir que el clic se propague al contenedor
+                e.stopPropagation();
                 closeModal();
               }}
               aria-label="Cerrar modal"
             >
               ✖
             </button>
-            {/* Imagen en el modal */}
             <img
               src={mainImage}
               alt="Producto principal expandido"
               className="max-w-full max-h-screen rounded-md object-contain cursor-pointer"
-              onClick={closeModal} // Cerrar el modal al hacer clic en la imagen
+              onClick={closeModal}
             />
           </div>
         </div>
