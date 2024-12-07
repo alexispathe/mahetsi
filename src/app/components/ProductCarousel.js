@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, A11y } from 'swiper/modules';
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
@@ -9,66 +9,36 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/a11y";
 
-export default function ProductCarousel() {
-  const swiperRef = useRef(null);
+import { products as productsData, reviews as reviewsData } from '../category/data'; // Asegúrate de importar los datos correctamente
 
-  const products = [
-    {
-      image: "https://mahetsipage.web.app/assets/images/products/img-1.jpeg",
-      name: "Jabón Manzana Canela",
-      rating: 4.8,
-      reviews: 189,
-      price: "$100.00"
-    },
-    {
-      image: "https://mahetsipage.web.app/assets/images/products/img-2.jpeg",
-      name: "Bálsamo Lavanda Betabel",
-      rating: 4.5,
-      reviews: 1567,
-      price: "$115.00"
-    },
-    {
-      image: "https://mahetsipage.web.app/assets/images/products/img-3.jpeg",
-      name: "Bálsamo Patitas y Nariz",
-      rating: 4.5,
-      reviews: 1567,
-      price: "$120.00"
-    },
-    {
-      image: "https://mahetsipage.web.app/assets/images/products/img-4.jpeg",
-      name: "Shampoo Sólido Lavanda Aloe",
-      rating: 4.5,
-      reviews: 1567,
-      price: "$150.00"
-    },
-    {
-      image: "https://mahetsipage.web.app/assets/images/products/img-5.jpeg",
-      name: "Jabón Natural de Menta",
-      rating: 4.7,
-      reviews: 200,
-      price: "$90.00"
-    },
-    {
-      image: "https://mahetsipage.web.app/assets/images/products/img-1.jpeg",
-      name: "Jabón",
-      rating: 4.7,
-      reviews: 200,
-      price: "$90.00"
-    },
-    {
-      image: "https://mahetsipage.web.app/assets/images/products/img-2.jpeg",
-      name: "Natural de Menta",
-      rating: 4.7,
-      reviews: 200,
-      price: "$90.00"
-    }
-  ];
+export default function ProductCarousel() {
+  const [sortedProducts, setSortedProducts] = useState([]);
+  
+  // Función para calcular el promedio de calificación
+  const calculateAverageRating = (productId) => {
+    // Filtrar las reseñas que pertenecen a este producto
+    const productReviews = reviewsData.filter(review => review.product_id === productId);
+    // Calcular el promedio de calificación
+    const totalReviews = productReviews.length;
+    const totalRating = productReviews.reduce((sum, review) => sum + review.rating, 0);
+    return totalReviews ? totalRating / totalReviews : 0;
+  };
 
   useEffect(() => {
-    if (swiperRef.current && swiperRef.current.navigation) {
-      swiperRef.current.navigation.init();
-      swiperRef.current.navigation.update();
-    }
+    // Actualizar productos con su promedio de calificación
+    const updatedProducts = productsData.map(product => {
+      const averageRating = calculateAverageRating(product.uniqueID); // Calculamos el promedio
+      return {
+        ...product,
+        averageRating, // Agregamos el promedio al producto
+        numReviews: reviewsData.filter(review => review.product_id === product.uniqueID).length, // Contamos el número de reseñas
+      };
+    });
+
+    // Ordenar los productos por la calificación promedio (de mayor a menor)
+    updatedProducts.sort((a, b) => b.averageRating - a.averageRating);
+
+    setSortedProducts(updatedProducts);
   }, []);
 
   return (
@@ -82,10 +52,7 @@ export default function ProductCarousel() {
         {/* Carrusel de productos con Swiper */}
         <div className="relative">
           <Swiper
-            onSwiper={(swiper) => {
-              swiperRef.current = swiper;
-            }}
-            modules={[Navigation, A11y]}
+            key={sortedProducts.map(p => p.uniqueID).join('-')}  // Forzar el remount de Swiper al cambiar el orden
             spaceBetween={30}
             slidesPerView={3}
             loop={true}
@@ -94,22 +61,15 @@ export default function ProductCarousel() {
               nextEl: ".custom-swiper-button-next",
             }}
             breakpoints={{
-              1280: { // Pantallas grandes
-                slidesPerView: 4,
-              },
-              1024: {
-                slidesPerView: 3,
-              },
-              768: {
-                slidesPerView: 2,
-              },
-              640: {
-                slidesPerView: 1,
-              },
-              200: {
-                slidesPerView: 1,
-              },
+              1280: { slidesPerView: 4 },
+              1024: { slidesPerView: 3 },
+              768: { slidesPerView: 2 },
+              640: { slidesPerView: 1 },
+              200: { slidesPerView: 1 },
             }}
+            modules={[Navigation, A11y]}
+            observer={true}  // Habilitar para observar cambios en el Swiper
+            observeParents={true}  // Habilitar para observar cambios en los padres del Swiper
             a11y={{
               prevSlideMessage: 'Slide anterior',
               nextSlideMessage: 'Slide siguiente',
@@ -118,16 +78,16 @@ export default function ProductCarousel() {
             }}
             className="product-swiper"
           >
-            {products.map((product, index) => (
-              <SwiperSlide key={index} className="flex flex-col items-center p-4">
+            {sortedProducts.map((product) => (
+              <SwiperSlide key={product.uniqueID} className="flex flex-col items-center p-4">
                 <Link 
                   href="/product" 
                   className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md"
                 >
                   <img
-                    src={product.image}
+                    src={product.images[0]}
                     alt={product.name}
-                    className="w-full h-72 object-cover rounded-md mb-4" // Hacer la imagen principal ocupar todo el ancho
+                    className="w-full h-72 object-cover rounded-md mb-4"
                     loading="lazy"
                   />
                   <h3 className="text-lg font-semibold mb-2 text-center">{product.name}</h3>
@@ -135,13 +95,13 @@ export default function ProductCarousel() {
                     <div className="flex text-yellow-500">
                       {Array.from({ length: 5 }, (_, i) => (
                         <span key={i}>
-                          {i < Math.floor(product.rating) ? "★" : "☆"}
+                          {i < Math.floor(product.averageRating) ? "★" : "☆"}
                         </span>
                       ))}
                     </div>
-                    <span className="text-gray-500 text-sm ml-2">({product.reviews})</span>
+                    <span className="text-gray-500 text-sm ml-2">({product.numReviews})</span>
                   </div>
-                  <p className="text-xl font-bold">{product.price}</p>
+                  <p className="text-xl font-bold">{`$${product.price.toFixed(2)}`}</p>
                 </Link>
               </SwiperSlide>
             ))}
