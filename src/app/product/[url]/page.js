@@ -76,7 +76,7 @@ export default function ProductDetail() {
         name: product.name,
         price: product.price,
         image: product.images[0], 
-        size: "Medium",
+        size: "Medium",  // Este valor puede actualizarse más tarde
         qty: 1
       });
     }
@@ -97,6 +97,13 @@ export default function ProductDetail() {
       localStorage.setItem("favorites", JSON.stringify(favorites));
       setIsLiked(true);
     }
+  };
+
+  // Estado para manejar el tamaño seleccionado
+  const [selectedSize, setSelectedSize] = useState("Medium");
+
+  const handleSizeChange = (e) => {
+    setSelectedSize(e.target.value);
   };
 
   return (
@@ -155,12 +162,13 @@ export default function ProductDetail() {
                 </label>
                 <select
                   id="size-select"
+                  value={selectedSize}
+                  onChange={handleSizeChange} // Vinculamos el estado al select
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 >
-                  <option>Please Select Size</option>
-                  <option>Small</option>
-                  <option selected>Medium</option>
-                  <option>Large</option>
+                  <option value="Small">Small</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Large">Large</option>
                 </select>
               </div>
             </div>
@@ -215,4 +223,3 @@ export default function ProductDetail() {
     </>
   );
 }
-  
