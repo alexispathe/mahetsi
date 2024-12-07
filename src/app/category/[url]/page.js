@@ -1,17 +1,35 @@
-// ProductPage.js
+// page.js (dentro de src/app/category/[categoryUrl]/)
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaFilter, FaTimes } from 'react-icons/fa'; // Importar íconos de react-icons
+import { useParams } from 'next/navigation';
+import { FaFilter, FaTimes } from 'react-icons/fa';
 import CategoryFilter from '../CategoryFilter';
-import PriceFilter from '../PriceFilter'; 
+import PriceFilter from '../PriceFilter';
 import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
 import Header from '../../components/Header';
 import HeroSection from '../HeroSection';
-import { products, categories, brands, types, subcategories } from '../data'; // Importar las colecciones
+import { products, categories, brands, types, subcategories } from '../data';
 
 export default function ProductPage() {
+  const params = useParams();
+  const categoryUrl = params.url;
+  // Buscar la categoría por su url
+  const currentCategory = categories.find(cat => cat.url === categoryUrl);
+
+  // Si no se encuentra la categoría, podrías manejar el error o mostrar un mensaje
+  if (!currentCategory) {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto p-6">
+          <h2 className="text-2xl font-bold">Categoría no encontrada</h2>
+        </div>
+      </>
+    );
+  }
+
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -20,40 +38,47 @@ export default function ProductPage() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]); // Si no utilizas tallas en tus productos, puedes eliminar esto
+  const [selectedSizes, setSelectedSizes] = useState([]);
 
-  // Función para filtrar productos
+  // Filtrar productos por la categoría actual
+  const categoryID = currentCategory.uniqueID;
+  const filteredProductsByCategory = products.filter(p => p.categoryID === categoryID);
+
+  // Filtrar brands y types por categoryID
+  const filteredBrands = brands.filter(b => b.categoryID === categoryID);
+  const filteredTypes = types.filter(t => t.categoryID === categoryID);
+
   const filterProducts = () => {
-    return products.filter(product => {
+    return filteredProductsByCategory.filter(product => {
       const withinPrice = product.price >= minPrice && product.price <= maxPrice;
 
-      // Obtener el nombre de la categoría y la subcategoría
       const productCategory = categories.find(cat => cat.uniqueID === product.categoryID);
-      const productSubcategory = subcategories.find(subcat => subcat.uniqueID === product.subcategoryID);
-      
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(productCategory?.name);
-      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(getBrandName(product.brandID));
-      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(getTypeName(product.typeID));
-      const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size); // Asegúrate de que los productos tengan la propiedad 'size'
+
+      const brandName = getBrandName(product.brandID);
+      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(brandName);
+
+      const typeName = getTypeName(product.typeID);
+      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(typeName);
+
+      const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size); 
 
       return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize;
     });
   };
 
-  // Funciones auxiliares para obtener nombres a partir de IDs
   const getBrandName = (brandID) => {
-    const brand = brands.find(b => b.uniqueID === brandID);
+    const brand = filteredBrands.find(b => b.uniqueID === brandID);
     return brand ? brand.name : '';
   };
 
   const getTypeName = (typeID) => {
-    const type = types.find(t => t.uniqueID === typeID);
+    const type = filteredTypes.find(t => t.uniqueID === typeID);
     return type ? type.name : '';
   };
 
   const filteredProducts = filterProducts();
 
-  // Función para limpiar todos los filtros
   const clearAllFilters = () => {
     setSelectedCategories([]);
     setSelectedBrands([]);
@@ -63,7 +88,6 @@ export default function ProductPage() {
     setMaxPrice(1000);
   };
 
-  // Controlar el scroll del body al abrir/cerrar el modal
   useEffect(() => {
     if (isFilterOpen) {
       document.body.style.overflow = 'hidden';
@@ -71,7 +95,6 @@ export default function ProductPage() {
       document.body.style.overflow = 'auto';
     }
 
-    // Limpiar el estilo al desmontar el componente
     return () => {
       document.body.style.overflow = 'auto';
     };
@@ -88,7 +111,7 @@ export default function ProductPage() {
             onClick={() => setIsFilterOpen(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
           >
-            <FaFilter className="w-5 h-5 mr-2" /> {/* Ícono de Filtros */}
+            <FaFilter className="w-5 h-5 mr-2" />
             Filtros
           </button>
         </div>
@@ -97,7 +120,7 @@ export default function ProductPage() {
           {/* Filtro lateral en pantallas medianas y grandes */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
             <CategoryFilter 
-              categories={categories} // Pasar las categorías
+              categories={categories.filter(cat => cat.uniqueID === categoryID)} // Solo la categoría actual
               selectedCategories={selectedCategories} 
               setSelectedCategories={setSelectedCategories} 
             />
@@ -107,8 +130,8 @@ export default function ProductPage() {
               onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }} 
             />
             <BrandFilter 
-              brands={brands} // Pasar las marcas
-              types={types} // Pasar los tipos
+              brands={filteredBrands} // Solo las marcas de la categoría
+              types={filteredTypes}   // Solo los tipos de la categoría
               selectedBrands={selectedBrands} 
               setSelectedBrands={setSelectedBrands} 
               selectedTypes={selectedTypes}
@@ -140,17 +163,16 @@ export default function ProductPage() {
         {isFilterOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto transition-opacity duration-300 ease-in-out">
             <div className="bg-white rounded-lg max-w-md w-full mx-4 p-6 relative">
-              {/* Botón de cierre */}
               <button 
                 onClick={() => setIsFilterOpen(false)} 
                 className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
                 aria-label="Cerrar filtros"
               >
-                <FaTimes className="h-6 w-6" /> {/* Ícono de Cierre */}
+                <FaTimes className="h-6 w-6" />
               </button>
               <h2 className="text-xl font-semibold mb-4">Filtros</h2>
               <CategoryFilter 
-                categories={categories} // Pasar las categorías
+                categories={categories.filter(cat => cat.uniqueID === categoryID)} 
                 selectedCategories={selectedCategories} 
                 setSelectedCategories={setSelectedCategories} 
               />
@@ -160,8 +182,8 @@ export default function ProductPage() {
                 onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }} 
               />
               <BrandFilter 
-                brands={brands} // Pasar las marcas
-                types={types} // Pasar los tipos
+                brands={filteredBrands}
+                types={filteredTypes}
                 selectedBrands={selectedBrands} 
                 setSelectedBrands={setSelectedBrands} 
                 selectedTypes={selectedTypes}
