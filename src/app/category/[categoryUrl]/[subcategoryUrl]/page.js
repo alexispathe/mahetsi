@@ -17,10 +17,18 @@ export default function SubcategoryPage() {
   const params = useParams();
   const { categoryUrl, subcategoryUrl } = params;
 
+  // Llamada de hooks antes de cualquier condicional
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(1000);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedSizes, setSelectedSizes] = useState([]);
+
   // Buscar la categoría por su categoryUrl
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
-
-  // Si no se encuentra la categoría, manejar el error
   if (!currentCategory) {
     return (
       <>
@@ -34,7 +42,6 @@ export default function SubcategoryPage() {
 
   // Buscar la subcategoría por su url y categoría
   const currentSubcategory = subcategories.find(sub => sub.url === subcategoryUrl && sub.categoryID === currentCategory.uniqueID);
-
   if (!currentSubcategory) {
     return (
       <>
@@ -46,15 +53,6 @@ export default function SubcategoryPage() {
     );
   }
 
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(1000);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedTypes, setSelectedTypes] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]);
-
   const categoryID = currentCategory.uniqueID;
   const subcategoryID = currentSubcategory.uniqueID;
 
@@ -64,11 +62,9 @@ export default function SubcategoryPage() {
   );
 
   // Obtener las brands y types relevantes a partir de los productos filtrados
-  // 1. Obtener los IDs de marcas y tipos presentes en esta subcategoría
   const brandIDsInSubcategory = [...new Set(filteredProductsBySubcategory.map(p => p.brandID))];
   const typeIDsInSubcategory = [...new Set(filteredProductsBySubcategory.map(p => p.typeID))];
 
-  // 2. Filtrar las marcas y tipos que pertenecen a esta categoría y aparecen en la subcategoría
   const filteredBrands = brands.filter(b => b.categoryID === categoryID && brandIDsInSubcategory.includes(b.uniqueID));
   const filteredTypes = types.filter(t => t.categoryID === categoryID && typeIDsInSubcategory.includes(t.uniqueID));
 
@@ -86,9 +82,6 @@ export default function SubcategoryPage() {
     return filteredProductsBySubcategory.filter(product => {
       const withinPrice = product.price >= minPrice && product.price <= maxPrice;
 
-      // Aquí solo tenemos una categoría y subcategoría específicas,
-      // así que la categoría siempre coincide. Pero mantenemos la lógica
-      // por si se usa selectedCategories.
       const productCategory = categories.find(cat => cat.uniqueID === product.categoryID);
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(productCategory?.name);
 
@@ -146,10 +139,6 @@ export default function SubcategoryPage() {
         <div className="flex justify-center">
           {/* Filtro lateral en pantallas medianas y grandes */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
-            {/* Como estamos en una subcategoría específica, las categorías ya están definidas.
-               Podríamos mostrar solo la categoría actual en el CategoryFilter, 
-               o incluso omitirlo si no quieres cambiar la categoría desde esta página. 
-            */}
             <CategoryFilter 
               categories={categories.filter(cat => cat.uniqueID === categoryID)} 
               selectedCategories={selectedCategories} 

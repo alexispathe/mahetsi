@@ -1,4 +1,3 @@
-// page.js (dentro de src/app/category/[categoryUrl]/)
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,15 +9,27 @@ import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
 import Header from '../../components/Header';
 import HeroSection from '../HeroSection';
-import { products, categories, brands, types, subcategories } from '../data';
+import { products, categories, brands, types } from '../data';
 
 export default function ProductPage() {
   const params = useParams();
   const categoryUrl = params.categoryUrl;
+
+  // Llamada a los hooks antes de cualquier condicional
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(1000);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  // Estados para filtros
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedSizes, setSelectedSizes] = useState([]);
+
   // Buscar la categoría por su url
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
-  // Si no se encuentra la categoría, podrías manejar el error o mostrar un mensaje
+  // Si no se encuentra la categoría, manejarlo después de los hooks
   if (!currentCategory) {
     return (
       <>
@@ -29,16 +40,6 @@ export default function ProductPage() {
       </>
     );
   }
-
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(1000);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  // Estados para filtros
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedTypes, setSelectedTypes] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]);
 
   // Filtrar productos por la categoría actual
   const categoryID = currentCategory.uniqueID;
@@ -61,7 +62,7 @@ export default function ProductPage() {
       const typeName = getTypeName(product.typeID);
       const matchesType = selectedTypes.length === 0 || selectedTypes.includes(typeName);
 
-      const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size); 
+      const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size);
 
       return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize;
     });

@@ -8,29 +8,21 @@ export default function ProductDetail() {
   const params = useParams();
   const product = products.find((p) => p.url === params.url);
 
-  if (!product) {
-    return (
-      <>
-        <Header />
-        <div className="flex justify-center items-center my-10 px-4">
-          <h2 className="text-2xl font-bold">Producto no encontrado</h2>
-        </div>
-      </>
-    );
-  }
-
-  const [mainImage, setMainImage] = useState(product.images[0]);
+  // Llamada de hooks antes del condicional
+  const [mainImage, setMainImage] = useState(product ? product.images[0] : null);
   const [showModal, setShowModal] = useState(false);
   const modalRef = useRef(null);
-  const thumbnails = product.images;
+  const thumbnails = product ? product.images : [];
 
   const [isLiked, setIsLiked] = useState(false);
 
   // Al montar, revisar si el producto está en favoritos
   useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-    setIsLiked(favorites.includes(product.uniqueID));
-  }, [product.uniqueID]);
+    if (product) {
+      const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+      setIsLiked(favorites.includes(product.uniqueID));
+    }
+  }, [product]);
 
   const handleThumbnailClick = (image) => {
     setMainImage(image);
@@ -62,8 +54,8 @@ export default function ProductDetail() {
     };
   }, [showModal]);
 
-  const brandName = brands.find((b) => b.uniqueID === product.brandID)?.name || "";
-  const typeName = types.find((t) => t.uniqueID === product.typeID)?.name || "";
+  const brandName = product ? brands.find((b) => b.uniqueID === product.brandID)?.name || "" : "";
+  const typeName = product ? types.find((t) => t.uniqueID === product.typeID)?.name || "" : "";
 
   const handleAddToCart = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -105,6 +97,18 @@ export default function ProductDetail() {
   const handleSizeChange = (e) => {
     setSelectedSize(e.target.value);
   };
+
+  // Verificar si el producto existe antes de mostrarlo
+  if (!product) {
+    return (
+      <>
+        <Header />
+        <div className="flex justify-center items-center my-10 px-4">
+          <h2 className="text-2xl font-bold">Producto no encontrado</h2>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
