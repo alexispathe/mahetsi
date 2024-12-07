@@ -5,23 +5,26 @@ import { FaSearch, FaHeart, FaUser, FaShoppingCart, FaBars, FaTimes } from "reac
 import '../styles/header.css'
 import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
-import { categories, subcategories } from '../category/data'; // Ajusta la ruta si es necesario
+import FavoritesModal from "./FavoritesModal"; // Importar el nuevo modal
+import { categories, subcategories } from '../category/data';
 
 export default function Header({ textColor = 'text-white' }) { 
   const [isHovered, setIsHovered] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
+  const [isFavoritesOpen, setFavoritesOpen] = useState(false); // Estado para favoritos
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     const totalCount = cart.reduce((acc, item) => acc + item.qty, 0);
     setCartCount(totalCount);
-  }, [isCartOpen]); 
+  }, [isCartOpen]);
 
   const handleSearchClick = () => setSearchOpen(true);
   const handleCartClick = () => setCartOpen(true);
+  const handleFavoritesClick = () => setFavoritesOpen(true); // Abrir favoritos
   const toggleMenu = () => setMenuOpen(!isMenuOpen);
 
   return (
@@ -43,7 +46,6 @@ export default function Header({ textColor = 'text-white' }) {
         {/* Menú de Navegación para Pantallas Grandes */}
         <nav className="hidden md:flex space-x-6">
           {categories.map((category) => {
-            // Subcategorías de esta categoría
             const filteredSubcategories = subcategories.filter(sub => sub.categoryID === category.uniqueID);
             return (
               <div key={category.uniqueID} className="group relative">
@@ -72,7 +74,6 @@ export default function Header({ textColor = 'text-white' }) {
               </div>
             )
           })}
-          {/* Link adicional (ej: Contacto) si lo deseas estático */}
           <a href="/contacto" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
             Contacto
           </a>
@@ -80,7 +81,6 @@ export default function Header({ textColor = 'text-white' }) {
 
         {/* Iconos y Menú Móvil */}
         <div className="flex items-center space-x-4">
-          {/* Icono de Búsqueda */}
           <FaSearch
             className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
             onClick={handleSearchClick}
@@ -88,12 +88,11 @@ export default function Header({ textColor = 'text-white' }) {
           {/* Icono de Favoritos */}
           <FaHeart
             className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
+            onClick={handleFavoritesClick}
           />
-          {/* Icono de Usuario */}
           <FaUser
             className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
           />
-          {/* Icono de Carrito */}
           <div className="relative">
             <FaShoppingCart
               className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
@@ -107,7 +106,6 @@ export default function Header({ textColor = 'text-white' }) {
               </span>
             )}
           </div>
-          {/* Icono de Menú Hamburguesa (Visible en Móviles) */}
           <button
             className="md:hidden focus:outline-none"
             onClick={toggleMenu}
@@ -123,7 +121,6 @@ export default function Header({ textColor = 'text-white' }) {
         </div>
       </div>
 
-      {/* Menú Móvil */}
       {isMenuOpen && (
         <nav className="md:hidden bg-white shadow-lg">
           <ul className="flex flex-col space-y-4 p-4">
@@ -156,9 +153,11 @@ export default function Header({ textColor = 'text-white' }) {
         </nav>
       )}
 
-      {/* Modals */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
+
+      {/* Modal de Favoritos */}
+      <FavoritesModal isOpen={isFavoritesOpen} onClose={() => setFavoritesOpen(false)} />
     </header>
   );
 }
