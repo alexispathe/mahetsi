@@ -14,7 +14,7 @@ import { products, categories, brands, types, subcategories } from '../data';
 
 export default function ProductPage() {
   const params = useParams();
-  const categoryUrl = params.url;
+  const categoryUrl = params.categoryUrl;
   // Buscar la categoría por su url
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
 

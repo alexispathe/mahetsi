@@ -15,10 +15,10 @@ import { products, categories, brands, types, subcategories } from '../../data';
 
 export default function SubcategoryPage() {
   const params = useParams();
-  const { url, subcategoryUrl } = params;
+  const { categoryUrl, subcategoryUrl } = params;
 
-  // Buscar la categoría por su url
-  const currentCategory = categories.find(cat => cat.url === url);
+  // Buscar la categoría por su categoryUrl
+  const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
   // Si no se encuentra la categoría, manejar el error
   if (!currentCategory) {

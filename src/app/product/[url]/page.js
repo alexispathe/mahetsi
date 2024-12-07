@@ -22,8 +22,15 @@ export default function ProductDetail() {
   const [mainImage, setMainImage] = useState(product.images[0]);
   const [showModal, setShowModal] = useState(false);
   const modalRef = useRef(null);
-
   const thumbnails = product.images;
+
+  const [isLiked, setIsLiked] = useState(false);
+
+  // Al montar, revisar si el producto está en favoritos
+  useEffect(() => {
+    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+    setIsLiked(favorites.includes(product.uniqueID));
+  }, [product.uniqueID]);
 
   const handleThumbnailClick = (image) => {
     setMainImage(image);
@@ -59,32 +66,37 @@ export default function ProductDetail() {
   const typeName = types.find((t) => t.uniqueID === product.typeID)?.name || "";
 
   const handleAddToCart = () => {
-    // Obtenemos el carrito del localStorage (o inicializamos uno vacío)
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    // Puedes añadir propiedades extra como la cantidad o el size
-    const itemToAdd = {
-      uniqueID: product.uniqueID,
-      name: product.name,
-      price: product.price,
-      image: product.images[0], 
-      size: "Medium", // Esto sería dinámico si implementas la lógica de tamaños
-      qty: 1
-    };
-
-    // Comprobar si el producto ya está en el carrito
     const existingItemIndex = cart.findIndex((item) => item.uniqueID === product.uniqueID);
     if (existingItemIndex !== -1) {
-      // Si ya existe, incrementamos la cantidad
       cart[existingItemIndex].qty += 1;
     } else {
-      // Si no existe, lo agregamos
-      cart.push(itemToAdd);
+      cart.push({
+        uniqueID: product.uniqueID,
+        name: product.name,
+        price: product.price,
+        image: product.images[0], 
+        size: "Medium",
+        qty: 1
+      });
     }
-
-    // Guardamos de nuevo en localStorage
     localStorage.setItem("cart", JSON.stringify(cart));
     alert("Producto agregado al carrito");
+  };
+
+  const handleToggleFavorite = () => {
+    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+    if (favorites.includes(product.uniqueID)) {
+      // Si ya está, lo removemos
+      const updated = favorites.filter(id => id !== product.uniqueID);
+      localStorage.setItem("favorites", JSON.stringify(updated));
+      setIsLiked(false);
+    } else {
+      // Si no está, lo agregamos
+      favorites.push(product.uniqueID);
+      localStorage.setItem("favorites", JSON.stringify(favorites));
+      setIsLiked(true);
+    }
   };
 
   return (
@@ -159,8 +171,12 @@ export default function ProductDetail() {
               >
                 Add To Cart
               </button>
-              <button className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-500">
-                ❤
+              <button 
+                className={`px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 
+                  ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
+                onClick={handleToggleFavorite}
+              >
+                {isLiked ? '❤' : '♡'}
               </button>
             </div>
             <div className="text-sm text-gray-600">
