@@ -6,6 +6,7 @@ import { products } from '../category/data'; // Ajusta la ruta a tu data si es n
 export default function FavoritesModal({ isOpen, onClose }) {
   const modalRef = useRef(null);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
+  const [loading, setLoading] = useState(true); // Estado de carga
 
   useEffect(() => {
     if (isOpen) {
@@ -26,7 +27,12 @@ export default function FavoritesModal({ isOpen, onClose }) {
       const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
       // Filtramos los productos por los favoritos
       const favProds = products.filter(p => favorites.includes(p.uniqueID));
-      setFavoriteProducts(favProds);
+      
+      // Simulamos el retraso en la carga de los productos
+      setTimeout(() => {
+        setFavoriteProducts(favProds);
+        setLoading(false); // Cambiar el estado a false después de 1 segundo
+      }, 1000); // 1 segundo de retraso para simular carga
     }
   }, [isOpen]);
 
@@ -49,11 +55,22 @@ export default function FavoritesModal({ isOpen, onClose }) {
 
         <h2 className="text-2xl font-bold mb-4 text-gray-800">Mis Favoritos</h2>
 
-        {favoriteProducts.length === 0 ? (
+        {loading ? (
+          // Skeleton mientras se cargan los productos
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {Array(3).fill(0).map((_, index) => (
+              <div key={index} className="bg-gray-200 p-4 rounded-md animate-pulse">
+                <div className="w-full h-48 bg-gray-300 rounded-md mb-4"></div>
+                <div className="w-3/4 h-4 bg-gray-300 rounded-md mb-2"></div>
+                <div className="w-1/2 h-4 bg-gray-300 rounded-md"></div>
+              </div>
+            ))}
+          </div>
+        ) : favoriteProducts.length === 0 ? (
           <p className="text-gray-700">No tienes productos en favoritos</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {favoriteProducts.map(product => (
+            {favoriteProducts.map((product) => (
               <Link 
                 key={product.uniqueID}
                 href={`/product/${product.url}`} 

@@ -13,32 +13,34 @@ import { products as productsData, reviews as reviewsData } from '../category/da
 
 export default function FavoriteProductsCarousel() {
   const [sortedProducts, setSortedProducts] = useState([]);
+  const [loading, setLoading] = useState(true); // Estado de carga
   
   // Función para calcular el promedio de calificación
   const calculateAverageRating = (productId) => {
-    // Filtrar las reseñas que pertenecen a este producto
     const productReviews = reviewsData.filter(review => review.product_id === productId);
-    // Calcular el promedio de calificación
     const totalReviews = productReviews.length;
     const totalRating = productReviews.reduce((sum, review) => sum + review.rating, 0);
     return totalReviews ? totalRating / totalReviews : 0;
   };
 
   useEffect(() => {
-    // Actualizar productos con su promedio de calificación
-    const updatedProducts = productsData.map(product => {
-      const averageRating = calculateAverageRating(product.uniqueID); // Calculamos el promedio
-      return {
-        ...product,
-        averageRating, // Agregamos el promedio al producto
-        numReviews: reviewsData.filter(review => review.product_id === product.uniqueID).length, // Contamos el número de reseñas
-      };
-    });
+    // Simular un retraso en la carga de los productos
+    const timer = setTimeout(() => {
+      const updatedProducts = productsData.map(product => {
+        const averageRating = calculateAverageRating(product.uniqueID);
+        return {
+          ...product,
+          averageRating,
+          numReviews: reviewsData.filter(review => review.product_id === product.uniqueID).length,
+        };
+      });
 
-    // Ordenar los productos por la calificación promedio (de mayor a menor)
-    updatedProducts.sort((a, b) => b.averageRating - a.averageRating);
+      updatedProducts.sort((a, b) => b.averageRating - a.averageRating);
+      setSortedProducts(updatedProducts);
+      setLoading(false); // Cambiar el estado a false cuando los productos se carguen
+    }, 1500); // 1.5 segundos de retraso para simular carga
 
-    setSortedProducts(updatedProducts);
+    return () => clearTimeout(timer); // Limpiar el temporizador
   }, []);
 
   return (
@@ -78,33 +80,45 @@ export default function FavoriteProductsCarousel() {
             }}
             className="product-swiper"
           >
-            {sortedProducts.map((product) => (
-              <SwiperSlide key={product.uniqueID} className="flex flex-col items-center p-4">
-                <Link 
-                  href={"/product/"+product.url} 
-                  className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md"
-                >
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="w-full h-72 object-cover rounded-md mb-4"
-                    loading="lazy"
-                  />
-                  <h3 className="text-lg font-semibold mb-2 text-center">{product.name}</h3>
-                  <div className="flex items-center mb-2">
-                    <div className="flex text-yellow-500">
-                      {Array.from({ length: 5 }, (_, i) => (
-                        <span key={i}>
-                          {i < Math.floor(product.averageRating) ? "★" : "☆"}
-                        </span>
-                      ))}
+            {loading ? (
+              // Skeleton de productos
+              Array(5).fill(0).map((_, index) => (
+                <SwiperSlide key={index} className="flex flex-col items-center p-4">
+                  <div className="w-full h-72 bg-gray-200 rounded-md animate-pulse mb-4"></div>
+                  <div className="w-3/4 h-4 bg-gray-200 rounded-md animate-pulse mb-2"></div>
+                  <div className="w-1/2 h-4 bg-gray-200 rounded-md animate-pulse mb-2"></div>
+                  <div className="w-1/3 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+                </SwiperSlide>
+              ))
+            ) : (
+              sortedProducts.map((product) => (
+                <SwiperSlide key={product.uniqueID} className="flex flex-col items-center p-4">
+                  <Link 
+                    href={"/product/"+product.url} 
+                    className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md"
+                  >
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="w-full h-72 object-cover rounded-md mb-4"
+                      loading="lazy"
+                    />
+                    <h3 className="text-lg font-semibold mb-2 text-center">{product.name}</h3>
+                    <div className="flex items-center mb-2">
+                      <div className="flex text-yellow-500">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <span key={i}>
+                            {i < Math.floor(product.averageRating) ? "★" : "☆"}
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-gray-500 text-sm ml-2">({product.numReviews})</span>
                     </div>
-                    <span className="text-gray-500 text-sm ml-2">({product.numReviews})</span>
-                  </div>
-                  <p className="text-xl font-bold">{`$${product.price.toFixed(2)}`}</p>
-                </Link>
-              </SwiperSlide>
-            ))}
+                    <p className="text-xl font-bold">{`$${product.price.toFixed(2)}`}</p>
+                  </Link>
+                </SwiperSlide>
+              ))
+            )}
           </Swiper>
 
           {/* Botones de navegación personalizados */}

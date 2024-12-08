@@ -1,7 +1,10 @@
+'use client'
+
 import { useEffect, useState } from "react";
 
 export default function CartDrawer({ isOpen, onClose }) {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true); // Estado de carga
 
   useEffect(() => {
     if (isOpen) {
@@ -16,6 +19,11 @@ export default function CartDrawer({ isOpen, onClose }) {
       };
 
       document.addEventListener("mousedown", handleClickOutside);
+
+      // Simulamos un retraso de 1 segundo para la carga
+      setTimeout(() => {
+        setLoading(false); // Cambiar el estado de carga después de un segundo
+      }, 1000);
 
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
@@ -42,7 +50,14 @@ export default function CartDrawer({ isOpen, onClose }) {
         
         <h2 className="text-2xl font-bold mb-4 text-gray-800">Your Cart</h2>
 
-        {products.length === 0 ? (
+        {loading ? (
+          // Skeleton para cuando los productos están cargando
+          <div className="space-y-4">
+            <div className="h-2 bg-gray-200 rounded-full animate-pulse mb-4"></div>
+            <div className="h-2 bg-gray-200 rounded-full animate-pulse mb-4"></div>
+            <div className="h-2 bg-gray-200 rounded-full animate-pulse mb-4"></div>
+          </div>
+        ) : products.length === 0 ? (
           <p className="text-gray-700">Tu carrito está vacío</p>
         ) : (
           <>

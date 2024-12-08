@@ -1,9 +1,11 @@
 'use client';
 import { FaInstagram, FaWhatsapp, FaTruck, FaSyncAlt } from 'react-icons/fa'; // Importando los iconos necesarios
-import { useState } from 'react'; // Para manejar el estado del modal de imagen
+import { useState, useEffect } from 'react'; // Para manejar el estado del modal de imagen
+
 export default function InstagramSection() {
   const [isZoomed, setIsZoomed] = useState(false); // Controla la visibilidad del modal
   const [currentImage, setCurrentImage] = useState(''); // Almacena la URL de la imagen seleccionada
+  const [loading, setLoading] = useState(true); // Estado de carga para simular la carga de imágenes
 
   // Función para abrir el modal con la imagen seleccionada
   const handleZoom = (imageUrl) => {
@@ -17,6 +19,15 @@ export default function InstagramSection() {
     setCurrentImage('');
   };
 
+  // Simulación de carga (puedes cambiar el tiempo según sea necesario)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false); // Cambiar el estado a false después de 1.5 segundos (simulando carga)
+    }, 1500);
+
+    return () => clearTimeout(timer); // Limpiar el temporizador
+  }, []);
+
   return (
     <section className="w-full bg-gray-900 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,18 +35,22 @@ export default function InstagramSection() {
         <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-between mb-12">
           {/* Lado izquierdo con la imagen grande */}
           <div className="lg:w-2/5 w-full mb-6 lg:mb-0">
-            <img
-              src="https://mahetsipage.web.app/assets/images/products/img-5.jpeg"
-              alt="Producto destacado"
-              className="w-full h-80 object-cover rounded-xl cursor-pointer transition-transform duration-300 transform hover:scale-105"
-              onClick={() => handleZoom('https://mahetsipage.web.app/assets/images/products/img-5.jpeg')} // Abre el modal al hacer click
-            />
+            {loading ? (
+              // Skeleton para la imagen grande
+              <div className="w-full h-80 bg-gray-200 rounded-xl animate-pulse"></div>
+            ) : (
+              <img
+                src="https://mahetsipage.web.app/assets/images/products/img-5.jpeg"
+                alt="Producto destacado"
+                className="w-full h-80 object-cover rounded-xl cursor-pointer transition-transform duration-300 transform hover:scale-105"
+                onClick={() => handleZoom('https://mahetsipage.web.app/assets/images/products/img-5.jpeg')} // Abre el modal al hacer click
+              />
+            )}
           </div>
 
           {/* Lado derecho con las imágenes pequeñas */}
           <div className="lg:w-3/5 w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {/* Repite este bloque para cada imagen pequeña */}
-            {[
+            {[ 
               'https://mahetsipage.web.app/assets/images/products/img-6.jpeg',
               'https://mahetsipage.web.app/assets/images/products/img-1.jpeg',
               'https://mahetsipage.web.app/assets/images/products/img-2.jpeg',
@@ -44,12 +59,17 @@ export default function InstagramSection() {
               'https://mahetsipage.web.app/assets/images/products/img-1.jpeg',
             ].map((imgSrc, index) => (
               <div key={index} className="p-1 cursor-pointer">
-                <img
-                  src={imgSrc}
-                  alt={`Producto ${index + 1}`}
-                  className="w-full h-40 object-cover rounded-xl transition-transform duration-300 transform hover:scale-105"
-                  onClick={() => handleZoom(imgSrc)} // Abre el modal al hacer click
-                />
+                {loading ? (
+                  // Skeleton para las imágenes pequeñas
+                  <div className="w-full h-40 bg-gray-200 rounded-xl animate-pulse"></div>
+                ) : (
+                  <img
+                    src={imgSrc}
+                    alt={`Producto ${index + 1}`}
+                    className="w-full h-40 object-cover rounded-xl transition-transform duration-300 transform hover:scale-105"
+                    onClick={() => handleZoom(imgSrc)} // Abre el modal al hacer click
+                  />
+                )}
               </div>
             ))}
           </div>

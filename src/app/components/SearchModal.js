@@ -7,13 +7,12 @@ import { products, categories, subcategories } from "../category/data"; // Ajust
 export default function SearchModal({ isOpen, onClose }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filtered, setFiltered] = useState([]);
+  const [loading, setLoading] = useState(false); // Estado para controlar la carga
 
   useEffect(() => {
     const query = searchQuery.toLowerCase().trim();
 
     // Filtrado de productos
-    // Compararemos el query con el nombre del producto, su descripción,
-    // el nombre de su categoría y el de su subcategoría.
     const results = products.filter((p) => {
       const productName = p.name.toLowerCase();
       const productDesc = p.description.toLowerCase();
@@ -29,7 +28,12 @@ export default function SearchModal({ isOpen, onClose }) {
       );
     });
 
-    setFiltered(results);
+    setLoading(true); // Activar estado de carga
+    setTimeout(() => {
+      setFiltered(results);
+      setLoading(false); // Desactivar estado de carga después de filtrar
+    }, 500); // Simula un tiempo de carga de 500ms
+
   }, [searchQuery]);
 
   // Cerrar el modal al hacer clic fuera
@@ -77,25 +81,40 @@ export default function SearchModal({ isOpen, onClose }) {
         )}
 
         <div className="space-y-4">
-          {filtered.map((product) => (
-            <Link 
-              key={product.uniqueID} 
-              href={`/product/${product.url}`}
-              className="flex items-center justify-between hover:bg-gray-100 p-2 rounded-md transition-colors"
-            >
-              <div className="flex items-center space-x-4">
-                <img
-                  src={product.images[0]}
-                  alt={product.name}
-                  className="w-16 h-16 object-cover rounded-md"
-                />
-                <div>
-                  <p className="font-semibold">{product.name}</p>
-                  <p className="text-sm text-gray-600">${product.price.toFixed(2)}</p>
+          {loading ? (
+            // Skeleton de productos
+            Array(5).fill(0).map((_, index) => (
+              <div key={index} className="flex items-center justify-between p-2 rounded-md hover:bg-gray-100">
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-md animate-pulse"></div>
+                  <div>
+                    <div className="w-32 h-4 bg-gray-200 rounded-md animate-pulse mb-2"></div>
+                    <div className="w-24 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+                  </div>
                 </div>
               </div>
-            </Link>
-          ))}
+            ))
+          ) : (
+            filtered.map((product) => (
+              <Link 
+                key={product.uniqueID} 
+                href={`/product/${product.url}`}
+                className="flex items-center justify-between hover:bg-gray-100 p-2 rounded-md transition-colors"
+              >
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={product.images[0]}
+                    alt={product.name}
+                    className="w-16 h-16 object-cover rounded-md"
+                  />
+                  <div>
+                    <p className="font-semibold">{product.name}</p>
+                    <p className="text-sm text-gray-600">${product.price.toFixed(2)}</p>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
         
         <div className="mt-4 text-center text-sm text-gray-600">
