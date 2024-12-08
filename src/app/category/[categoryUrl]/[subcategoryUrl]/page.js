@@ -17,7 +17,7 @@ export default function SubcategoryPage() {
   const params = useParams();
   const { categoryUrl, subcategoryUrl } = params;
 
-  // Llamada a los hooks antes de cualquier condicional
+  // Hooks siempre al inicio
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -27,10 +27,25 @@ export default function SubcategoryPage() {
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
 
-  // Buscar la categoría por su url
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
-  
-  // Llamar a los hooks antes del condicional
+  const currentSubcategory = currentCategory 
+    ? subcategories.find(sub => sub.url === subcategoryUrl && sub.categoryID === currentCategory.uniqueID) 
+    : null;
+
+  // useEffect antes de cualquier return condicional
+  useEffect(() => {
+    if (isFilterOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isFilterOpen]);
+
+  // Después de useEffect puedes hacer las condiciones
   if (!currentCategory) {
     return (
       <div>
@@ -42,10 +57,6 @@ export default function SubcategoryPage() {
     );
   }
 
-  // Buscar la subcategoría por su url y categoría
-  const currentSubcategory = subcategories.find(sub => sub.url === subcategoryUrl && sub.categoryID === currentCategory.uniqueID);
-  
-  // Llamar a los hooks antes del condicional
   if (!currentSubcategory) {
     return (
       <div>
@@ -60,12 +71,11 @@ export default function SubcategoryPage() {
   const categoryID = currentCategory.uniqueID;
   const subcategoryID = currentSubcategory.uniqueID;
 
-  // Filtrar productos por categoría y subcategoría
+  // Filtrados
   const filteredProductsBySubcategory = products.filter(
     p => p.categoryID === categoryID && p.subcategoryID === subcategoryID
   );
 
-  // Obtener las brands y types relevantes a partir de los productos filtrados
   const brandIDsInSubcategory = [...new Set(filteredProductsBySubcategory.map(p => p.brandID))];
   const typeIDsInSubcategory = [...new Set(filteredProductsBySubcategory.map(p => p.typeID))];
 
@@ -111,18 +121,6 @@ export default function SubcategoryPage() {
     setMinPrice(0);
     setMaxPrice(1000);
   };
-
-  useEffect(() => {
-    if (isFilterOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isFilterOpen]);
 
   return (
     <div>
