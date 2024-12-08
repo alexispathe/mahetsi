@@ -8,6 +8,9 @@ export default function ProductDetail() {
   const params = useParams();
   const product = products.find((p) => p.url === params.url);
 
+  // Estado de carga
+  const [loading, setLoading] = useState(true);
+  
   // Llamada de hooks antes del condicional
   const [mainImage, setMainImage] = useState(product ? product.images[0] : null);
   const [showModal, setShowModal] = useState(false);
@@ -110,6 +113,12 @@ export default function ProductDetail() {
     );
   }
 
+  // Simular el retraso en la carga para el skeleton
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1500); // Retraso de 1.5 segundos para simular carga
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <>
       <Header />
@@ -119,17 +128,24 @@ export default function ProductDetail() {
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Thumbnails */}
             <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto max-h-96 lg:max-h-full gap-2">
-              {thumbnails.map((image, index) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={`Thumbnail ${index + 1}`}
-                  className={`w-20 h-20 rounded-md border-2 ${
-                    mainImage === image ? 'border-gray-800' : 'border-transparent'
-                  } cursor-pointer object-cover transition`}
-                  onClick={() => handleThumbnailClick(image)}
-                />
-              ))}
+              {loading ? (
+                // Skeleton para las miniaturas
+                Array(4).fill(0).map((_, index) => (
+                  <div key={index} className="w-20 h-20 bg-gray-200 rounded-md animate-pulse"></div>
+                ))
+              ) : (
+                thumbnails.map((image, index) => (
+                  <img
+                    key={index}
+                    src={image}
+                    alt={`Thumbnail ${index + 1}`}
+                    className={`w-20 h-20 rounded-md border-2 ${
+                      mainImage === image ? 'border-gray-800' : 'border-transparent'
+                    } cursor-pointer object-cover transition`}
+                    onClick={() => handleThumbnailClick(image)}
+                  />
+                ))
+              )}
             </div>
 
             {/* Imagen Principal */}
@@ -137,63 +153,80 @@ export default function ProductDetail() {
               className="flex-1 relative flex justify-center items-center"
               onClick={handleImageClick}
             >
-              <img
-                src={mainImage}
-                alt="Producto principal"
-                className="w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105"
-              />
+              {loading ? (
+                <div className="w-auto h-full max-h-96 bg-gray-200 rounded-md animate-pulse"></div>
+              ) : (
+                <img
+                  src={mainImage}
+                  alt="Producto principal"
+                  className="w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105"
+                />
+              )}
             </div>
           </div>
 
           {/* Sección de Información del Producto */}
           <div className="space-y-6">
-            <p className="text-gray-500 text-sm">HOME / {brandName.toUpperCase()} / {typeName.toUpperCase()}</p>
-            <h1 className="text-3xl font-bold">{product.name}</h1>
-            <div className="flex items-center space-x-2">
-              <div className="text-yellow-500 text-lg">⭐⭐⭐⭐☆</div>
-              <p className="text-sm text-gray-600">({product.numReviews} Reviews)</p>
-            </div>
-            <div className="flex items-baseline space-x-4">
-              <p className="text-2xl text-red-600 font-semibold">${product.price.toFixed(2)}</p>
-            </div>
-            <div>
-              <div className="mb-4">
-                <p className="text-sm font-medium">CATEGORÍA: {typeName}</p>
-              </div>
-              <div>
-                <label htmlFor="size-select" className="block text-sm font-medium">
-                  SIZE:
-                </label>
-                <select
-                  id="size-select"
-                  value={selectedSize}
-                  onChange={handleSizeChange} // Vinculamos el estado al select
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                >
-                  <option value="Small">Small</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Large">Large</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex space-x-4">
-              <button 
-                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
-                onClick={handleAddToCart}
-              >
-                Add To Cart
-              </button>
-              <button 
-                className={`px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 
-                  ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
-                onClick={handleToggleFavorite}
-              >
-                {isLiked ? '❤' : '♡'}
-              </button>
-            </div>
-            <div className="text-sm text-gray-600">
-              📦 Free delivery over $99. Next day delivery $9.99
-            </div>
+            {loading ? (
+              // Skeleton para la información del producto
+              <>
+                <div className="w-1/2 h-6 bg-gray-200 rounded-md animate-pulse"></div>
+                <div className="w-3/4 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+                <div className="w-1/2 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+                <div className="w-1/3 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+                <div className="w-1/2 h-8 bg-gray-200 rounded-md animate-pulse"></div>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-500 text-sm">HOME / {brandName.toUpperCase()} / {typeName.toUpperCase()}</p>
+                <h1 className="text-3xl font-bold">{product.name}</h1>
+                <div className="flex items-center space-x-2">
+                  <div className="text-yellow-500 text-lg">⭐⭐⭐⭐☆</div>
+                  <p className="text-sm text-gray-600">({product.numReviews} Reviews)</p>
+                </div>
+                <div className="flex items-baseline space-x-4">
+                  <p className="text-2xl text-red-600 font-semibold">${product.price.toFixed(2)}</p>
+                </div>
+                <div>
+                  <div className="mb-4">
+                    <p className="text-sm font-medium">CATEGORÍA: {typeName}</p>
+                  </div>
+                  <div>
+                    <label htmlFor="size-select" className="block text-sm font-medium">
+                      SIZE:
+                    </label>
+                    <select
+                      id="size-select"
+                      value={selectedSize}
+                      onChange={handleSizeChange} // Vinculamos el estado al select
+                      className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                    >
+                      <option value="Small">Small</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Large">Large</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex space-x-4">
+                  <button 
+                    className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
+                    onClick={handleAddToCart}
+                  >
+                    Add To Cart
+                  </button>
+                  <button 
+                    className={`px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 
+                      ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
+                    onClick={handleToggleFavorite}
+                  >
+                    {isLiked ? '❤' : '♡'}
+                  </button>
+                </div>
+                <div className="text-sm text-gray-600">
+                  📦 Free delivery over $99. Next day delivery $9.99
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
