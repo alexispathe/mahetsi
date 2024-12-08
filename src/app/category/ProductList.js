@@ -17,7 +17,8 @@ export default function ProductList({
   setSelectedCategories,
   setSelectedBrands,
   setSelectedTypes,
-  setSelectedSizes
+  setSelectedSizes,
+  loading // Nueva propiedad para indicar que estamos en estado de carga
 }) {
   const [sortOption, setSortOption] = useState('');
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -143,21 +144,35 @@ export default function ProductList({
 
       {/* Lista de Productos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-4 gap-6">
-        {currentProducts.map((product) => (
-          <div key={product.url} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-            <Link href={`/product/${product.url}`} className="block">
-              <img 
-                src={product.images[0]} 
-                alt={product.name} 
-                className="w-full h-48 object-cover mb-4 rounded-md"
-              />
-              <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
-              <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
-              <p className="text-xs text-gray-400">{getBrandName(product.brandID)}</p>
-              <p className="text-xs text-gray-400">{getTypeName(product.typeID)}</p>
-            </Link>
-          </div>
-        ))}
+        {loading ? (
+          // Skeleton screen
+          Array(currentPage).fill(0).map((_, index) => (
+            <div key={index} className="bg-gray-200 p-4 rounded-lg shadow-md">
+              <div className="animate-pulse">
+                <div className="bg-gray-300 h-48 rounded-md mb-4"></div>
+                <div className="bg-gray-300 h-4 w-3/4 mb-2"></div>
+                <div className="bg-gray-300 h-4 w-1/2 mb-2"></div>
+                <div className="bg-gray-300 h-4 w-2/3"></div>
+              </div>
+            </div>
+          ))
+        ) : (
+          currentProducts.map((product) => (
+            <div key={product.url} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+              <Link href={`/product/${product.url}`} className="block">
+                <img 
+                  src={product.images[0]} 
+                  alt={product.name} 
+                  className="w-full h-48 object-cover mb-4 rounded-md"
+                />
+                <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
+                <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
+                <p className="text-xs text-gray-400">{getBrandName(product.brandID)}</p>
+                <p className="text-xs text-gray-400">{getTypeName(product.typeID)}</p>
+              </Link>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Paginación */}
