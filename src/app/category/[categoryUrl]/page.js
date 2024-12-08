@@ -29,7 +29,19 @@ export default function ProductPage() {
   // Buscar la categoría por su url
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
-  // Llamamos a los hooks antes de cualquier condición
+  // useEffect antes de cualquier return condicional
+  useEffect(() => {
+    if (isFilterOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isFilterOpen]);
+
   if (!currentCategory) {
     return (
       <>
@@ -89,21 +101,9 @@ export default function ProductPage() {
     setMaxPrice(1000);
   };
 
-  useEffect(() => {
-    if (isFilterOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isFilterOpen]);
-
   return (
     <>
-      <Header textColor={'text-white'}/>
+      <Header textColor={'text-white'} />
       <HeroSection />
       <div className="container mx-auto px-4 py-6">
         {/* Botón para abrir filtros en móviles */}
@@ -120,21 +120,21 @@ export default function ProductPage() {
         <div className="flex justify-center">
           {/* Filtro lateral en pantallas medianas y grandes */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
-            <CategoryFilter 
-              categories={categories.filter(cat => cat.uniqueID === categoryID)} 
-              selectedCategories={selectedCategories} 
-              setSelectedCategories={setSelectedCategories} 
+            <CategoryFilter
+              categories={categories.filter(cat => cat.uniqueID === categoryID)}
+              selectedCategories={selectedCategories}
+              setSelectedCategories={setSelectedCategories}
             />
-            <PriceFilter 
-              minPrice={minPrice} 
-              maxPrice={maxPrice} 
-              onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }} 
+            <PriceFilter
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
             />
-            <BrandFilter 
-              brands={filteredBrands} 
-              types={filteredTypes} 
-              selectedBrands={selectedBrands} 
-              setSelectedBrands={setSelectedBrands} 
+            <BrandFilter
+              brands={filteredBrands}
+              types={filteredTypes}
+              selectedBrands={selectedBrands}
+              setSelectedBrands={setSelectedBrands}
               selectedTypes={selectedTypes}
               setSelectedTypes={setSelectedTypes}
               selectedSizes={selectedSizes}
@@ -143,8 +143,8 @@ export default function ProductPage() {
           </aside>
 
           <main className="w-full md:w-3/4 lg:w-9/12 xl:w-7/10 px-5 md:px-10 lg:px-10 sm:px-0">
-            <ProductList 
-              products={filteredProducts} 
+            <ProductList
+              products={filteredProducts}
               selectedCategories={selectedCategories}
               selectedBrands={selectedBrands}
               selectedTypes={selectedTypes}
@@ -164,29 +164,29 @@ export default function ProductPage() {
         {isFilterOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto transition-opacity duration-300 ease-in-out">
             <div className="bg-white rounded-lg max-w-md w-full mx-4 p-6 relative">
-              <button 
-                onClick={() => setIsFilterOpen(false)} 
+              <button
+                onClick={() => setIsFilterOpen(false)}
                 className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
                 aria-label="Cerrar filtros"
               >
                 <FaTimes className="h-6 w-6" />
               </button>
               <h2 className="text-xl font-semibold mb-4">Filtros</h2>
-              <CategoryFilter 
-                categories={categories.filter(cat => cat.uniqueID === categoryID)} 
-                selectedCategories={selectedCategories} 
-                setSelectedCategories={setSelectedCategories} 
+              <CategoryFilter
+                categories={categories.filter(cat => cat.uniqueID === categoryID)}
+                selectedCategories={selectedCategories}
+                setSelectedCategories={setSelectedCategories}
               />
-              <PriceFilter 
-                minPrice={minPrice} 
-                maxPrice={maxPrice} 
-                onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }} 
+              <PriceFilter
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
               />
-              <BrandFilter 
+              <BrandFilter
                 brands={filteredBrands}
                 types={filteredTypes}
-                selectedBrands={selectedBrands} 
-                setSelectedBrands={setSelectedBrands} 
+                selectedBrands={selectedBrands}
+                setSelectedBrands={setSelectedBrands}
                 selectedTypes={selectedTypes}
                 setSelectedTypes={setSelectedTypes}
                 selectedSizes={selectedSizes}
