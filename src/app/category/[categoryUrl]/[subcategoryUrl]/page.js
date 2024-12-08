@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { FaFilter, FaTimes } from 'react-icons/fa';
-
+import {  FaTimes } from 'react-icons/fa';
+import {IoOptions} from 'react-icons/io5'
 import CategoryFilter from '../../CategoryFilter';
 import PriceFilter from '../../PriceFilter';
 import BrandFilter from '../../BrandFilter';
@@ -129,12 +129,12 @@ export default function SubcategoryPage() {
       <div className="container mx-auto px-4 py-6">
         {/* Botón para abrir filtros en móviles */}
         <div className="flex justify-end mb-4 md:hidden">
-          <button
+        <button
             onClick={() => setIsFilterOpen(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+            className="mx-auto w-[95%] bg-gray-200 flex items-center p-2 text-sm  uppercase text-black"
           >
-            <FaFilter className="w-5 h-5 mr-2" />
-            Filtros
+            <IoOptions className="w-4 h-4 mr-2 text-black" />
+            <span className="text-left">Filtros</span>
           </button>
         </div>
 
