@@ -28,8 +28,8 @@ export default function SubcategoryPage() {
   const [selectedSizes, setSelectedSizes] = useState([]);
 
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
-  const currentSubcategory = currentCategory 
-    ? subcategories.find(sub => sub.url === subcategoryUrl && sub.categoryID === currentCategory.uniqueID) 
+  const currentSubcategory = currentCategory
+    ? subcategories.find(sub => sub.url === subcategoryUrl && sub.categoryID === currentCategory.uniqueID)
     : null;
 
   // useEffect antes de cualquier return condicional
@@ -141,21 +141,21 @@ export default function SubcategoryPage() {
         <div className="flex justify-center">
           {/* Filtro lateral en pantallas medianas y grandes */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
-            <CategoryFilter 
-              categories={categories.filter(cat => cat.uniqueID === categoryID)} 
-              selectedCategories={selectedCategories} 
-              setSelectedCategories={setSelectedCategories} 
+            <CategoryFilter
+              categories={categories.filter(cat => cat.uniqueID === categoryID)}
+              selectedCategories={selectedCategories}
+              setSelectedCategories={setSelectedCategories}
             />
-            <PriceFilter 
-              minPrice={minPrice} 
-              maxPrice={maxPrice} 
-              onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }} 
+            <PriceFilter
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
             />
-            <BrandFilter 
-              brands={filteredBrands} 
-              types={filteredTypes} 
-              selectedBrands={selectedBrands} 
-              setSelectedBrands={setSelectedBrands} 
+            <BrandFilter
+              brands={filteredBrands}
+              types={filteredTypes}
+              selectedBrands={selectedBrands}
+              setSelectedBrands={setSelectedBrands}
               selectedTypes={selectedTypes}
               setSelectedTypes={setSelectedTypes}
               selectedSizes={selectedSizes}
@@ -164,8 +164,8 @@ export default function SubcategoryPage() {
           </aside>
 
           <main className="w-full md:w-3/4 lg:w-9/12 xl:w-7/10 px-5 md:px-10 lg:px-10 sm:px-0">
-            <ProductList 
-              products={filteredProducts} 
+            <ProductList
+              products={filteredProducts}
               selectedCategories={selectedCategories}
               selectedBrands={selectedBrands}
               selectedTypes={selectedTypes}
@@ -183,36 +183,40 @@ export default function SubcategoryPage() {
 
         {/* Modal de filtros para móviles */}
         {isFilterOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto transition-opacity duration-300 ease-in-out">
-            <div className="bg-white rounded-lg max-w-md w-full mx-4 p-6 relative">
-              <button 
-                onClick={() => setIsFilterOpen(false)} 
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 overflow-y-auto transition-opacity duration-300 ease-in-out">
+            <div className="relative max-w-md w-full mx-auto mt-10 p-6 bg-white rounded-lg">
+              <button
+                onClick={() => setIsFilterOpen(false)}
                 className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
                 aria-label="Cerrar filtros"
               >
-                <FaTimes className="h-6 w-6" />
+                <FaTimes className="h-6 w-6 text-black" />
               </button>
-              <h2 className="text-xl font-semibold mb-4">Filtros</h2>
-              <CategoryFilter 
-                categories={categories.filter(cat => cat.uniqueID === categoryID)} 
-                selectedCategories={selectedCategories} 
-                setSelectedCategories={setSelectedCategories} 
-              />
-              <PriceFilter 
-                minPrice={minPrice} 
-                maxPrice={maxPrice} 
-                onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }} 
-              />
-              <BrandFilter 
-                brands={filteredBrands}
-                types={filteredTypes}
-                selectedBrands={selectedBrands} 
-                setSelectedBrands={setSelectedBrands} 
-                selectedTypes={selectedTypes}
-                setSelectedTypes={setSelectedTypes}
-                selectedSizes={selectedSizes}
-                setSelectedSizes={setSelectedSizes}
-              />
+
+              {/* Aquí puedes poner un div adicional con overflow para asegurarte del scroll */}
+              <div className="max-h-[80vh] overflow-y-auto">
+                <CategoryFilter
+                  categories={categories.filter(cat => cat.uniqueID === categoryID)}
+                  selectedCategories={selectedCategories}
+                  setSelectedCategories={setSelectedCategories}
+                />
+                <PriceFilter
+                  minPrice={minPrice}
+                  maxPrice={maxPrice}
+                  onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
+                />
+                <BrandFilter
+                  brands={filteredBrands}
+                  types={filteredTypes}
+                  selectedBrands={selectedBrands}
+                  setSelectedBrands={setSelectedBrands}
+                  selectedTypes={selectedTypes}
+                  setSelectedTypes={setSelectedTypes}
+                  selectedSizes={selectedSizes}
+                  setSelectedSizes={setSelectedSizes}
+                />
+              </div>
+
               <button
                 onClick={() => setIsFilterOpen(false)}
                 className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md"
@@ -222,6 +226,7 @@ export default function SubcategoryPage() {
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
