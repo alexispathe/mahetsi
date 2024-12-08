@@ -59,7 +59,7 @@ export default function Hero() {
       {/* Contenido */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center z-10 px-4">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-          Mahetsi Productos Naturales
+          Mahets&#39;i Productos Naturales
         </h1>
         <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
           <button className="bg-red-600 hover:bg-red-700 transition-colors duration-300 px-6 py-3 rounded text-lg flex items-center">

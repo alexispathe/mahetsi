@@ -39,7 +39,7 @@ export default function Header({ textColor = 'text-white' }) {
         <div className="text-lg font-bold">
           <Link href="/">
             <span className={`${isHovered ? "text-black" : textColor} text-xl`}>
-              Mahetsi & Boho
+              Mahets&#39;i & Boh&#39;o
             </span>
           </Link>
         </div>
@@ -122,6 +122,7 @@ export default function Header({ textColor = 'text-white' }) {
         </div>
       </div>
 
+            {/*opciones para moviles  */}
       {isMenuOpen && (
         <nav className="md:hidden bg-white shadow-lg">
           <ul className="flex flex-col space-y-4 p-4">
