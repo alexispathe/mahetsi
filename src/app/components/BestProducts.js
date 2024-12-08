@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { products, orders } from '../category/data'; // Asegúrate de importar los datos correctamente
 
-export default function ProductSection() {
+export default function BestProducts() {
   const [topProducts, setTopProducts] = useState([]);
 
   useEffect(() => {

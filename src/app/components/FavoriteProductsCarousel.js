@@ -11,7 +11,7 @@ import "swiper/css/a11y";
 
 import { products as productsData, reviews as reviewsData } from '../category/data'; // Asegúrate de importar los datos correctamente
 
-export default function ProductCarousel() {
+export default function FavoriteProductsCarousel() {
   const [sortedProducts, setSortedProducts] = useState([]);
   
   // Función para calcular el promedio de calificación
@@ -81,7 +81,7 @@ export default function ProductCarousel() {
             {sortedProducts.map((product) => (
               <SwiperSlide key={product.uniqueID} className="flex flex-col items-center p-4">
                 <Link 
-                  href="/product" 
+                  href={"/product/"+product.url} 
                   className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md"
                 >
                   <img
