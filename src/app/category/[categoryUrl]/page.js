@@ -29,7 +29,7 @@ export default function ProductPage() {
   // Buscar la categoría por su url
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
-  // Si no se encuentra la categoría, manejarlo después de los hooks
+  // Llamamos a los hooks antes de cualquier condición
   if (!currentCategory) {
     return (
       <>
@@ -121,7 +121,7 @@ export default function ProductPage() {
           {/* Filtro lateral en pantallas medianas y grandes */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
             <CategoryFilter 
-              categories={categories.filter(cat => cat.uniqueID === categoryID)} // Solo la categoría actual
+              categories={categories.filter(cat => cat.uniqueID === categoryID)} 
               selectedCategories={selectedCategories} 
               setSelectedCategories={setSelectedCategories} 
             />
@@ -131,8 +131,8 @@ export default function ProductPage() {
               onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }} 
             />
             <BrandFilter 
-              brands={filteredBrands} // Solo las marcas de la categoría
-              types={filteredTypes}   // Solo los tipos de la categoría
+              brands={filteredBrands} 
+              types={filteredTypes} 
               selectedBrands={selectedBrands} 
               setSelectedBrands={setSelectedBrands} 
               selectedTypes={selectedTypes}

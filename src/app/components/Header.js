@@ -7,6 +7,7 @@ import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
 import FavoritesModal from "./FavoritesModal"; // Importar el nuevo modal
 import { categories, subcategories } from '../category/data';
+import Link from 'next/link'; // Importar Link de next/link
 
 export default function Header({ textColor = 'text-white' }) { 
   const [isHovered, setIsHovered] = useState(false);
@@ -36,11 +37,11 @@ export default function Header({ textColor = 'text-white' }) {
       <div className="container mx-auto flex items-center justify-between py-4 px-6">
         {/* Logo */}
         <div className="text-lg font-bold">
-          <a href="/">
+          <Link href="/">
             <span className={`${isHovered ? "text-black" : textColor} text-xl`}>
               Mahetsi & Boho
             </span>
-          </a>
+          </Link>
         </div>
 
         {/* Menú de Navegación para Pantallas Grandes */}
@@ -49,23 +50,23 @@ export default function Header({ textColor = 'text-white' }) {
             const filteredSubcategories = subcategories.filter(sub => sub.categoryID === category.uniqueID);
             return (
               <div key={category.uniqueID} className="group relative">
-                <a
+                <Link
                   href={`/category/${category.url}`}
                   className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}
                 >
                   {category.name}
-                </a>
+                </Link>
                 {filteredSubcategories.length > 0 && (
                   <div className="absolute top-full left-0 hidden group-hover:block bg-white shadow-lg p-4">
                     <ul>
                       {filteredSubcategories.map((subcat) => (
                         <li key={subcat.uniqueID}>
-                          <a 
+                          <Link 
                             href={`/category/${category.url}/${subcat.url}`} 
                             className="py-1 hover:text-gray-700 block"
                           >
                             {subcat.name}
-                          </a>
+                          </Link>
                         </li>
                       ))}
                     </ul>
@@ -74,9 +75,9 @@ export default function Header({ textColor = 'text-white' }) {
               </div>
             )
           })}
-          <a href="/contacto" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
+          <Link href="/contacto" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
             Contacto
-          </a>
+          </Link>
         </nav>
 
         {/* Iconos y Menú Móvil */}
@@ -128,19 +129,19 @@ export default function Header({ textColor = 'text-white' }) {
               const filteredSubcategories = subcategories.filter(sub => sub.categoryID === category.uniqueID);
               return (
                 <li key={category.uniqueID}>
-                  <a href={`/category/${category.url}`} className="cursor-pointer hover:text-gray-700 block">
+                  <Link href={`/category/${category.url}`} className="cursor-pointer hover:text-gray-700 block">
                     {category.name}
-                  </a>
+                  </Link>
                   {filteredSubcategories.length > 0 && (
                     <ul className="pl-4 mt-2 space-y-2">
                       {filteredSubcategories.map(subcat => (
                         <li key={subcat.uniqueID}>
-                          <a 
+                          <Link 
                             href={`/category/${category.url}/${subcat.url}`} 
                             className="cursor-pointer hover:text-gray-700 block text-sm"
                           >
                             {subcat.name}
-                          </a>
+                          </Link>
                         </li>
                       ))}
                     </ul>
@@ -148,7 +149,7 @@ export default function Header({ textColor = 'text-white' }) {
                 </li>
               )
             })}
-            <li><a href="/contacto" className="cursor-pointer hover:text-gray-700">Contacto</a></li>
+            <li><Link href="/contacto" className="cursor-pointer hover:text-gray-700">Contacto</Link></li>
           </ul>
         </nav>
       )}

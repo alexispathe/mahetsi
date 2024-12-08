@@ -17,7 +17,7 @@ export default function SubcategoryPage() {
   const params = useParams();
   const { categoryUrl, subcategoryUrl } = params;
 
-  // Llamada de hooks antes de cualquier condicional
+  // Llamada a los hooks antes de cualquier condicional
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -27,29 +27,33 @@ export default function SubcategoryPage() {
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
 
-  // Buscar la categoría por su categoryUrl
+  // Buscar la categoría por su url
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
+  
+  // Llamar a los hooks antes del condicional
   if (!currentCategory) {
     return (
-      <>
+      <div>
         <Header />
         <div className="container mx-auto p-6">
           <h2 className="text-2xl font-bold">Categoría no encontrada</h2>
         </div>
-      </>
+      </div>
     );
   }
 
   // Buscar la subcategoría por su url y categoría
   const currentSubcategory = subcategories.find(sub => sub.url === subcategoryUrl && sub.categoryID === currentCategory.uniqueID);
+  
+  // Llamar a los hooks antes del condicional
   if (!currentSubcategory) {
     return (
-      <>
+      <div>
         <Header />
         <div className="container mx-auto p-6">
           <h2 className="text-2xl font-bold">Subcategoría no encontrada</h2>
         </div>
-      </>
+      </div>
     );
   }
 
@@ -121,8 +125,8 @@ export default function SubcategoryPage() {
   }, [isFilterOpen]);
 
   return (
-    <>
-      <Header textColor={'text-white'}/>
+    <div>
+      <Header textColor={'text-white'} />
       <HeroSection />
       <div className="container mx-auto px-4 py-6">
         {/* Botón para abrir filtros en móviles */}
@@ -221,6 +225,6 @@ export default function SubcategoryPage() {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
