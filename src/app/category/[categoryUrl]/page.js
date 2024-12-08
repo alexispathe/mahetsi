@@ -11,7 +11,7 @@ import Header from '../../components/Header';
 import HeroSection from '../HeroSection';
 import { products, categories, brands, types } from '../data';
 
-export default function ProductPage() {
+export default function CategoryPage() {
   const params = useParams();
   const categoryUrl = params.categoryUrl;
 
@@ -163,15 +163,14 @@ export default function ProductPage() {
         {/* Modal de filtros para móviles */}
         {isFilterOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto transition-opacity duration-300 ease-in-out">
-            <div className="bg-white rounded-lg max-w-md w-full mx-4 p-6 relative">
+            <div className=" rounded-lg max-w-md w-full mx-4 p-6 ">
               <button
                 onClick={() => setIsFilterOpen(false)}
                 className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
                 aria-label="Cerrar filtros"
               >
-                <FaTimes className="h-6 w-6" />
+                <FaTimes className="h-6 w-6 text-white" />
               </button>
-              <h2 className="text-xl font-semibold mb-4">Filtros</h2>
               <CategoryFilter
                 categories={categories.filter(cat => cat.uniqueID === categoryID)}
                 selectedCategories={selectedCategories}

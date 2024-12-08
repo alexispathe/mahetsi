@@ -95,7 +95,7 @@ export default function InstagramSection() {
           className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-75 flex items-center justify-center z-50"
           onClick={closeZoom} // Cierra el modal al hacer click en el fondo
         >
-          <div className="relative">
+          <div className="relative flex justify-center">
             <img
               src={currentImage}
               alt="Imagen ampliada"
