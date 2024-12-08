@@ -15,7 +15,7 @@ export default function HeroSection() {
           </nav>
           <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4">Latest Arrivals (121)</h1>
           <p className="text-xs sm:text-sm md:text-base leading-relaxed">
-            Move, stretch, jump and hike in our latest waterproof arrivals. We've got you covered
+            Move, stretch, jump and hike in our latest waterproof arrivals. Weve got you covered
             for your hike or climbing sessions, from Goretex jackets to lightweight waterproof
             pants. Discover our latest range of outdoor clothing.
           </p>

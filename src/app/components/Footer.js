@@ -16,14 +16,14 @@ export default function Footer() {
             <ul>
               <li className="mb-2"><a href="#" className="hover:text-[gold]">Velas Aromáticas</a></li>
               <li className="mb-2"><a href="#" className="hover:text-[gold]">Jabones</a></li>
-              <li className="mb-2"><a href="#" className="hover:text-[gold]">Línea mascotas B'oho</a></li>
+              <li className="mb-2"><a href="#" className="hover:text-[gold]">Línea mascotas Boho</a></li>
               <li className="mb-2"><a href="#" className="hover:text-[gold]">SPA</a></li>
             </ul>
           </div>
 
           {/* Columna 2: Mahets'i & Boho */}
           <div>
-            <h3 className="text-lg font-bold mb-4">Mahets'i & Boho</h3>
+            <h3 className="text-lg font-bold mb-4">Mahetsi & Boho</h3>
             <ul>
               <li className="mb-2"><a href="#" className="hover:text-[gold]">Sobre nosotros</a></li>
               <li className="mb-2"><a href="#" className="hover:text-[gold]">Donde encontrarnos</a></li>

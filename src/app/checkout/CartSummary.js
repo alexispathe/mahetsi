@@ -82,7 +82,7 @@ export default function CartSummary() {
       <div className="mb-6">
         <label className="text-sm flex items-center">
           <input type="checkbox" className="mr-2" />
-          I agree to Alpine's <a href="#" className="text-blue-400">terms & conditions</a>
+          I agree to Alpines <a href="#" className="text-blue-400">terms & conditions</a>
         </label>
       </div>
 

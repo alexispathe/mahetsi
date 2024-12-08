@@ -38,7 +38,7 @@ export default function Header({ textColor = 'text-white' }) {
         <div className="text-lg font-bold">
           <a href="/">
             <span className={`${isHovered ? "text-black" : textColor} text-xl`}>
-              Mahets'i & Boho
+              Mahetsi & Boho
             </span>
           </a>
         </div>

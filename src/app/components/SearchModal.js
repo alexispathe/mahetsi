@@ -72,7 +72,7 @@ export default function SearchModal({ isOpen, onClose }) {
         
         {searchQuery && (
           <div className="text-sm mb-4">
-            <span>{filtered.length} resultado(s) para "{searchQuery}"</span>
+            <span>{filtered.length} resultado(s) para {searchQuery}</span>
           </div>
         )}
 
