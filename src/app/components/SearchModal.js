@@ -56,7 +56,7 @@ export default function SearchModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="search-modal bg-white w-full max-w-3xl p-6 rounded-lg shadow-xl relative">
+      <div className="search-modal bg-white w-full max-w-3xl p-6 rounded-lg shadow-xl relative flex flex-col max-h-screen">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-lg text-gray-600 hover:text-gray-900"
@@ -76,11 +76,12 @@ export default function SearchModal({ isOpen, onClose }) {
         
         {searchQuery && (
           <div className="text-sm mb-4">
-            <span>{filtered.length} resultado(s) para {searchQuery}</span>
+            <span>{filtered.length} resultado(s) para "{searchQuery}"</span>
           </div>
         )}
 
-        <div className="space-y-4">
+        {/* Contenedor desplazable para los productos */}
+        <div className="flex-1 overflow-y-auto space-y-4">
           {loading ? (
             // Skeleton de productos
             Array(5).fill(0).map((_, index) => (
