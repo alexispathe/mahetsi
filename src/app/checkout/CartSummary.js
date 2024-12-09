@@ -4,11 +4,17 @@ import '../styles/cartSummary.css'
 
 export default function CartSummary() {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true); // Estado de carga
 
   useEffect(() => {
     // Cargar los productos del carrito desde localStorage cuando se monte el componente
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     setItems(cart);
+
+    // Simular un retraso para la carga
+    setTimeout(() => {
+      setLoading(false); // Cambiar el estado a false después de 1 segundo
+    }, 1000); // 1 segundo de retraso para simular carga
   }, []);
 
   // Calcular subtotal desde los ítems del carrito
@@ -21,7 +27,41 @@ export default function CartSummary() {
     <section className="cart-summary bg-white p-6 rounded-lg shadow-md w-full">
       <h2 className="text-2xl font-bold mb-6">Your Cart</h2>
 
-      {items.length === 0 ? (
+      {loading ? (
+        // Skeleton mientras se cargan los productos
+        <div>
+          {/* Skeleton de los productos */}
+          <div className="space-y-4 mb-6">
+            {Array(3).fill(0).map((_, index) => (
+              <div key={index} className="flex justify-between items-center mb-4">
+                <div className="flex items-center">
+                  <div className="w-24 h-24 bg-gray-300 rounded-md animate-pulse mr-4"></div>
+                  <div className="space-y-2">
+                    <div className="w-32 h-4 bg-gray-300 rounded-md animate-pulse"></div>
+                    <div className="w-24 h-4 bg-gray-300 rounded-md animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-4 bg-gray-300 rounded-md animate-pulse"></div>
+                  <div className="w-24 h-4 bg-gray-300 rounded-md animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Skeleton del resumen de la orden */}
+          <div className="space-y-4 mb-6">
+            <div className="w-full h-4 bg-gray-300 rounded-md animate-pulse mb-2"></div>
+            <div className="w-full h-4 bg-gray-300 rounded-md animate-pulse mb-2"></div>
+            <div className="w-full h-4 bg-gray-300 rounded-md animate-pulse mb-2"></div>
+          </div>
+
+          {/* Skeleton del formulario */}
+          <div className="w-full h-12 bg-gray-300 rounded-md animate-pulse mb-6"></div>
+          <div className="w-full h-12 bg-gray-300 rounded-md animate-pulse mb-6"></div>
+          <div className="w-full h-12 bg-gray-300 rounded-md animate-pulse mb-6"></div>
+        </div>
+      ) : items.length === 0 ? (
         <p className="text-gray-700 mb-6">Tu carrito está vacío</p>
       ) : (
         <>
@@ -33,7 +73,6 @@ export default function CartSummary() {
                   <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded-md mr-4" />
                   <div>
                     <p className="font-semibold">{item.name}</p>
-                    {/* Asumiendo que guardaste un 'size' en el localStorage */}
                     <p className="text-sm text-gray-500">Size: {item.size}</p>
                   </div>
                 </div>

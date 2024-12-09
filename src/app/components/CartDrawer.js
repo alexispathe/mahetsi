@@ -1,5 +1,4 @@
 'use client'
-
 import { useEffect, useState } from "react";
 
 export default function CartDrawer({ isOpen, onClose }) {
@@ -8,10 +7,15 @@ export default function CartDrawer({ isOpen, onClose }) {
 
   useEffect(() => {
     if (isOpen) {
-      // Cargar los productos del carrito desde localStorage cuando se abra
+      // Cargar los productos del carrito desde localStorage cuando se abre
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
       setProducts(cart);
-      
+
+      // Simular un retraso para la carga
+      setTimeout(() => {
+        setLoading(false); // Cambiar el estado a false después de 1 segundo
+      }, 1000); // 1 segundo de retraso para simular carga
+
       const handleClickOutside = (event) => {
         if (event.target.closest(".cart-drawer") === null) {
           onClose();
@@ -19,11 +23,6 @@ export default function CartDrawer({ isOpen, onClose }) {
       };
 
       document.addEventListener("mousedown", handleClickOutside);
-
-      // Simulamos un retraso de 1 segundo para la carga
-      setTimeout(() => {
-        setLoading(false); // Cambiar el estado de carga después de un segundo
-      }, 1000);
 
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
@@ -48,14 +47,42 @@ export default function CartDrawer({ isOpen, onClose }) {
           ❌
         </button>
         
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">Your Cart</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">Tu carrito</h2>
 
         {loading ? (
-          // Skeleton para cuando los productos están cargando
-          <div className="space-y-4">
-            <div className="h-2 bg-gray-200 rounded-full animate-pulse mb-4"></div>
-            <div className="h-2 bg-gray-200 rounded-full animate-pulse mb-4"></div>
-            <div className="h-2 bg-gray-200 rounded-full animate-pulse mb-4"></div>
+          // Skeleton mientras se cargan los productos
+          <div>
+            {/* Skeleton para el progreso de envío */}
+            <div className="mb-4">
+              <div className="h-2 bg-gray-300 rounded-full animate-pulse mt-1"></div>
+              <div className="h-2 bg-gray-300 rounded-full animate-pulse mt-1"></div>
+            </div>
+
+            {/* Skeleton para los productos */}
+            <div className="space-y-4">
+              {Array(3).fill(0).map((_, index) => (
+                <div key={index} className="flex justify-between items-center mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-24 h-24 bg-gray-300 rounded-md animate-pulse"></div>
+                    <div>
+                      <div className="w-32 h-4 bg-gray-300 rounded-md animate-pulse mb-2"></div>
+                      <div className="w-24 h-4 bg-gray-300 rounded-md animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-4 bg-gray-300 rounded-md animate-pulse"></div>
+                    <div className="w-24 h-4 bg-gray-300 rounded-md animate-pulse"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Skeleton para el subtotal */}
+            <div className="w-32 h-4 bg-gray-300 rounded-md animate-pulse mb-6"></div>
+
+            {/* Skeleton para los botones */}
+            <div className="w-full h-12 bg-gray-300 rounded-md animate-pulse mb-6"></div>
+            <div className="w-full h-12 bg-gray-300 rounded-md animate-pulse mb-6"></div>
           </div>
         ) : products.length === 0 ? (
           <p className="text-gray-700">Tu carrito está vacío</p>

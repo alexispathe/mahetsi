@@ -1,4 +1,4 @@
-'use client';
+'use client'
 import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../components/Header";
@@ -117,7 +117,7 @@ export default function ProductDetail() {
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1500); // Retraso de 1.5 segundos para simular carga
     return () => clearTimeout(timer);
-  }, []);
+  }, []); // Asegúrate de que este useEffect siempre se ejecute en cada render
 
   return (
     <>
