@@ -9,7 +9,7 @@ import FavoritesModal from "./FavoritesModal"; // Importar el nuevo modal
 import { categories, subcategories } from '../category/data';
 import Link from 'next/link'; // Importar Link de next/link
 
-export default function Header({ textColor = 'text-white' }) { 
+export default function Header({ textColor = 'text-white', position="absolute"}) { 
   const [isHovered, setIsHovered] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
@@ -30,7 +30,7 @@ export default function Header({ textColor = 'text-white' }) {
 
   return (
     <header
-      className={`fixed top-0 left-0 w-full z-50 ${isHovered ? "bg-white shadow-md" : "bg-transparent"} transition-all duration-300`}
+      className={`${position} top-0 left-0 w-full z-50 ${isHovered ? "bg-white shadow-md" : "bg-transparent"} transition-all duration-300`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

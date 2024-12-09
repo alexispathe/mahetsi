@@ -111,7 +111,7 @@ export default function ProductDetail() {
 
   return (
     <>
-      <Header />
+      <Header position="relative" textColor="text-black"/>
       <div className="flex justify-center items-center my-10 px-4">
         { !product ? (
           <div className="flex justify-center items-center my-10 px-4">
