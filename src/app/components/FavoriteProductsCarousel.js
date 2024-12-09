@@ -36,6 +36,7 @@ export default function FavoriteProductsCarousel() {
       });
 
       updatedProducts.sort((a, b) => b.averageRating - a.averageRating);
+      console.log(updatedProducts)
       setSortedProducts(updatedProducts);
       setLoading(false); // Cambiar el estado a false cuando los productos se carguen
     }, 1500); // 1.5 segundos de retraso para simular carga

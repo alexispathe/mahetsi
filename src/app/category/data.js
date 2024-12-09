@@ -155,7 +155,97 @@ export const products = [
     "dateModified": "2024-06-25T16:20:00Z",
     "ownerId": "user123",
     "url": "jabon-de-chetos"
-  }
+  },
+    {
+      "uniqueID": "prod004",
+      "name": "4",
+      "description": "Jabón artesanal con esencia de lavanda, ideal para relajar la mente.",
+      "price": 82.99,
+      "stockQuantity": 150,
+      "total_sales": 120,  // Total de unidades vendidas
+      "categoryID": "cat001",
+      "subcategoryID": "subcat001",
+      "brandID": "brand001",
+      "typeID": "type001",
+      "images": [
+        "https://mahetsipage.web.app/assets/images/products/img-2.jpeg",
+        "https://mahetsipage.web.app/assets/images/products/img-4.jpeg"
+      ],
+      "averageRating": 5,
+      "numReviews": 34,
+      "dateCreated": "2024-03-01T09:00:00Z",
+      "dateModified": "2024-06-20T14:50:00Z",
+      "ownerId": "user123",
+      "url": "jabon-4"
+    },
+    {
+      "uniqueID": "prod005",
+      "name": "Jabón 5",
+      "description": "Jabón artesanal con esencia de lavanda, ideal para relajar la mente.",
+      "price": 12.99,
+      "stockQuantity": 150,
+      "total_sales": 120,  // Total de unidades vendidas
+      "categoryID": "cat001",
+      "subcategoryID": "subcat001",
+      "brandID": "brand001",
+      "typeID": "type001",
+      "images": [
+        "https://mahetsipage.web.app/assets/images/products/img-5.jpeg",
+        "https://mahetsipage.web.app/assets/images/products/img-1.jpeg"
+      ],
+      "averageRating": 5,
+      "numReviews": 34,
+      "dateCreated": "2024-03-01T09:00:00Z",
+      "dateModified": "2024-06-20T14:50:00Z",
+      "ownerId": "user123",
+      "url": "jabon-5"
+    },
+    {
+      "uniqueID": "prod006",
+      "name": "Jabón 6",
+      "description": "Jabón artesanal con esencia de lavanda, ideal para relajar la mente.",
+      "price": 12.99,
+      "stockQuantity": 150,
+      "total_sales": 120,  // Total de unidades vendidas
+      "categoryID": "cat001",
+      "subcategoryID": "subcat001",
+      "brandID": "brand001",
+      "typeID": "type001",
+      "images": [
+        "https://mahetsipage.web.app/assets/images/products/img-2.jpeg",
+        "https://mahetsipage.web.app/assets/images/products/img-1.jpeg"
+      ],
+      "averageRating": 5,
+      "numReviews": 34,
+      "dateCreated": "2024-03-01T09:00:00Z",
+      "dateModified": "2024-06-20T14:50:00Z",
+      "ownerId": "user123",
+      "url": "jabon-6"
+    },
+    {
+      "uniqueID": "prod007",
+      "name": "Jabón 7",
+      "description": "Jabón artesanal con esencia de lavanda, ideal para relajar la mente.",
+      "price": 12.99,
+      "stockQuantity": 150,
+      "total_sales": 120,  // Total de unidades vendidas
+      "categoryID": "cat001",
+      "subcategoryID": "subcat001",
+      "brandID": "brand001",
+      "typeID": "type001",
+      "images": [
+        "https://mahetsipage.web.app/assets/images/products/img-1.jpeg",
+        "https://mahetsipage.web.app/assets/images/products/img-2.jpeg"
+      ],
+      "averageRating": 5,
+      "numReviews": 34,
+      "dateCreated": "2024-03-01T09:00:00Z",
+      "dateModified": "2024-06-20T14:50:00Z",
+      "ownerId": "user123",
+      "url": "jabon-de-lavanda"
+    },
+
+
 ]
 
 
