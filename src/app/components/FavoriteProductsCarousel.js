@@ -46,8 +46,8 @@ export default function FavoriteProductsCarousel() {
   return (
     <section className="py-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold mb-4 text-center">Nuestros Productos</h2>
-        <p className="mb-8 text-center text-gray-600">
+        <h2 className="text-3xl font-bold mb-4 ">Nuestros Productos</h2>
+        <p className="mb-8  text-gray-600">
           Consiente tu piel con productos naturales y con increíbles beneficios
         </p>
 
@@ -103,7 +103,7 @@ export default function FavoriteProductsCarousel() {
                       className="w-full h-72 object-cover rounded-md mb-4"
                       loading="lazy"
                     />
-                    <h3 className="text-lg font-semibold mb-2 text-center">{product.name}</h3>
+                    
                     <div className="flex items-center mb-2">
                       <div className="flex text-yellow-500">
                         {Array.from({ length: 5 }, (_, i) => (
@@ -114,6 +114,7 @@ export default function FavoriteProductsCarousel() {
                       </div>
                       <span className="text-gray-500 text-sm ml-2">({product.numReviews})</span>
                     </div>
+                    <h3 className="text-lg font-semibold mb-2 text-center">{product.name}</h3>
                     <p className="text-xl font-bold">{`$${product.price.toFixed(2)}`}</p>
                   </Link>
                 </SwiperSlide>

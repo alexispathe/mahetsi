@@ -36,8 +36,7 @@ export default function BestProducts() {
   return (
     <section className="py-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Título */}
-        <h2 className="text-3xl font-bold mb-6 text-center">Preferidos por los Clientes</h2>
+
 
         {/* Sección de productos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -48,18 +47,22 @@ export default function BestProducts() {
               <div className="w-full h-72 bg-gray-200 rounded-md animate-pulse mb-4"></div>
             ) : (
               topProducts.length > 0 && (
-                <Link
-                  href={`/product/${topProducts[0].url}`} // Enlace al producto principal
-                  className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md border-none hover:border-2 hover:border-gray-600"
-                >
-                  <img
-                    src={topProducts[0].images[0]} // Usar la primera imagen del producto
-                    alt={topProducts[0].name}
-                    className="w-full h-72 object-cover rounded-md mb-4"
-                  />
-                  <h3 className="text-lg font-semibold text-center">{topProducts[0].name}</h3>
-                  <p className="text-xl font-bold text-red-600">${topProducts[0].price}</p>
-                </Link>
+                <>
+                  {/* Título */}
+                  <h2 className="text-2xl font-bold mb-6">Preferidos por los Clientes</h2>
+                  <Link
+                    href={`/product/${topProducts[0].url}`} // Enlace al producto principal
+                    className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md border-none hover:border-2 hover:border-gray-600"
+                  >
+                    <img
+                      src={topProducts[0].images[0]} // Usar la primera imagen del producto
+                      alt={topProducts[0].name}
+                      className="w-full h-72 object-cover rounded-md mb-4"
+                    />
+                    <h3 className="text-lg font-semibold text-center">{topProducts[0].name}</h3>
+                    <p className="text-xl font-bold ">${topProducts[0].price}</p>
+                  </Link>
+                </>
               )
             )}
           </div>
@@ -88,8 +91,15 @@ export default function BestProducts() {
                         alt={product.name}
                         className="w-full h-48 object-cover rounded-md mb-4"
                       />
+                      <div className="flex text-yellow-500">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <span key={i}>
+                            {i < Math.floor(product.averageRating) ? "★" : "☆"}
+                          </span>
+                        ))}
+                      </div>
                       <h3 className="text-lg font-semibold text-center">{product.name}</h3>
-                      <p className="text-xl font-bold text-red-600">${product.price}</p>
+                      <p className="text-xl font-bold ">${product.price}</p>
                     </Link>
                   </div>
                 ))
