@@ -10,7 +10,7 @@ export const categories = [
     url: "jabones-artesanales",
   },
   {
-    uniqueID: "cat002",
+    uniqueID: "89mK4HbiY4ym0sCh7N0U",
     name: "Aromaterapia",
     description: "Productos con esencias naturales para el bienestar.",
     dateCreated: new Date("2024-02-10T09:30:00Z"),
@@ -32,7 +32,7 @@ export const subcategories = [
     url: "jabones-de-lavanda",
   },
   {
-    uniqueID: "subcat002",
+    uniqueID: "sub89mK4HbiY4ym0sCh7N0U",
     name: "Jabones de Menta",
     description: "Jabones refrescantes con extracto de menta.",
     dateCreated: new Date("2024-03-10T10:30:00Z"),
@@ -52,7 +52,7 @@ export const brands = [
     dateModified: new Date("2024-04-25T16:00:00Z"),
     ownerId: "user123",
     url: "naturaleza-pura",
-    categoryID: "cat002" 
+    categoryID: "89mK4HbiY4ym0sCh7N0U" 
   },
   {
     uniqueID: "brand002",
@@ -120,7 +120,7 @@ export const products = [
     "stockQuantity": 200,
     "total_sales": 180,  // Total de unidades vendidas
     "categoryID": "cat001",
-    "subcategoryID": "subcat002",
+    "subcategoryID": "sub89mK4HbiY4ym0sCh7N0U",
     "brandID": "brand002",
     "typeID": "type002",
     "images": [
@@ -141,8 +141,8 @@ export const products = [
     "price": 9.99,
     "stockQuantity": 200,
     "total_sales": 220,  // Total de unidades vendidas
-    "categoryID": "cat002",
-    "subcategoryID": "subcat002",
+    "categoryID": "89mK4HbiY4ym0sCh7N0U",
+    "subcategoryID": "sub89mK4HbiY4ym0sCh7N0U",
     "brandID": "brand002",
     "typeID": "type002",
     "images": [
