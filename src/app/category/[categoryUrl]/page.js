@@ -10,9 +10,6 @@ import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
 import Header from '../../components/Header';
 import HeroSection from '../HeroSection';
-// Eliminada la importación de 'products', 'categories', y 'brands'
-// Si usas alguna otra data local, mantenla
-import { types } from '../data';
 
 export default function CategoryPage() {
   const params = useParams();
@@ -242,8 +239,8 @@ export default function CategoryPage() {
   }
 
   // Filtrar types por categoryID
-  const categoryID = currentCategory.uniqueID;
-  const filteredTypes = types.filter(t => t.categoryID === categoryID);
+  // Ahora ya no necesitamos esto en CategoryPage
+  // const filteredTypes = types.filter(t => t.categoryID === categoryID);
 
   // Filtrar brands ya obtenido desde la API
   const filteredBrands = brands; // Ya filtrado por API
@@ -256,9 +253,12 @@ export default function CategoryPage() {
 
   // Función para obtener el nombre del tipo
   const getTypeName = (typeID) => {
-    const type = filteredTypes.find(t => t.uniqueID === typeID);
-    return type ? type.name : '';
+    // Ya no manejamos types en CategoryPage
+    return '';
   };
+
+  // Ya no es necesario filtrar productos en el cliente
+  const filteredProducts = products;
 
   const clearAllFilters = () => {
     setSelectedCategories([]);
@@ -288,7 +288,7 @@ export default function CategoryPage() {
           {/* Filtro lateral en pantallas medianas y grandes */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
             <CategoryFilter
-              categories={categories.filter(cat => cat.uniqueID === categoryID)}
+              categories={categories.filter(cat => cat.uniqueID === currentCategory.uniqueID)}
               selectedCategories={selectedCategories}
               setSelectedCategories={setSelectedCategories}
             />
@@ -304,13 +304,14 @@ export default function CategoryPage() {
             ) : (
               <BrandFilter
                 brands={filteredBrands}
-                types={filteredTypes}
+                // types={filteredTypes} // Ya no necesitamos pasar types desde CategoryPage
                 selectedBrands={selectedBrands}
                 setSelectedBrands={setSelectedBrands}
                 selectedTypes={selectedTypes}
                 setSelectedTypes={setSelectedTypes}
                 selectedSizes={selectedSizes}
                 setSelectedSizes={setSelectedSizes}
+                categoryID={currentCategory.uniqueID} // Pasar categoryID para BrandFilter
               />
             )}
           </aside>
@@ -322,7 +323,7 @@ export default function CategoryPage() {
               <div className="text-center text-red-500">Error: {productsError}</div>
             ) : (
               <ProductList
-                products={products}
+                products={filteredProducts}
                 selectedCategories={selectedCategories}
                 selectedBrands={selectedBrands}
                 selectedTypes={selectedTypes}
@@ -354,7 +355,7 @@ export default function CategoryPage() {
               {/* Contenedor con overflow para scroll */}
               <div className="max-h-[80vh] overflow-y-auto">
                 <CategoryFilter
-                  categories={categories.filter(cat => cat.uniqueID === categoryID)}
+                  categories={categories.filter(cat => cat.uniqueID === currentCategory.uniqueID)}
                   selectedCategories={selectedCategories}
                   setSelectedCategories={setSelectedCategories}
                 />
@@ -370,13 +371,14 @@ export default function CategoryPage() {
                 ) : (
                   <BrandFilter
                     brands={filteredBrands}
-                    types={filteredTypes}
+                    // types={filteredTypes} // Ya no necesitamos pasar types desde CategoryPage
                     selectedBrands={selectedBrands}
                     setSelectedBrands={setSelectedBrands}
                     selectedTypes={selectedTypes}
                     setSelectedTypes={setSelectedTypes}
                     selectedSizes={selectedSizes}
                     setSelectedSizes={setSelectedSizes}
+                    categoryID={currentCategory.uniqueID} // Pasar categoryID para BrandFilter
                   />
                 )}
               </div>
