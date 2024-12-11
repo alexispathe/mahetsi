@@ -1,44 +1,96 @@
-'use client'
+// src/app/product/[url]/page.js
+'use client';
+
 import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../components/Header";
-import { products, brands, types } from "../../category/data";
 
 export default function ProductDetail() {
   const params = useParams();
-  const product = products.find((p) => p.url === params.url);
+  const productUrl = params.url;
 
-  // Estado de carga
+  // Estado para el producto
+  const [product, setProduct] = useState(null);
+  const [brandName, setBrandName] = useState('');
+  const [typeName, setTypeName] = useState('');
+
+  // Estados de carga y error
   const [loading, setLoading] = useState(true);
-  
-  // Llamada de hooks antes de cualquier lógica condicional
-  const [mainImage, setMainImage] = useState(product ? product.images[0] : null);
+  const [error, setError] = useState(null);
+
+  // Estados para la imagen principal y modal
+  const [mainImage, setMainImage] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const modalRef = useRef(null);
   const thumbnails = product ? product.images : [];
 
+  // Estado para manejo de favoritos
   const [isLiked, setIsLiked] = useState(false);
 
-  // Al montar, revisar si el producto está en favoritos
-  useEffect(() => {
-    if (product) {
-      const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-      setIsLiked(favorites.includes(product.uniqueID));
-    }
-  }, [product]);
+  // Estado para el tamaño seleccionado
+  const [selectedSize, setSelectedSize] = useState("Medium");
 
+  // Manejar la obtención de datos del producto desde la API
+  useEffect(() => {
+    const fetchProduct = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`/api/products/public/get/byUrl/${productUrl}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Producto no encontrado.');
+          } else {
+            throw new Error('Error al obtener el producto.');
+          }
+        }
+
+        const data = await response.json();
+        setProduct(data.product);
+        setBrandName(data.brandName);
+        setTypeName(data.typeName);
+        setMainImage(data.product.images[0]);
+
+        // Verificar si el producto está en favoritos
+        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        setIsLiked(favorites.includes(data.product.uniqueID));
+
+      } catch (err) {
+        console.error('Error al obtener el producto:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (productUrl) {
+      fetchProduct();
+    }
+  }, [productUrl]);
+
+  // Manejar la selección de una miniatura
   const handleThumbnailClick = (image) => {
     setMainImage(image);
   };
 
+  // Manejar el clic en la imagen principal para abrir el modal
   const handleImageClick = () => {
     setShowModal(true);
   };
 
+  // Cerrar el modal
   const closeModal = () => {
     setShowModal(false);
   };
 
+  // Manejar clic fuera del modal para cerrarlo
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (modalRef.current && !modalRef.current.contains(e.target)) {
@@ -57,9 +109,7 @@ export default function ProductDetail() {
     };
   }, [showModal]);
 
-  const brandName = product ? brands.find((b) => b.uniqueID === product.brandID)?.name || "" : "";
-  const typeName = product ? types.find((t) => t.uniqueID === product.typeID)?.name || "" : "";
-
+  // Manejar agregar al carrito
   const handleAddToCart = () => {
     if (!product) return; // Asegurarse de que el producto existe
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -80,6 +130,7 @@ export default function ProductDetail() {
     alert("Producto agregado al carrito");
   };
 
+  // Manejar favoritos
   const handleToggleFavorite = () => {
     if (!product) return; // Asegurarse de que el producto existe
     const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
@@ -96,139 +147,158 @@ export default function ProductDetail() {
     }
   };
 
-  // Estado para manejar el tamaño seleccionado
-  const [selectedSize, setSelectedSize] = useState("Medium");
-
+  // Manejar cambio de tamaño
   const handleSizeChange = (e) => {
     setSelectedSize(e.target.value);
   };
 
-  // Simular el retraso en la carga para el skeleton
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1500); // Retraso de 1.5 segundos para simular carga
-    return () => clearTimeout(timer);
-  }, []); // Este useEffect siempre se ejecuta en cada render
+  if (loading) {
+    return (
+      <>
+        <Header position="relative" textColor="text-black"/>
+        <div className="flex justify-center items-center my-10 px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-6xl">
+            {/* Skeleton de Imágenes */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Thumbnails Skeleton */}
+              <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto max-h-96 lg:max-h-full gap-2">
+                {Array(4).fill(0).map((_, index) => (
+                  <div key={index} className="w-20 h-20 bg-gray-200 rounded-md animate-pulse"></div>
+                ))}
+              </div>
+
+              {/* Imagen Principal Skeleton */}
+              <div className="flex-1 relative flex justify-center items-center">
+                <div className="w-auto h-full max-h-96 bg-gray-200 rounded-md animate-pulse"></div>
+              </div>
+            </div>
+
+            {/* Skeleton de Información */}
+            <div className="space-y-6">
+              <div className="w-1/2 h-6 bg-gray-200 rounded-md animate-pulse"></div>
+              <div className="w-3/4 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+              <div className="w-1/2 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+              <div className="w-1/3 h-4 bg-gray-200 rounded-md animate-pulse"></div>
+              <div className="w-1/2 h-8 bg-gray-200 rounded-md animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <Header position="relative" textColor="text-black"/>
+        <div className="flex justify-center items-center my-10 px-4">
+          <h2 className="text-2xl font-bold text-red-500">{error}</h2>
+        </div>
+      </>
+    );
+  }
+
+  if (!product) {
+    return (
+      <>
+        <Header position="relative" textColor="text-black"/>
+        <div className="flex justify-center items-center my-10 px-4">
+          <h2 className="text-2xl font-bold">Producto no encontrado</h2>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <Header position="relative" textColor="text-black"/>
       <div className="flex justify-center items-center my-10 px-4">
-        { !product ? (
-          <div className="flex justify-center items-center my-10 px-4">
-            <h2 className="text-2xl font-bold">Producto no encontrado</h2>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-6xl">
-            {/* Sección de Imágenes del Producto */}
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Thumbnails */}
-              <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto max-h-96 lg:max-h-full gap-2">
-                {loading ? (
-                  // Skeleton para las miniaturas
-                  Array(4).fill(0).map((_, index) => (
-                    <div key={index} className="w-20 h-20 bg-gray-200 rounded-md animate-pulse"></div>
-                  ))
-                ) : (
-                  thumbnails.map((image, index) => (
-                    <img
-                      key={index}
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      className={`w-20 h-20 rounded-md border-2 ${
-                        mainImage === image ? 'border-gray-800' : 'border-transparent'
-                      } cursor-pointer object-cover transition`}
-                      onClick={() => handleThumbnailClick(image)}
-                    />
-                  ))
-                )}
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-6xl">
+          {/* Sección de Imágenes del Producto */}
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Thumbnails */}
+            <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto max-h-96 lg:max-h-full gap-2">
+              {thumbnails.map((image, index) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt={`Thumbnail ${index + 1}`}
+                  className={`w-20 h-20 rounded-md border-2 ${
+                    mainImage === image ? 'border-gray-800' : 'border-transparent'
+                  } cursor-pointer object-cover transition`}
+                  onClick={() => handleThumbnailClick(image)}
+                />
+              ))}
+            </div>
 
-              {/* Imagen Principal */}
-              <div
-                className="flex-1 relative flex justify-center items-center"
-                onClick={handleImageClick}
+            {/* Imagen Principal */}
+            <div
+              className="flex-1 relative flex justify-center items-center"
+              onClick={handleImageClick}
+            >
+              <img
+                src={mainImage}
+                alt="Producto principal"
+                className="w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105"
+              />
+            </div>
+          </div>
+
+          {/* Sección de Información del Producto */}
+          <div className="space-y-6">
+            <p className="text-gray-500 text-sm">HOME / {brandName.toUpperCase()} / {typeName.toUpperCase()}</p>
+            <h1 className="text-3xl font-bold">{product.name}</h1>
+            <div className="flex items-center space-x-2">
+              <div className="text-yellow-500 text-lg">⭐⭐⭐⭐☆</div>
+              <p className="text-sm text-gray-600">({product.numReviews} Reviews)</p>
+            </div>
+            <div className="flex items-baseline space-x-4">
+              <p className="text-2xl text-red-600 font-semibold">${product.price.toFixed(2)}</p>
+            </div>
+            <div>
+              <div className="mb-4">
+                <p className="text-sm font-medium">CATEGORÍA: {typeName}</p>
+              </div>
+              <div>
+                <label htmlFor="size-select" className="block text-sm font-medium">
+                  SIZE:
+                </label>
+                <select
+                  id="size-select"
+                  value={selectedSize}
+                  onChange={handleSizeChange} // Vinculamos el estado al select
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="Small">Small</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Large">Large</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex space-x-4">
+              <button 
+                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
+                onClick={handleAddToCart}
               >
-                {loading ? (
-                  <div className="w-auto h-full max-h-96 bg-gray-200 rounded-md animate-pulse"></div>
-                ) : (
-                  <img
-                    src={mainImage}
-                    alt="Producto principal"
-                    className="w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105"
-                  />
-                )}
-              </div>
+                Add To Cart
+              </button>
+              <button 
+                className={`px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 
+                  ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
+                onClick={handleToggleFavorite}
+              >
+                {isLiked ? '❤' : '♡'}
+              </button>
             </div>
-
-            {/* Sección de Información del Producto */}
-            <div className="space-y-6">
-              {loading ? (
-                // Skeleton para la información del producto
-                <>
-                  <div className="w-1/2 h-6 bg-gray-200 rounded-md animate-pulse"></div>
-                  <div className="w-3/4 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-                  <div className="w-1/2 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-                  <div className="w-1/3 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-                  <div className="w-1/2 h-8 bg-gray-200 rounded-md animate-pulse"></div>
-                </>
-              ) : (
-                <>
-                  <p className="text-gray-500 text-sm">HOME / {brandName.toUpperCase()} / {typeName.toUpperCase()}</p>
-                  <h1 className="text-3xl font-bold">{product.name}</h1>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-yellow-500 text-lg">⭐⭐⭐⭐☆</div>
-                    <p className="text-sm text-gray-600">({product.numReviews} Reviews)</p>
-                  </div>
-                  <div className="flex items-baseline space-x-4">
-                    <p className="text-2xl text-red-600 font-semibold">${product.price.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <div className="mb-4">
-                      <p className="text-sm font-medium">CATEGORÍA: {typeName}</p>
-                    </div>
-                    <div>
-                      <label htmlFor="size-select" className="block text-sm font-medium">
-                        SIZE:
-                      </label>
-                      <select
-                        id="size-select"
-                        value={selectedSize}
-                        onChange={handleSizeChange} // Vinculamos el estado al select
-                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                      >
-                        <option value="Small">Small</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Large">Large</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex space-x-4">
-                    <button 
-                      className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
-                      onClick={handleAddToCart}
-                    >
-                      Add To Cart
-                    </button>
-                    <button 
-                      className={`px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 
-                        ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
-                      onClick={handleToggleFavorite}
-                    >
-                      {isLiked ? '❤' : '♡'}
-                    </button>
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    📦 Free delivery over $99. Next day delivery $9.99
-                  </div>
-                </>
-              )}
+            <div className="text-sm text-gray-600">
+              📦 Free delivery over $99. Next day delivery $9.99
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Modal de Imagen Expandida */}
-      {showModal && product && (
+      {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div
             className="relative"
