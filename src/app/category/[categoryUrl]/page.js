@@ -10,10 +10,9 @@ import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
 import Header from '../../components/Header';
 import HeroSection from '../HeroSection';
-import { products, types } from '../data'; // Eliminada la importación de 'categories'
-
-// Opcional: Si decides modularizar la lógica de fetching, puedes crear un custom hook.
-// import useBrands from '../../hooks/useBrands';
+// Eliminada la importación de 'products', 'categories', y 'brands'
+// Si usas alguna otra data local, mantenla
+import { types } from '../data';
 
 export default function CategoryPage() {
   const params = useParams();
@@ -29,7 +28,12 @@ export default function CategoryPage() {
   const [isLoadingBrands, setIsLoadingBrands] = useState(true);
   const [brandsError, setBrandsError] = useState(null);
 
-  // Hooks de estado para filtros
+  // Estados para productos
+  const [products, setProducts] = useState([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [productsError, setProductsError] = useState(null);
+
+  // Estados para filtros
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -114,6 +118,79 @@ export default function CategoryPage() {
     fetchBrands();
   }, [currentCategory]);
 
+  // Fetch de productos desde la API con filtros
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!currentCategory) return;
+
+      const categoryID = currentCategory.uniqueID;
+      if (!categoryID) return;
+
+      setIsLoadingProducts(true);
+      setProductsError(null);
+
+      try {
+        // Construir la URL con los parámetros de filtrado
+        const params = new URLSearchParams();
+
+        if (selectedBrands.length > 0) {
+          params.append('brandIDs', selectedBrands.join(','));
+        }
+
+        if (selectedTypes.length > 0) {
+          params.append('typeIDs', selectedTypes.join(','));
+        }
+
+        if (minPrice) {
+          params.append('minPrice', minPrice);
+        }
+
+        if (maxPrice !== 1000) { // Suponiendo que 1000 es el valor por defecto
+          params.append('maxPrice', maxPrice);
+        }
+
+        if (selectedSizes.length > 0) {
+          params.append('sizes', selectedSizes.join(','));
+        }
+
+        // Determinar el tipo ('category' o 'subcategory') y la URL
+        let typeParam = 'category';
+        let urlParam = currentCategory.url;
+
+        // Si estás filtrando por subcategoría, ajusta el tipo y la URL
+        // Esto depende de tu lógica de aplicación
+        // Por ahora, asumiremos que siempre es 'category'
+
+        const apiUrl = `/api/products/public/get/list/${typeParam}/${urlParam}?${params.toString()}`;
+
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('No se encontraron productos.');
+          } else {
+            throw new Error('Error al obtener los productos.');
+          }
+        }
+
+        const data = await response.json();
+        setProducts(data.products);
+      } catch (error) {
+        console.error('Error al obtener los productos:', error);
+        setProductsError(error.message);
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
+
+    fetchProducts();
+  }, [currentCategory, selectedBrands, selectedTypes, minPrice, maxPrice, selectedSizes]);
+
   // useEffect para manejar el scroll cuando los filtros están abiertos
   useEffect(() => {
     if (isFilterOpen) {
@@ -164,47 +241,24 @@ export default function CategoryPage() {
     );
   }
 
-  // Filtrar productos por la categoría actual
-  const categoryID = currentCategory.uniqueID;
-  const filteredProductsByCategory = products.filter(p => p.categoryID === categoryID);
-
   // Filtrar types por categoryID
+  const categoryID = currentCategory.uniqueID;
   const filteredTypes = types.filter(t => t.categoryID === categoryID);
 
   // Filtrar brands ya obtenido desde la API
   const filteredBrands = brands; // Ya filtrado por API
 
-  // Función para filtrar productos según los filtros seleccionados
-  const filterProducts = () => {
-    return filteredProductsByCategory.filter(product => {
-      const withinPrice = product.price >= minPrice && product.price <= maxPrice;
-
-      const productCategory = categories.find(cat => cat.uniqueID === product.categoryID);
-      const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(productCategory?.name);
-
-      const brandName = getBrandName(product.brandID);
-      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(brandName);
-
-      const typeName = getTypeName(product.typeID);
-      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(typeName);
-
-      const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size);
-
-      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize;
-    });
-  };
-
+  // Función para obtener el nombre de la marca
   const getBrandName = (brandID) => {
     const brand = filteredBrands.find(b => b.uniqueID === brandID);
     return brand ? brand.name : '';
   };
 
+  // Función para obtener el nombre del tipo
   const getTypeName = (typeID) => {
     const type = filteredTypes.find(t => t.uniqueID === typeID);
     return type ? type.name : '';
   };
-
-  const filteredProducts = filterProducts();
 
   const clearAllFilters = () => {
     setSelectedCategories([]);
@@ -262,20 +316,26 @@ export default function CategoryPage() {
           </aside>
 
           <main className="w-full md:w-3/4 lg:w-9/12 xl:w-7/10 px-5 md:px-10 lg:px-10 sm:px-0">
-            <ProductList
-              products={filteredProducts}
-              selectedCategories={selectedCategories}
-              selectedBrands={selectedBrands}
-              selectedTypes={selectedTypes}
-              selectedSizes={selectedSizes}
-              minPrice={minPrice}
-              maxPrice={maxPrice}
-              clearAllFilters={clearAllFilters}
-              setSelectedCategories={setSelectedCategories}
-              setSelectedBrands={setSelectedBrands}
-              setSelectedTypes={setSelectedTypes}
-              setSelectedSizes={setSelectedSizes}
-            />
+            {isLoadingProducts ? (
+              <div className="text-center text-gray-600">Cargando productos...</div>
+            ) : productsError ? (
+              <div className="text-center text-red-500">Error: {productsError}</div>
+            ) : (
+              <ProductList
+                products={products}
+                selectedCategories={selectedCategories}
+                selectedBrands={selectedBrands}
+                selectedTypes={selectedTypes}
+                selectedSizes={selectedSizes}
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                clearAllFilters={clearAllFilters}
+                setSelectedCategories={setSelectedCategories}
+                setSelectedBrands={setSelectedBrands}
+                setSelectedTypes={setSelectedTypes}
+                setSelectedSizes={setSelectedSizes}
+              />
+            )}
           </main>
         </div>
 

@@ -17,7 +17,6 @@ export default function BrandFilter({
   
   // Si utilizas tallas en tus productos, define las tallas aquí
   const sizes = ['S', 'M', 'L', 'XL']; // Ejemplo de tallas
-
   const toggleBrand = (brandName) => {
     if (selectedBrands.includes(brandName)) {
       setSelectedBrands(selectedBrands.filter(b => b !== brandName));
@@ -61,8 +60,8 @@ export default function BrandFilter({
               <input
                 type="checkbox"
                 id={brand.uniqueID}
-                onChange={() => toggleBrand(brand.name)}
-                checked={selectedBrands.includes(brand.name)}
+                onChange={() => toggleBrand(brand.uniqueID)}
+                checked={selectedBrands.includes(brand.uniqueID)}
                 className="form-checkbox h-4 w-4 text-blue-600"
               />
               <label htmlFor={brand.uniqueID} className="text-sm text-gray-700 cursor-pointer">{brand.name}</label>

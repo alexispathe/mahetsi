@@ -3,7 +3,6 @@ import { firestore } from '../../../../../../../libs/firebaseAdmin';
 
 export async function GET(request, { params }) {
   const { categoryID } = params; // Obtiene la propiedad categoryID desde los parámetros
-  console.log("Obteniendo brands para la categoría:", categoryID);
 
   try {
     // Verifica que la categoría exista
