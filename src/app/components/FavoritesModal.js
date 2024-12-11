@@ -1,12 +1,14 @@
+// src/components/FavoritesModal.js
+
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { products } from '../category/data'; // Ajusta la ruta a tu data si es necesario
 
 export default function FavoritesModal({ isOpen, onClose }) {
   const modalRef = useRef(null);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
   const [loading, setLoading] = useState(true); // Estado de carga
+  const [error, setError] = useState(null); // Estado de error
 
   useEffect(() => {
     if (isOpen) {
@@ -23,16 +25,55 @@ export default function FavoritesModal({ isOpen, onClose }) {
   }, [isOpen, onClose]);
 
   useEffect(() => {
+    const fetchFavoriteProducts = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        if (favorites.length === 0) {
+          setFavoriteProducts([]);
+          setLoading(false);
+          return;
+        }
+
+        // Firestore limita "in" a 10 elementos, así que dividimos la lista en chunks de 10
+        const chunks = [];
+        for (let i = 0; i < favorites.length; i += 10) {
+          chunks.push(favorites.slice(i, i + 10));
+        }
+
+        const allProducts = [];
+
+        for (const chunk of chunks) {
+          const response = await fetch('/api/products/public/get/favorites', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ favoriteIDs: chunk }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error al obtener productos favoritos.');
+          }
+
+          const data = await response.json();
+          allProducts.push(...data.products);
+        }
+
+        setFavoriteProducts(allProducts);
+      } catch (err) {
+        console.error('Error al obtener productos favoritos:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (isOpen) {
-      const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-      // Filtramos los productos por los favoritos
-      const favProds = products.filter(p => favorites.includes(p.uniqueID));
-      
-      // Simulamos el retraso en la carga de los productos
-      setTimeout(() => {
-        setFavoriteProducts(favProds);
-        setLoading(false); // Cambiar el estado a false después de 1 segundo
-      }, 1000); // 1 segundo de retraso para simular carga
+      fetchFavoriteProducts();
     }
   }, [isOpen]);
 
@@ -66,6 +107,8 @@ export default function FavoritesModal({ isOpen, onClose }) {
               </div>
             ))}
           </div>
+        ) : error ? (
+          <p className="text-red-500">Error: {error}</p>
         ) : favoriteProducts.length === 0 ? (
           <p className="text-gray-700">No tienes productos en favoritos</p>
         ) : (
@@ -77,7 +120,7 @@ export default function FavoritesModal({ isOpen, onClose }) {
                 className="block bg-white border border-gray-200 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
               >
                 <img 
-                  src={product.images[0]} 
+                  src={product.image} 
                   alt={product.name} 
                   className="w-full h-48 object-cover"
                 />
