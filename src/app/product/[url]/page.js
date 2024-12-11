@@ -1,4 +1,5 @@
 // src/app/product/[url]/page.js
+
 'use client';
 
 import React, { useState, useRef, useEffect } from "react";
@@ -113,16 +114,13 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     if (!product) return; // Asegurarse de que el producto existe
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    const existingItemIndex = cart.findIndex((item) => item.uniqueID === product.uniqueID);
+    const existingItemIndex = cart.findIndex((item) => item.uniqueID === product.uniqueID && item.size === selectedSize);
     if (existingItemIndex !== -1) {
       cart[existingItemIndex].qty += 1;
     } else {
       cart.push({
         uniqueID: product.uniqueID,
-        name: product.name,
-        price: product.price,
-        image: product.images[0], 
-        size: selectedSize,  // Usar el tamaño seleccionado
+        size: selectedSize,  // Guardar el tamaño seleccionado
         qty: 1
       });
     }

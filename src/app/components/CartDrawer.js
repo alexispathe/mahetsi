@@ -1,20 +1,70 @@
+// src/components/CartDrawer.js
 'use client'
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function CartDrawer({ isOpen, onClose }) {
-  const [products, setProducts] = useState([]);
+  const [cartItems, setCartItems] = useState([]); // Cart items from localStorage
+  const [products, setProducts] = useState([]);   // Detailed product data from API
   const [loading, setLoading] = useState(true); // Estado de carga
+  const [error, setError] = useState(null);     // Estado de error
 
   useEffect(() => {
     if (isOpen) {
-      // Cargar los productos del carrito desde localStorage cuando se abre
-      const cart = JSON.parse(localStorage.getItem("cart")) || [];
-      setProducts(cart);
+      const fetchCartProducts = async () => {
+        setLoading(true);
+        setError(null);
 
-      // Simular un retraso para la carga
-      setTimeout(() => {
-        setLoading(false); // Cambiar el estado a false después de 1 segundo
-      }, 1000); // 1 segundo de retraso para simular carga
+        try {
+          // Obtener los elementos del carrito desde localStorage
+          const cart = JSON.parse(localStorage.getItem("cart")) || [];
+          setCartItems(cart);
+
+          if (cart.length === 0) {
+            setProducts([]);
+            setLoading(false);
+            return;
+          }
+
+          // Extraer los uniqueIDs
+          const uniqueIDs = cart.map(item => item.uniqueID);
+
+          // Firestore limita "in" a 10 elementos, así que dividimos la lista en chunks de 10
+          const chunks = [];
+          for (let i = 0; i < uniqueIDs.length; i += 10) {
+            chunks.push(uniqueIDs.slice(i, i + 10));
+          }
+
+          const allProducts = [];
+
+          for (const chunk of chunks) {
+            const response = await fetch('/api/shoppingCart/public/get/cartIds', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ productIDs: chunk }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || 'Error al obtener productos del carrito.');
+            }
+
+            const data = await response.json();
+            allProducts.push(...data.products);
+          }
+
+          setProducts(allProducts);
+        } catch (err) {
+          console.error('Error al obtener productos del carrito:', err);
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchCartProducts();
 
       const handleClickOutside = (event) => {
         if (event.target.closest(".cart-drawer") === null) {
@@ -32,9 +82,22 @@ export default function CartDrawer({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const subtotal = products.reduce((total, product) => total + (product.price * product.qty), 0);
+  // Combinar los detalles del producto con el carrito
+  const detailedCartItems = cartItems.map(cartItem => {
+    const product = products.find(p => p.uniqueID === cartItem.uniqueID);
+    return {
+      ...cartItem,
+      name: product ? product.name : 'Producto no encontrado',
+      url: product ? product.url : '#',
+      image: product ? product.image : '',
+      price: product ? product.price : 0,
+    };
+  });
+
+  const subtotal = detailedCartItems.reduce((total, item) => total + (item.price * item.qty), 0);
   const shippingThreshold = 255;
   const shippingProgress = (subtotal >= shippingThreshold ? 100 : (subtotal / shippingThreshold) * 100);
+  const shippingFee = subtotal >= shippingThreshold ? 0 : 9.99;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end z-50">
@@ -84,7 +147,9 @@ export default function CartDrawer({ isOpen, onClose }) {
             <div className="w-full h-12 bg-gray-300 rounded-md animate-pulse mb-6"></div>
             <div className="w-full h-12 bg-gray-300 rounded-md animate-pulse mb-6"></div>
           </div>
-        ) : products.length === 0 ? (
+        ) : error ? (
+          <p className="text-red-500">Error: {error}</p>
+        ) : detailedCartItems.length === 0 ? (
           <p className="text-gray-700">Tu carrito está vacío</p>
         ) : (
           <>
@@ -101,7 +166,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                     </span>
                   </>
                 ) : (
-                  <span className="text-sm text-gray-600">You have free shipping!</span>
+                  <span className="text-sm text-gray-600">¡Tienes envío gratuito!</span>
                 )}
               </div>
               <div className="h-2 bg-gray-200 rounded-full mt-1">
@@ -114,21 +179,21 @@ export default function CartDrawer({ isOpen, onClose }) {
 
             {/* Product List */}
             <div className="space-y-4">
-              {products.map((product, index) => (
+              {detailedCartItems.map((item, index) => (
                 <div key={index} className="flex justify-between items-center">
                   <div className="flex items-center space-x-4">
                     <img
-                      src={product.image}
-                      alt={product.name}
+                      src={item.image}
+                      alt={item.name}
                       className="w-24 h-24 object-cover rounded-md"
                     />
                     <div>
-                      <p className="font-semibold text-gray-800">{product.name}</p>
-                      <p className="text-sm text-gray-600">Size: {product.size}</p>
-                      <p className="text-sm text-gray-600">Qty: {product.qty}</p>
+                      <p className="font-semibold text-gray-800">{item.name}</p>
+                      <p className="text-sm text-gray-600">Tamaño: {item.size}</p>
+                      <p className="text-sm text-gray-600">Cantidad: {item.qty}</p>
                     </div>
                   </div>
-                  <span className="font-semibold text-lg text-gray-800">${(product.price * product.qty).toFixed(2)}</span>
+                  <span className="font-semibold text-lg text-gray-800">${(item.price * item.qty).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -139,18 +204,30 @@ export default function CartDrawer({ isOpen, onClose }) {
               <span>${subtotal.toFixed(2)}</span>
             </div>
 
+            {/* Shipping Fee */}
+            <div className="flex justify-between mt-2 font-semibold text-lg text-gray-800">
+              <span>Envío</span>
+              <span>${shippingFee.toFixed(2)}</span>
+            </div>
+
+            {/* Total */}
+            <div className="flex justify-between mt-2 font-bold text-xl text-gray-900">
+              <span>Total</span>
+              <span>${(subtotal + shippingFee).toFixed(2)}</span>
+            </div>
+
             {/* Action Buttons */}
             <div className="mt-6 space-y-4">
-              <a href="/checkout">
+              <Link href="/checkout">
                 <button className="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors duration-300">
                   Checkout
                 </button>
-              </a>
-              <a href="/cart">
+              </Link>
+              <Link href="/cart">
                 <button className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition-colors duration-300">
-                  View Cart
+                  Ver Carrito
                 </button>
-              </a>
+              </Link>
             </div>
           </>
         )}
