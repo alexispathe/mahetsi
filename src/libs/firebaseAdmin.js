@@ -1,5 +1,4 @@
 // src/lib/firebaseAdmin.js
-
 import admin from 'firebase-admin';
 
 if (!admin.apps.length) {
@@ -20,11 +19,11 @@ if (!admin.apps.length) {
 }
 
 const firestore = admin.firestore();
-const auth = admin.auth();
+const authAdmin = admin.auth();
 
-export { firestore, auth };
+export { firestore, authAdmin };
 
-// Función para verificar el token
+// Verificar Token de sesión (en server)
 export const verifyIdToken = async (token) => {
-  return await auth.verifyIdToken(token);
+  return await authAdmin.verifyIdToken(token);
 };

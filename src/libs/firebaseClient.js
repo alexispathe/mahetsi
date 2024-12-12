@@ -1,6 +1,6 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore"; // Para Firestore
-import { getAuth } from "firebase/auth"; // Para autenticación
+// src/lib/firebaseClient.js
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,9 +11,13 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Inicializa Firebase
-const app = initializeApp(firebaseConfig);
 
-// Inicializa Firestore y autenticación
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// Establece la persistencia a nivel del navegador
+setPersistence(auth, browserLocalPersistence);
+
+const provider = new GoogleAuthProvider();
+
+export { auth, provider };

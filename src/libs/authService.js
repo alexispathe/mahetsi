@@ -1,6 +1,6 @@
 // src/libs/authService.js
 
-import { auth } from './firebaseConfig'; // Solo importa auth de firebaseConfig
+import { auth } from './firebaseClient'; // Solo importa auth de firebaseConfig
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth'; // Importa GoogleAuthProvider desde firebase/auth
 
 export const loginWithGoogle = async () => {
