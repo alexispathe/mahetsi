@@ -10,185 +10,27 @@ import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
 import Header from '../../components/Header';
 import HeroSection from '../HeroSection';
+import { products, categories, brands, types } from '../data';
 
 export default function CategoryPage() {
   const params = useParams();
   const categoryUrl = params.categoryUrl;
 
-  // Estados para categorías
-  const [categories, setCategories] = useState([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const [categoriesError, setCategoriesError] = useState(null);
-
-  // Estados para marcas
-  const [brands, setBrands] = useState([]);
-  const [isLoadingBrands, setIsLoadingBrands] = useState(true);
-  const [brandsError, setBrandsError] = useState(null);
-
-  // Estados para productos
-  const [products, setProducts] = useState([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
-  const [productsError, setProductsError] = useState(null);
-
-  // Estados para filtros
+  // Llamada a los hooks antes de cualquier condicional
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Estados para filtros seleccionados
+  // Estados para filtros
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
 
-  // Fetch de categorías desde la API
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setIsLoadingCategories(true);
-      setCategoriesError(null);
-
-      try {
-        const response = await fetch('/api/categories/public/get/list', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Error al obtener las categorías.');
-        }
-
-        const data = await response.json();
-        setCategories(data.categories);
-      } catch (error) {
-        console.error('Error al obtener las categorías:', error);
-        setCategoriesError(error.message);
-      } finally {
-        setIsLoadingCategories(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  // Determinar la categoría actual después de obtener las categorías
+  // Buscar la categoría por su url
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
-  // Fetch de marcas desde la API una vez que la categoría actual está definida
-  useEffect(() => {
-    const fetchBrands = async () => {
-      if (!currentCategory) return;
-
-      const categoryID = currentCategory.uniqueID;
-      if (!categoryID) return;
-
-      setIsLoadingBrands(true);
-      setBrandsError(null);
-
-      try {
-        const response = await fetch(`/api/brands/public/get/byCategory/${categoryID}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Categoría no encontrada.');
-          } else {
-            throw new Error('Error al obtener las marcas.');
-          }
-        }
-
-        const data = await response.json();
-        setBrands(data.brands);
-      } catch (error) {
-        console.error('Error al obtener las marcas:', error);
-        setBrandsError(error.message);
-      } finally {
-        setIsLoadingBrands(false);
-      }
-    };
-
-    fetchBrands();
-  }, [currentCategory]);
-
-  // Fetch de productos desde la API con filtros
-  useEffect(() => {
-    const fetchProducts = async () => {
-      if (!currentCategory) return;
-
-      const categoryID = currentCategory.uniqueID;
-      if (!categoryID) return;
-
-      setIsLoadingProducts(true);
-      setProductsError(null);
-
-      try {
-        // Construir la URL con los parámetros de filtrado
-        const params = new URLSearchParams();
-
-        if (selectedBrands.length > 0) {
-          params.append('brandIDs', selectedBrands.join(','));
-        }
-
-        if (selectedTypes.length > 0) {
-          params.append('typeIDs', selectedTypes.join(','));
-        }
-
-        if (minPrice) {
-          params.append('minPrice', minPrice);
-        }
-
-        if (maxPrice !== 1000) { // Suponiendo que 1000 es el valor por defecto
-          params.append('maxPrice', maxPrice);
-        }
-
-        if (selectedSizes.length > 0) {
-          params.append('sizes', selectedSizes.join(','));
-        }
-
-        // Determinar el tipo ('category' o 'subcategory') y la URL
-        let typeParam = 'category';
-        let urlParam = currentCategory.url;
-
-        // Si estás filtrando por subcategoría, ajusta el tipo y la URL
-        // Esto depende de tu lógica de aplicación
-        // Por ahora, asumiremos que siempre es 'category'
-
-        const apiUrl = `/api/products/public/get/list/${typeParam}/${urlParam}?${params.toString()}`;
-
-        const response = await fetch(apiUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('No se encontraron productos.');
-          } else {
-            throw new Error('Error al obtener los productos.');
-          }
-        }
-
-        const data = await response.json();
-        setProducts(data.products);
-      } catch (error) {
-        console.error('Error al obtener los productos:', error);
-        setProductsError(error.message);
-      } finally {
-        setIsLoadingProducts(false);
-      }
-    };
-
-    fetchProducts();
-  }, [currentCategory, selectedBrands, selectedTypes, minPrice, maxPrice, selectedSizes]);
-
-  // useEffect para manejar el scroll cuando los filtros están abiertos
+  // useEffect antes de cualquier return condicional
   useEffect(() => {
     if (isFilterOpen) {
       document.body.style.overflow = 'hidden';
@@ -201,36 +43,10 @@ export default function CategoryPage() {
     };
   }, [isFilterOpen]);
 
-  // Manejo de caso donde la categoría no se encuentra o está cargando
-  if (isLoadingCategories) {
-    return (
-      <>
-        <Header textColor={'text-white'} />
-        <HeroSection />
-        <div className="container mx-auto p-6">
-          <h2 className="text-2xl font-bold">Cargando categorías...</h2>
-        </div>
-      </>
-    );
-  }
-
-  if (categoriesError) {
-    return (
-      <>
-        <Header textColor={'text-white'} />
-        <HeroSection />
-        <div className="container mx-auto p-6">
-          <h2 className="text-2xl font-bold text-red-500">Error: {categoriesError}</h2>
-        </div>
-      </>
-    );
-  }
-
   if (!currentCategory) {
     return (
       <>
-        <Header textColor={'text-white'} />
-        <HeroSection />
+        <Header />
         <div className="container mx-auto p-6">
           <h2 className="text-2xl font-bold">Categoría no encontrada</h2>
         </div>
@@ -238,27 +54,44 @@ export default function CategoryPage() {
     );
   }
 
-  // Filtrar types por categoryID
-  // Ahora ya no necesitamos esto en CategoryPage
-  // const filteredTypes = types.filter(t => t.categoryID === categoryID);
+  // Filtrar productos por la categoría actual
+  const categoryID = currentCategory.uniqueID;
+  const filteredProductsByCategory = products.filter(p => p.categoryID === categoryID);
 
-  // Filtrar brands ya obtenido desde la API
-  const filteredBrands = brands; // Ya filtrado por API
+  // Filtrar brands y types por categoryID
+  const filteredBrands = brands.filter(b => b.categoryID === categoryID);
+  const filteredTypes = types.filter(t => t.categoryID === categoryID);
 
-  // Función para obtener el nombre de la marca
+  const filterProducts = () => {
+    return filteredProductsByCategory.filter(product => {
+      const withinPrice = product.price >= minPrice && product.price <= maxPrice;
+
+      const productCategory = categories.find(cat => cat.uniqueID === product.categoryID);
+      const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(productCategory?.name);
+
+      const brandName = getBrandName(product.brandID);
+      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(brandName);
+
+      const typeName = getTypeName(product.typeID);
+      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(typeName);
+
+      const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size);
+
+      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize;
+    });
+  };
+
   const getBrandName = (brandID) => {
     const brand = filteredBrands.find(b => b.uniqueID === brandID);
     return brand ? brand.name : '';
   };
 
-  // Función para obtener el nombre del tipo
   const getTypeName = (typeID) => {
-    // Ya no manejamos types en CategoryPage
-    return '';
+    const type = filteredTypes.find(t => t.uniqueID === typeID);
+    return type ? type.name : '';
   };
 
-  // Ya no es necesario filtrar productos en el cliente
-  const filteredProducts = products;
+  const filteredProducts = filterProducts();
 
   const clearAllFilters = () => {
     setSelectedCategories([]);
@@ -278,7 +111,7 @@ export default function CategoryPage() {
         <div className="flex justify-end mb-4 md:hidden">
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="mx-auto w-[95%] bg-gray-200 flex items-center p-2 text-sm uppercase text-black"
+            className="mx-auto w-[95%] bg-gray-200 flex items-center p-2 text-sm  uppercase text-black"
           >
             <IoOptions className="w-4 h-4 mr-2 text-black" />
             <span className="text-left">Filtros</span>
@@ -288,7 +121,7 @@ export default function CategoryPage() {
           {/* Filtro lateral en pantallas medianas y grandes */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
             <CategoryFilter
-              categories={categories.filter(cat => cat.uniqueID === currentCategory.uniqueID)}
+              categories={categories.filter(cat => cat.uniqueID === categoryID)}
               selectedCategories={selectedCategories}
               setSelectedCategories={setSelectedCategories}
             />
@@ -297,46 +130,33 @@ export default function CategoryPage() {
               maxPrice={maxPrice}
               onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
             />
-            {isLoadingBrands ? (
-              <div className="my-4 text-gray-600">Cargando marcas...</div>
-            ) : brandsError ? (
-              <div className="my-4 text-red-500">Error: {brandsError}</div>
-            ) : (
-              <BrandFilter
-                brands={filteredBrands}
-                // types={filteredTypes} // Ya no necesitamos pasar types desde CategoryPage
-                selectedBrands={selectedBrands}
-                setSelectedBrands={setSelectedBrands}
-                selectedTypes={selectedTypes}
-                setSelectedTypes={setSelectedTypes}
-                selectedSizes={selectedSizes}
-                setSelectedSizes={setSelectedSizes}
-                categoryID={currentCategory.uniqueID} // Pasar categoryID para BrandFilter
-              />
-            )}
+            <BrandFilter
+              brands={filteredBrands}
+              types={filteredTypes}
+              selectedBrands={selectedBrands}
+              setSelectedBrands={setSelectedBrands}
+              selectedTypes={selectedTypes}
+              setSelectedTypes={setSelectedTypes}
+              selectedSizes={selectedSizes}
+              setSelectedSizes={setSelectedSizes}
+            />
           </aside>
 
           <main className="w-full md:w-3/4 lg:w-9/12 xl:w-7/10 px-5 md:px-10 lg:px-10 sm:px-0">
-            {isLoadingProducts ? (
-              <div className="text-center text-gray-600">Cargando productos...</div>
-            ) : productsError ? (
-              <div className="text-center text-red-500">Error: {productsError}</div>
-            ) : (
-              <ProductList
-                products={filteredProducts}
-                selectedCategories={selectedCategories}
-                selectedBrands={selectedBrands}
-                selectedTypes={selectedTypes}
-                selectedSizes={selectedSizes}
-                minPrice={minPrice}
-                maxPrice={maxPrice}
-                clearAllFilters={clearAllFilters}
-                setSelectedCategories={setSelectedCategories}
-                setSelectedBrands={setSelectedBrands}
-                setSelectedTypes={setSelectedTypes}
-                setSelectedSizes={setSelectedSizes}
-              />
-            )}
+            <ProductList
+              products={filteredProducts}
+              selectedCategories={selectedCategories}
+              selectedBrands={selectedBrands}
+              selectedTypes={selectedTypes}
+              selectedSizes={selectedSizes}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              clearAllFilters={clearAllFilters}
+              setSelectedCategories={setSelectedCategories}
+              setSelectedBrands={setSelectedBrands}
+              setSelectedTypes={setSelectedTypes}
+              setSelectedSizes={setSelectedSizes}
+            />
           </main>
         </div>
 
@@ -352,10 +172,10 @@ export default function CategoryPage() {
                 <FaTimes className="h-6 w-6 text-black" />
               </button>
 
-              {/* Contenedor con overflow para scroll */}
+              {/* Aquí puedes poner un div adicional con overflow para asegurarte del scroll */}
               <div className="max-h-[80vh] overflow-y-auto">
                 <CategoryFilter
-                  categories={categories.filter(cat => cat.uniqueID === currentCategory.uniqueID)}
+                  categories={categories.filter(cat => cat.uniqueID === categoryID)}
                   selectedCategories={selectedCategories}
                   setSelectedCategories={setSelectedCategories}
                 />
@@ -364,23 +184,16 @@ export default function CategoryPage() {
                   maxPrice={maxPrice}
                   onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
                 />
-                {isLoadingBrands ? (
-                  <div className="my-4 text-gray-600">Cargando marcas...</div>
-                ) : brandsError ? (
-                  <div className="my-4 text-red-500">Error: {brandsError}</div>
-                ) : (
-                  <BrandFilter
-                    brands={filteredBrands}
-                    // types={filteredTypes} // Ya no necesitamos pasar types desde CategoryPage
-                    selectedBrands={selectedBrands}
-                    setSelectedBrands={setSelectedBrands}
-                    selectedTypes={selectedTypes}
-                    setSelectedTypes={setSelectedTypes}
-                    selectedSizes={selectedSizes}
-                    setSelectedSizes={setSelectedSizes}
-                    categoryID={currentCategory.uniqueID} // Pasar categoryID para BrandFilter
-                  />
-                )}
+                <BrandFilter
+                  brands={filteredBrands}
+                  types={filteredTypes}
+                  selectedBrands={selectedBrands}
+                  setSelectedBrands={setSelectedBrands}
+                  selectedTypes={selectedTypes}
+                  setSelectedTypes={setSelectedTypes}
+                  selectedSizes={selectedSizes}
+                  setSelectedSizes={setSelectedSizes}
+                />
               </div>
 
               <button

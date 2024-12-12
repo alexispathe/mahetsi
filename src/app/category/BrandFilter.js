@@ -1,34 +1,36 @@
-// src/components/BrandFilter.js
+// BrandFilter.js
 'use client';
-import { useState, useEffect } from 'react';
-import TypeFilter from './TypeFilter'; // Asegúrate de tener este componente
+import { useState } from 'react';
 
 export default function BrandFilter({ 
   brands, 
+  types, 
   selectedBrands, 
   setSelectedBrands, 
   selectedTypes, 
   setSelectedTypes, 
   selectedSizes, 
-  setSelectedSizes,
-  categoryID // Nueva prop para obtener categoryID
+  setSelectedSizes 
 }) {
   const [searchBrand, setSearchBrand] = useState('');
   const [searchType, setSearchType] = useState('');
   
-  // Estados para tipos
-  const [types, setTypes] = useState([]);
-  const [isLoadingTypes, setIsLoadingTypes] = useState(true);
-  const [typesError, setTypesError] = useState(null);
-
   // Si utilizas tallas en tus productos, define las tallas aquí
   const sizes = ['S', 'M', 'L', 'XL']; // Ejemplo de tallas
 
-  const toggleBrand = (brandID) => {
-    if (selectedBrands.includes(brandID)) {
-      setSelectedBrands(selectedBrands.filter(b => b !== brandID));
+  const toggleBrand = (brandName) => {
+    if (selectedBrands.includes(brandName)) {
+      setSelectedBrands(selectedBrands.filter(b => b !== brandName));
     } else {
-      setSelectedBrands([...selectedBrands, brandID]);
+      setSelectedBrands([...selectedBrands, brandName]);
+    }
+  };
+
+  const toggleType = (typeName) => {
+    if (selectedTypes.includes(typeName)) {
+      setSelectedTypes(selectedTypes.filter(t => t !== typeName));
+    } else {
+      setSelectedTypes([...selectedTypes, typeName]);
     }
   };
 
@@ -37,51 +39,6 @@ export default function BrandFilter({
       setSelectedSizes(selectedSizes.filter(s => s !== size));
     } else {
       setSelectedSizes([...selectedSizes, size]);
-    }
-  };
-
-  // Fetch de types desde la API
-  useEffect(() => {
-    const fetchTypes = async () => {
-      if (!categoryID) return;
-
-      setIsLoadingTypes(true);
-      setTypesError(null);
-
-      try {
-        const response = await fetch(`/api/types/public/get/byCategory/${categoryID}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Categoría no encontrada.');
-          } else {
-            throw new Error('Error al obtener los tipos.');
-          }
-        }
-
-        const data = await response.json();
-        setTypes(data.types);
-      } catch (error) {
-        console.error('Error al obtener los tipos:', error);
-        setTypesError(error.message);
-      } finally {
-        setIsLoadingTypes(false);
-      }
-    };
-
-    fetchTypes();
-  }, [categoryID]);
-
-  const toggleType = (typeID) => {
-    if (selectedTypes.includes(typeID)) {
-      setSelectedTypes(selectedTypes.filter(t => t !== typeID));
-    } else {
-      setSelectedTypes([...selectedTypes, typeID]);
     }
   };
 
@@ -104,8 +61,8 @@ export default function BrandFilter({
               <input
                 type="checkbox"
                 id={brand.uniqueID}
-                onChange={() => toggleBrand(brand.uniqueID)}
-                checked={selectedBrands.includes(brand.uniqueID)}
+                onChange={() => toggleBrand(brand.name)}
+                checked={selectedBrands.includes(brand.name)}
                 className="form-checkbox h-4 w-4 text-blue-600"
               />
               <label htmlFor={brand.uniqueID} className="text-sm text-gray-700 cursor-pointer">{brand.name}</label>
@@ -122,17 +79,22 @@ export default function BrandFilter({
         value={searchType}
         onChange={(e) => setSearchType(e.target.value)}
       />
-      {isLoadingTypes ? (
-        <div className="text-gray-600">Cargando tipos...</div>
-      ) : typesError ? (
-        <div className="text-red-500">Error: {typesError}</div>
-      ) : (
-        <TypeFilter 
-          types={types.filter(type => type.name.toLowerCase().includes(searchType.toLowerCase()))}
-          selectedTypes={selectedTypes}
-          setSelectedTypes={setSelectedTypes}
-        />
-      )}
+      <ul className="space-y-2 mb-6">
+        {types
+          .filter(type => type.name.toLowerCase().includes(searchType.toLowerCase()))
+          .map((type) => (
+            <li key={type.uniqueID} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id={type.uniqueID}
+                onChange={() => toggleType(type.name)}
+                checked={selectedTypes.includes(type.name)}
+                className="form-checkbox h-4 w-4 text-blue-600"
+              />
+              <label htmlFor={type.uniqueID} className="text-sm text-gray-700 cursor-pointer">{type.name}</label>
+            </li>
+          ))}
+      </ul>
 
       {/* Tallas */}
       <h4 className="text-lg font-semibold mb-4">Tallas</h4>
