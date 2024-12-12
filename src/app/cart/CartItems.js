@@ -1,8 +1,6 @@
 // src/components/CartItems.js
 
 import React from 'react';
-import Link from 'next/link';
-
 export default function CartItems({ items, handleRemoveItem }) {
   if (items.length === 0) {
     return <p className="text-gray-700 mb-6">Tu carrito está vacío</p>;
