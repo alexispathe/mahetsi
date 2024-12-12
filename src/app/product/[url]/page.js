@@ -2,36 +2,30 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../components/Header";
+import { AuthContext } from "@/context/AuthContext"; // Asegúrate de tener tu contexto de autenticación
 
 export default function ProductDetail() {
   const params = useParams();
   const productUrl = params.url;
 
-  // Estado para el producto
+  const { currentUser } = useContext(AuthContext);
+
   const [product, setProduct] = useState(null);
   const [brandName, setBrandName] = useState('');
   const [typeName, setTypeName] = useState('');
-
-  // Estados de carga y error
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Estados para la imagen principal y modal
   const [mainImage, setMainImage] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const modalRef = useRef(null);
-  const thumbnails = product ? product.images : [];
-
-  // Estado para manejo de favoritos
   const [isLiked, setIsLiked] = useState(false);
-
-  // Estado para el tamaño seleccionado
   const [selectedSize, setSelectedSize] = useState("Medium");
 
-  // Manejar la obtención de datos del producto desde la API
+  const thumbnails = product ? product.images : [];
+
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
@@ -59,7 +53,7 @@ export default function ProductDetail() {
         setTypeName(data.typeName);
         setMainImage(data.product.images[0]);
 
-        // Verificar si el producto está en favoritos
+        // Verificar si el producto está en favoritos localmente
         const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
         setIsLiked(favorites.includes(data.product.uniqueID));
 
@@ -76,22 +70,14 @@ export default function ProductDetail() {
     }
   }, [productUrl]);
 
-  // Manejar la selección de una miniatura
   const handleThumbnailClick = (image) => {
     setMainImage(image);
   };
 
-  // Manejar el clic en la imagen principal para abrir el modal
   const handleImageClick = () => {
     setShowModal(true);
   };
 
-  // Cerrar el modal
-  const closeModal = () => {
-    setShowModal(false);
-  };
-
-  // Manejar clic fuera del modal para cerrarlo
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (modalRef.current && !modalRef.current.contains(e.target)) {
@@ -110,42 +96,52 @@ export default function ProductDetail() {
     };
   }, [showModal]);
 
-  // Manejar agregar al carrito
-  const handleAddToCart = () => {
-    if (!product) return; // Asegurarse de que el producto existe
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    const existingItemIndex = cart.findIndex((item) => item.uniqueID === product.uniqueID && item.size === selectedSize);
-    if (existingItemIndex !== -1) {
-      cart[existingItemIndex].qty += 1;
-    } else {
-      cart.push({
-        uniqueID: product.uniqueID,
-        size: selectedSize,  // Guardar el tamaño seleccionado
-        qty: 1
-      });
+  const handleAddToCart = async () => {
+    if (!product) return;
+    if (!currentUser) {
+      alert("Por favor inicia sesión para agregar productos al carrito.");
+      return;
     }
-    localStorage.setItem("cart", JSON.stringify(cart));
-    alert("Producto agregado al carrito");
+    try {
+      const res = await fetch('/api/cart/addItem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uniqueID: product.uniqueID,
+          size: selectedSize,
+          qty: 1
+        })
+      });
+
+      if (res.ok) {
+        alert("Producto agregado al carrito!");
+      } else {
+        const data = await res.json();
+        console.error("Error al agregar al carrito:", data.error);
+        if (res.status === 401) {
+          alert("No has iniciado sesión. Redireccionando a login...");
+          window.location.href = '/login';
+        }
+      }
+    } catch (error) {
+      console.error('Error al agregar al carrito:', error);
+    }
   };
 
-  // Manejar favoritos
   const handleToggleFavorite = () => {
-    if (!product) return; // Asegurarse de que el producto existe
+    if (!product) return;
     const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
     if (favorites.includes(product.uniqueID)) {
-      // Si ya está, lo removemos
       const updated = favorites.filter(id => id !== product.uniqueID);
       localStorage.setItem("favorites", JSON.stringify(updated));
       setIsLiked(false);
     } else {
-      // Si no está, lo agregamos
       favorites.push(product.uniqueID);
       localStorage.setItem("favorites", JSON.stringify(favorites));
       setIsLiked(true);
     }
   };
 
-  // Manejar cambio de tamaño
   const handleSizeChange = (e) => {
     setSelectedSize(e.target.value);
   };
@@ -264,7 +260,7 @@ export default function ProductDetail() {
                 <select
                   id="size-select"
                   value={selectedSize}
-                  onChange={handleSizeChange} // Vinculamos el estado al select
+                  onChange={handleSizeChange}
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 >
                   <option value="Small">Small</option>
@@ -306,7 +302,7 @@ export default function ProductDetail() {
               className="absolute top-2 right-2 text-white text-3xl font-bold z-10"
               onClick={(e) => {
                 e.stopPropagation();
-                closeModal();
+                setShowModal(false);
               }}
               aria-label="Cerrar modal"
             >
@@ -316,7 +312,7 @@ export default function ProductDetail() {
               src={mainImage}
               alt="Producto principal expandido"
               className="max-w-full max-h-screen rounded-md object-contain cursor-pointer"
-              onClick={closeModal}
+              onClick={() => setShowModal(false)}
             />
           </div>
         </div>

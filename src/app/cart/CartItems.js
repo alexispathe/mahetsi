@@ -10,7 +10,7 @@ export default function CartItems({ items, handleRemoveItem }) {
     <section className="cart-items py-8 px-6 bg-white shadow-lg rounded-lg mb-8">
       <h2 className="text-2xl font-bold mb-6">Tu carrito</h2>
       <div className="">
-        {items.map((item, index) => (
+        {items.map((item) => (
           <div key={`${item.uniqueID}-${item.size}`} className="flex justify-between items-center mb-4">
             <div className="flex items-center">
               {item.image ? (
