@@ -10,8 +10,9 @@ import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
 import Header from '../../components/Header';
 import HeroSection from '../HeroSection';
-import { products, brands, types } from '../data';
-// Importa las demás dependencias necesarias
+// Eliminamos la importación de brands y types desde data.js
+// import { products, categories, brands, types } from '../data';
+import { products } from '../data'; // Asegúrate de importar solo lo necesario
 
 export default function CategoryPage() {
   const params = useParams();
@@ -20,6 +21,14 @@ export default function CategoryPage() {
   // Estados para manejar las categorías y el estado de carga
   const [categories, setCategories] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+  // Estados para manejar los brands
+  const [brands, setBrands] = useState([]);
+  const [isLoadingBrands, setIsLoadingBrands] = useState(true);
+
+  // Estados para manejar los types
+  const [types, setTypes] = useState([]);
+  const [isLoadingTypes, setIsLoadingTypes] = useState(true);
 
   // Llamada a los hooks antes de cualquier condicional
   const [minPrice, setMinPrice] = useState(0);
@@ -55,6 +64,50 @@ export default function CategoryPage() {
     fetchCategories();
   }, []);
 
+  // useEffect para obtener los brands y types una vez que se tiene currentCategory
+  useEffect(() => {
+    if (currentCategory) {
+      const { uniqueID } = currentCategory;
+
+      // Función para obtener los brands
+      const fetchBrands = async () => {
+        setIsLoadingBrands(true);
+        try {
+          const response = await fetch(`/api/brands/public/get/getBrandsByCategory?categoryID=${uniqueID}`);
+          if (!response.ok) {
+            throw new Error('Error al obtener los brands');
+          }
+          const data = await response.json();
+          setBrands(data.brands);
+        } catch (error) {
+          console.error('Error al obtener los brands:', error);
+        } finally {
+          setIsLoadingBrands(false);
+        }
+      };
+
+      // Función para obtener los types
+      const fetchTypes = async () => {
+        setIsLoadingTypes(true);
+        try {
+          const response = await fetch(`/api/types/public/get/getTypesByCategory?categoryID=${uniqueID}`);
+          if (!response.ok) {
+            throw new Error('Error al obtener los types');
+          }
+          const data = await response.json();
+          setTypes(data.types);
+        } catch (error) {
+          console.error('Error al obtener los types:', error);
+        } finally {
+          setIsLoadingTypes(false);
+        }
+      };
+
+      fetchBrands();
+      fetchTypes();
+    }
+  }, [currentCategory]);
+
   // useEffect para manejar el overflow del body al abrir/cerrar filtros
   useEffect(() => {
     if (isFilterOpen) {
@@ -85,13 +138,8 @@ export default function CategoryPage() {
     ? products.filter(p => p.categoryID === categoryID)
     : [];
 
-  // Filtrar brands y types por categoryID
-  const filteredBrands = categoryID
-    ? brands.filter(b => b.categoryID === categoryID)
-    : [];
-  const filteredTypes = categoryID
-    ? types.filter(t => t.categoryID === categoryID)
-    : [];
+  // Filtrar brands y types por categoryID ya no es necesario aquí
+  // ya que los obtenemos desde las APIs
 
   const filterProducts = () => {
     return filteredProductsByCategory.filter(product => {
@@ -113,12 +161,12 @@ export default function CategoryPage() {
   };
 
   const getBrandName = (brandID) => {
-    const brand = filteredBrands.find(b => b.uniqueID === brandID);
+    const brand = brands.find(b => b.uniqueID === brandID);
     return brand ? brand.name : '';
   };
 
   const getTypeName = (typeID) => {
-    const type = filteredTypes.find(t => t.uniqueID === typeID);
+    const type = types.find(t => t.uniqueID === typeID);
     return type ? type.name : '';
   };
 
@@ -151,6 +199,7 @@ export default function CategoryPage() {
         <div className="flex justify-center">
           {/* Filtro lateral en pantallas medianas y grandes */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
+            {/* Mostrar "cargando..." mientras se cargan las categorías */}
             {isLoadingCategories ? (
               <div>cargando...</div>
             ) : (
@@ -160,20 +209,30 @@ export default function CategoryPage() {
                 setSelectedCategories={setSelectedCategories}
               />
             )}
+
+            {/* Mostrar "cargando..." mientras se cargan los brands */}
+            {isLoadingBrands ? (
+              <div className="mt-4">cargando...</div>
+            ) : (
+              <BrandFilter
+                brands={brands}
+                types={types}
+                selectedBrands={selectedBrands}
+                setSelectedBrands={setSelectedBrands}
+                selectedTypes={selectedTypes}
+                setSelectedTypes={setSelectedTypes}
+                selectedSizes={selectedSizes}
+                setSelectedSizes={setSelectedSizes}
+              />
+            )}
+
+            {/* Mostrar "cargando..." mientras se cargan los types */}
+            {/* Si tienes un filtro separado para types, puedes agregarlo aquí.
+                En este caso, asumimos que `BrandFilter` maneja los types. */}
             <PriceFilter
               minPrice={minPrice}
               maxPrice={maxPrice}
               onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
-            />
-            <BrandFilter
-              brands={filteredBrands}
-              types={filteredTypes}
-              selectedBrands={selectedBrands}
-              setSelectedBrands={setSelectedBrands}
-              selectedTypes={selectedTypes}
-              setSelectedTypes={setSelectedTypes}
-              selectedSizes={selectedSizes}
-              setSelectedSizes={setSelectedSizes}
             />
           </aside>
 
@@ -209,6 +268,7 @@ export default function CategoryPage() {
 
               {/* Aquí puedes poner un div adicional con overflow para asegurarte del scroll */}
               <div className="max-h-[80vh] overflow-y-auto">
+                {/* Mostrar "cargando..." mientras se cargan las categorías */}
                 {isLoadingCategories ? (
                   <div>cargando...</div>
                 ) : (
@@ -218,20 +278,27 @@ export default function CategoryPage() {
                     setSelectedCategories={setSelectedCategories}
                   />
                 )}
+
+                {/* Mostrar "cargando..." mientras se cargan los brands */}
+                {isLoadingBrands ? (
+                  <div className="mt-4">cargando...</div>
+                ) : (
+                  <BrandFilter
+                    brands={brands}
+                    types={types}
+                    selectedBrands={selectedBrands}
+                    setSelectedBrands={setSelectedBrands}
+                    selectedTypes={selectedTypes}
+                    setSelectedTypes={setSelectedTypes}
+                    selectedSizes={selectedSizes}
+                    setSelectedSizes={setSelectedSizes}
+                  />
+                )}
+
                 <PriceFilter
                   minPrice={minPrice}
                   maxPrice={maxPrice}
                   onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
-                />
-                <BrandFilter
-                  brands={filteredBrands}
-                  types={filteredTypes}
-                  selectedBrands={selectedBrands}
-                  setSelectedBrands={setSelectedBrands}
-                  selectedTypes={selectedTypes}
-                  setSelectedTypes={setSelectedTypes}
-                  selectedSizes={selectedSizes}
-                  setSelectedSizes={setSelectedSizes}
                 />
               </div>
 
