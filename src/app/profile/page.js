@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { authAdmin } from '@/libs/firebaseAdmin';
 
 export default async function ProfilePage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies(); // Usa await aquí
   const session = cookieStore.get('session')?.value;
 
   if (!session) {
