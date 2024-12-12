@@ -1,5 +1,4 @@
 // src/components/FavoritesModal.js
-
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -7,8 +6,8 @@ import Link from 'next/link';
 export default function FavoritesModal({ isOpen, onClose }) {
   const modalRef = useRef(null);
   const [favoriteProducts, setFavoriteProducts] = useState([]);
-  const [loading, setLoading] = useState(true); // Estado de carga
-  const [error, setError] = useState(null); // Estado de error
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -30,14 +29,34 @@ export default function FavoritesModal({ isOpen, onClose }) {
       setError(null);
 
       try {
-        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        // Obtener los IDs de favoritos desde la API
+        const res = await fetch('/api/favorites/getItems', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            // Usuario no autenticado
+            setError('Debes iniciar sesión para ver tus favoritos.');
+            setFavoriteProducts([]);
+            setLoading(false);
+            return;
+          }
+          const data = await res.json();
+          throw new Error(data.error || 'Error al obtener los favoritos.');
+        }
+
+        const data = await res.json();
+        const favorites = data.favorites; // array de uniqueID de los productos favoritos
+
         if (favorites.length === 0) {
           setFavoriteProducts([]);
           setLoading(false);
           return;
         }
 
-        // Firestore limita "in" a 10 elementos, así que dividimos la lista en chunks de 10
+        // Dividir en chunks de 10 para llamar a /api/products/public/get/favorites
         const chunks = [];
         for (let i = 0; i < favorites.length; i += 10) {
           chunks.push(favorites.slice(i, i + 10));
@@ -59,8 +78,8 @@ export default function FavoritesModal({ isOpen, onClose }) {
             throw new Error(errorData.message || 'Error al obtener productos favoritos.');
           }
 
-          const data = await response.json();
-          allProducts.push(...data.products);
+          const chunkData = await response.json();
+          allProducts.push(...chunkData.products);
         }
 
         setFavoriteProducts(allProducts);

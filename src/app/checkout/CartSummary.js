@@ -6,67 +6,72 @@ import Link from 'next/link';
 import '../styles/cartSummary.css'
 
 export default function CartSummary() {
-  const [cartItems, setCartItems] = useState([]); // Items del carrito desde localStorage
-  const [products, setProducts] = useState([]);   // Detalles de los productos desde la API
-  const [loading, setLoading] = useState(true);   // Estado de carga
-  const [error, setError] = useState(null);       // Estado de error
+  const [cartItems, setCartItems] = useState([]); 
+  const [products, setProducts] = useState([]);  
+  const [loading, setLoading] = useState(true);   
+  const [error, setError] = useState(null);       
 
-  useEffect(() => {
-    const fetchCartProducts = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Obtener los elementos del carrito desde localStorage
-        const cart = JSON.parse(localStorage.getItem("cart")) || [];
-        setCartItems(cart);
-
-        if (cart.length === 0) {
+  const fetchCartData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // 1. Obtener los ítems del carrito (uid) desde Firestore vía nuestra API
+      const res = await fetch('/api/cart/getItems', { method: 'GET' });
+      if (!res.ok) {
+        if (res.status === 401) {
+          setError('Debes iniciar sesión para ver el carrito.');
+          setCartItems([]);
           setProducts([]);
           setLoading(false);
           return;
         }
-
-        // Extraer los uniqueIDs
-        const uniqueIDs = cart.map(item => item.uniqueID);
-
-        // Firestore limita "in" a 10 elementos, así que dividimos la lista en chunks de 10
-        const chunks = [];
-        for (let i = 0; i < uniqueIDs.length; i += 10) {
-          chunks.push(uniqueIDs.slice(i, i + 10));
-        }
-
-        const allProducts = [];
-
-        // Utilizamos Promise.all para hacer las solicitudes en paralelo
-        await Promise.all(chunks.map(async (chunk) => {
-          const response = await fetch('/api/shoppingCart/public/get/cartIds', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ productIDs: chunk }),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Error al obtener productos del carrito.');
-          }
-
-          const data = await response.json();
-          allProducts.push(...data.products);
-        }));
-
-        setProducts(allProducts);
-      } catch (err) {
-        console.error('Error al obtener productos del carrito:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+        const data = await res.json();
+        throw new Error(data.error || 'Error al obtener el carrito');
       }
-    };
 
-    fetchCartProducts();
+      const data = await res.json();
+      const firestoreItems = data.cartItems; // [{ uniqueID, size, qty }, ...]
+
+      if (firestoreItems.length === 0) {
+        // Carrito vacío
+        setCartItems([]);
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Extraer los uniqueIDs para obtener los detalles de los productos
+      const uniqueIDs = firestoreItems.map(i => i.uniqueID);
+
+      // 3. Llamar a /api/shoppingCart/public/get/cartIds para obtener info de los productos
+      // (asumiendo que esta API ya existe y funciona como antes)
+      const response = await fetch('/api/shoppingCart/public/get/cartIds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productIDs: uniqueIDs })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al obtener detalles de productos.');
+      }
+
+      const enrichedData = await response.json();
+      const allProducts = enrichedData.products;
+
+      setCartItems(firestoreItems);
+      setProducts(allProducts);
+
+    } catch (err) {
+      console.error('Error al obtener productos del carrito:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCartData();
   }, []);
 
   // Combinar los detalles del producto con el carrito
@@ -83,18 +88,31 @@ export default function CartSummary() {
 
   // Calcular subtotal desde los ítems del carrito
   const subtotal = detailedCartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
-  const shipping = subtotal >= 255 ? 0 : 9.99; // Envío gratuito sobre $255
-  const salesTax = 45.89; // Ejemplo tomado del código original
+  const shipping = subtotal >= 255 ? 0 : 9.99; 
+  const salesTax = 45.89; 
   const grandTotal = subtotal + shipping + salesTax;
 
   // Función para eliminar un producto del carrito
-  const handleRemoveFromCart = (uniqueID, size) => {
-    const updatedCart = cartItems.filter(item => !(item.uniqueID === uniqueID && item.size === size));
-    setCartItems(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+  const handleRemoveFromCart = async (uniqueID, size) => {
+    try {
+      const res = await fetch('/api/cart/removeItem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uniqueID, size })
+      });
 
-    // También, eliminar el producto de la lista detallada
-    setProducts(products.filter(product => product.uniqueID !== uniqueID));
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'No se pudo eliminar el producto del carrito.');
+      }
+
+      // Volver a obtener el carrito después de eliminar
+      await fetchCartData();
+
+    } catch (err) {
+      console.error('Error al eliminar el producto del carrito:', err);
+      setError(err.message);
+    }
   };
 
   return (

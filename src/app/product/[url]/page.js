@@ -5,7 +5,7 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../components/Header";
-import { AuthContext } from "@/context/AuthContext"; // Asegúrate de tener tu contexto de autenticación
+import { AuthContext } from "@/context/AuthContext"; // Contexto de autenticación
 
 export default function ProductDetail() {
   const params = useParams();
@@ -53,9 +53,22 @@ export default function ProductDetail() {
         setTypeName(data.typeName);
         setMainImage(data.product.images[0]);
 
-        // Verificar si el producto está en favoritos localmente
-        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-        setIsLiked(favorites.includes(data.product.uniqueID));
+        // Si el usuario está logueado, verificar si el producto es favorito en Firestore
+        if (currentUser) {
+          const checkRes = await fetch(`/api/favorites/checkItem?uniqueID=${data.product.uniqueID}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          if (checkRes.ok) {
+            const checkData = await checkRes.json();
+            setIsLiked(checkData.isFavorite);
+          } else {
+            console.error("Error checking if product is favorite");
+          }
+        } else {
+          // Si no está logueado, no es favorito
+          setIsLiked(false);
+        }
 
       } catch (err) {
         console.error('Error al obtener el producto:', err);
@@ -68,7 +81,7 @@ export default function ProductDetail() {
     if (productUrl) {
       fetchProduct();
     }
-  }, [productUrl]);
+  }, [productUrl, currentUser]);
 
   const handleThumbnailClick = (image) => {
     setMainImage(image);
@@ -128,17 +141,43 @@ export default function ProductDetail() {
     }
   };
 
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = async () => {
     if (!product) return;
-    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-    if (favorites.includes(product.uniqueID)) {
-      const updated = favorites.filter(id => id !== product.uniqueID);
-      localStorage.setItem("favorites", JSON.stringify(updated));
-      setIsLiked(false);
-    } else {
-      favorites.push(product.uniqueID);
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-      setIsLiked(true);
+    if (!currentUser) {
+      alert("Por favor inicia sesión para guardar productos favoritos.");
+      return;
+    }
+
+    try {
+      if (isLiked) {
+        // Si ya es favorito, lo removemos
+        const res = await fetch('/api/favorites/removeItem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uniqueID: product.uniqueID })
+        });
+        if (res.ok) {
+          setIsLiked(false);
+        } else {
+          const data = await res.json();
+          console.error("Error removing favorite:", data.error);
+        }
+      } else {
+        // Si no es favorito, lo agregamos
+        const res = await fetch('/api/favorites/addItem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uniqueID: product.uniqueID })
+        });
+        if (res.ok) {
+          setIsLiked(true);
+        } else {
+          const data = await res.json();
+          console.error("Error adding favorite:", data.error);
+        }
+      }
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
     }
   };
 
@@ -274,7 +313,7 @@ export default function ProductDetail() {
                 className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
                 onClick={handleAddToCart}
               >
-                Add To Cart
+                Agregar al carrito
               </button>
               <button 
                 className={`px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 
