@@ -4,58 +4,65 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function CartDrawer({ isOpen, onClose }) {
-  const [cartItems, setCartItems] = useState([]); // Cart items from localStorage
-  const [products, setProducts] = useState([]);   // Detailed product data from API
-  const [loading, setLoading] = useState(true); // Estado de carga
-  const [error, setError] = useState(null);     // Estado de error
+  const [cartItems, setCartItems] = useState([]); 
+  const [products, setProducts] = useState([]);  
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState(null);     
 
   useEffect(() => {
     if (isOpen) {
-      const fetchCartProducts = async () => {
+      const fetchCartData = async () => {
         setLoading(true);
         setError(null);
 
         try {
-          // Obtener los elementos del carrito desde localStorage
-          const cart = JSON.parse(localStorage.getItem("cart")) || [];
-          setCartItems(cart);
+          // 1. Obtener los ítems del carrito desde Firestore vía nuestra API
+          const res = await fetch('/api/cart/getItems', { method: 'GET' });
+          if (!res.ok) {
+            if (res.status === 401) {
+              // Usuario no autenticado
+              setError('Debes iniciar sesión para ver el carrito.');
+              setCartItems([]);
+              setProducts([]);
+              setLoading(false);
+              return;
+            }
+            const data = await res.json();
+            throw new Error(data.error || 'Error al obtener el carrito');
+          }
 
-          if (cart.length === 0) {
+          const data = await res.json();
+          const firestoreItems = data.cartItems; // [{ uniqueID, size, qty }, ...]
+
+          if (firestoreItems.length === 0) {
+            // Carrito vacío
+            setCartItems([]);
             setProducts([]);
             setLoading(false);
             return;
           }
 
-          // Extraer los uniqueIDs
-          const uniqueIDs = cart.map(item => item.uniqueID);
+          // 2. Extraer los uniqueIDs para obtener los detalles de los productos
+          const uniqueIDs = firestoreItems.map(i => i.uniqueID);
 
-          // Firestore limita "in" a 10 elementos, así que dividimos la lista en chunks de 10
-          const chunks = [];
-          for (let i = 0; i < uniqueIDs.length; i += 10) {
-            chunks.push(uniqueIDs.slice(i, i + 10));
+          // 3. Llamar a /api/shoppingCart/public/get/cartIds para obtener info de los productos
+          const response = await fetch('/api/shoppingCart/public/get/cartIds', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productIDs: uniqueIDs })
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error al obtener detalles de productos.');
           }
 
-          const allProducts = [];
+          const enrichedData = await response.json();
+          const allProducts = enrichedData.products;
 
-          for (const chunk of chunks) {
-            const response = await fetch('/api/shoppingCart/public/get/cartIds', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ productIDs: chunk }),
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.message || 'Error al obtener productos del carrito.');
-            }
-
-            const data = await response.json();
-            allProducts.push(...data.products);
-          }
-
+          setCartItems(firestoreItems);
           setProducts(allProducts);
+
         } catch (err) {
           console.error('Error al obtener productos del carrito:', err);
           setError(err.message);
@@ -64,7 +71,7 @@ export default function CartDrawer({ isOpen, onClose }) {
         }
       };
 
-      fetchCartProducts();
+      fetchCartData();
 
       const handleClickOutside = (event) => {
         if (event.target.closest(".cart-drawer") === null) {
