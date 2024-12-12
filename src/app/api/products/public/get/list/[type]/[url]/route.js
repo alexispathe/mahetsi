@@ -1,5 +1,5 @@
 // src/app/api/products/public/list/[type]/[url]/route.js
-//Devuelve todos los productos dependiendo la categoria y subcategoria
+//Devuelve todos los productos para la categoria
 import { NextResponse } from 'next/server';
 import { firestore } from '../../../../../../../../libs/firebaseAdmin';
 

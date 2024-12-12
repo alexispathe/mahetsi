@@ -1,5 +1,5 @@
 // src/app/api/products/public/get/favorites/route.js
-
+//Esta api sirve para hacer la seleccion de los productos favoritos por los clientes para mostrarlos dentro del carrusel
 import { NextResponse } from 'next/server';
 import { firestore } from '../../../../../../libs/firebaseAdmin'; // Ajusta la ruta según tu estructura
 

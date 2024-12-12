@@ -2,38 +2,41 @@
 
 import { useEffect, useState } from "react";
 import Link from 'next/link';
-import { products, categories, subcategories } from "../category/data"; // Ajusta la ruta si es necesario
 
 export default function SearchModal({ isOpen, onClose }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filtered, setFiltered] = useState([]);
-  const [loading, setLoading] = useState(false); // Estado para controlar la carga
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const query = searchQuery.toLowerCase().trim();
+    let abort = false;
+    const fetchData = async () => {
+      if (!searchQuery.trim()) {
+        setFiltered([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/products/public/get/search?search=${encodeURIComponent(searchQuery)}`);
+        const data = await res.json();
+        if (!abort) {
+          setFiltered(data.products || []);
+        }
+      } catch (error) {
+        console.error('Error fetching search results:', error);
+        if (!abort) {
+          setFiltered([]);
+        }
+      } finally {
+        if (!abort) {
+          setLoading(false);
+        }
+      }
+    };
 
-    // Filtrado de productos
-    const results = products.filter((p) => {
-      const productName = p.name.toLowerCase();
-      const productDesc = p.description.toLowerCase();
+    fetchData();
 
-      const categoryName = categories.find(cat => cat.uniqueID === p.categoryID)?.name?.toLowerCase() || '';
-      const subcategoryName = subcategories.find(sub => sub.uniqueID === p.subcategoryID)?.name?.toLowerCase() || '';
-
-      return (
-        productName.includes(query) ||
-        productDesc.includes(query) ||
-        categoryName.includes(query) ||
-        subcategoryName.includes(query)
-      );
-    });
-
-    setLoading(true); // Activar estado de carga
-    setTimeout(() => {
-      setFiltered(results);
-      setLoading(false); // Desactivar estado de carga después de filtrar
-    }, 500); // Simula un tiempo de carga de 500ms
-
+    return () => { abort = true; };
   }, [searchQuery]);
 
   // Cerrar el modal al hacer clic fuera
@@ -110,7 +113,7 @@ export default function SearchModal({ isOpen, onClose }) {
                   />
                   <div>
                     <p className="font-semibold">{product.name}</p>
-                    <p className="text-sm text-gray-600">${product.price.toFixed(2)}</p>
+                    <p className="text-sm text-gray-600">${product.price?.toFixed(2)}</p>
                   </div>
                 </div>
               </Link>

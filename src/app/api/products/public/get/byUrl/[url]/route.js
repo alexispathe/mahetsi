@@ -1,5 +1,5 @@
 // src/app/api/products/public/get/byUrl/[url]/route.js
-
+//Muestra la informacion de un producto mediante su url
 import { NextResponse } from 'next/server';
 import { firestore } from '../../../../../../../libs/firebaseAdmin';
 
