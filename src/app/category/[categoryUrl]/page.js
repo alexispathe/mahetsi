@@ -10,11 +10,16 @@ import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
 import Header from '../../components/Header';
 import HeroSection from '../HeroSection';
-import { products, categories, brands, types } from '../data';
+import { products, brands, types } from '../data';
+// Importa las demás dependencias necesarias
 
 export default function CategoryPage() {
   const params = useParams();
   const categoryUrl = params.categoryUrl;
+
+  // Estados para manejar las categorías y el estado de carga
+  const [categories, setCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   // Llamada a los hooks antes de cualquier condicional
   const [minPrice, setMinPrice] = useState(0);
@@ -30,7 +35,27 @@ export default function CategoryPage() {
   // Buscar la categoría por su url
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
-  // useEffect antes de cualquier return condicional
+  // useEffect para obtener las categorías desde la API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories/public/get/getAllCategories');
+        if (!response.ok) {
+          throw new Error('Error al obtener las categorías');
+        }
+        const data = await response.json();
+        setCategories(data.categories);
+      } catch (error) {
+        console.error('Error al obtener las categorías:', error);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // useEffect para manejar el overflow del body al abrir/cerrar filtros
   useEffect(() => {
     if (isFilterOpen) {
       document.body.style.overflow = 'hidden';
@@ -43,7 +68,7 @@ export default function CategoryPage() {
     };
   }, [isFilterOpen]);
 
-  if (!currentCategory) {
+  if (!currentCategory && !isLoadingCategories) {
     return (
       <>
         <Header />
@@ -55,12 +80,18 @@ export default function CategoryPage() {
   }
 
   // Filtrar productos por la categoría actual
-  const categoryID = currentCategory.uniqueID;
-  const filteredProductsByCategory = products.filter(p => p.categoryID === categoryID);
+  const categoryID = currentCategory ? currentCategory.uniqueID : null;
+  const filteredProductsByCategory = categoryID
+    ? products.filter(p => p.categoryID === categoryID)
+    : [];
 
   // Filtrar brands y types por categoryID
-  const filteredBrands = brands.filter(b => b.categoryID === categoryID);
-  const filteredTypes = types.filter(t => t.categoryID === categoryID);
+  const filteredBrands = categoryID
+    ? brands.filter(b => b.categoryID === categoryID)
+    : [];
+  const filteredTypes = categoryID
+    ? types.filter(t => t.categoryID === categoryID)
+    : [];
 
   const filterProducts = () => {
     return filteredProductsByCategory.filter(product => {
@@ -111,7 +142,7 @@ export default function CategoryPage() {
         <div className="flex justify-end mb-4 md:hidden">
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="mx-auto w-[95%] bg-gray-200 flex items-center p-2 text-sm  uppercase text-black"
+            className="mx-auto w-[95%] bg-gray-200 flex items-center p-2 text-sm uppercase text-black"
           >
             <IoOptions className="w-4 h-4 mr-2 text-black" />
             <span className="text-left">Filtros</span>
@@ -120,11 +151,15 @@ export default function CategoryPage() {
         <div className="flex justify-center">
           {/* Filtro lateral en pantallas medianas y grandes */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
-            <CategoryFilter
-              categories={categories.filter(cat => cat.uniqueID === categoryID)}
-              selectedCategories={selectedCategories}
-              setSelectedCategories={setSelectedCategories}
-            />
+            {isLoadingCategories ? (
+              <div>cargando...</div>
+            ) : (
+              <CategoryFilter
+                categories={categories.filter(cat => cat.uniqueID === categoryID)}
+                selectedCategories={selectedCategories}
+                setSelectedCategories={setSelectedCategories}
+              />
+            )}
             <PriceFilter
               minPrice={minPrice}
               maxPrice={maxPrice}
@@ -174,11 +209,15 @@ export default function CategoryPage() {
 
               {/* Aquí puedes poner un div adicional con overflow para asegurarte del scroll */}
               <div className="max-h-[80vh] overflow-y-auto">
-                <CategoryFilter
-                  categories={categories.filter(cat => cat.uniqueID === categoryID)}
-                  selectedCategories={selectedCategories}
-                  setSelectedCategories={setSelectedCategories}
-                />
+                {isLoadingCategories ? (
+                  <div>cargando...</div>
+                ) : (
+                  <CategoryFilter
+                    categories={categories.filter(cat => cat.uniqueID === categoryID)}
+                    selectedCategories={selectedCategories}
+                    setSelectedCategories={setSelectedCategories}
+                  />
+                )}
                 <PriceFilter
                   minPrice={minPrice}
                   maxPrice={maxPrice}
