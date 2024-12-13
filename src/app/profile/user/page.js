@@ -1,9 +1,9 @@
-// src/app/profile/page.js
+// src/app/profile/user/page.js
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { authAdmin } from '@/libs/firebaseAdmin';
-import { orders } from '../category/data';
+import { orders } from '../../category/data';
 import OrdersTable from './OrderTable';
 
 export default async function ProfilePage() {

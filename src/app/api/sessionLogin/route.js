@@ -1,3 +1,5 @@
+// src/app/api/sessionLogin/route.js
+
 import { NextResponse } from 'next/server';
 import { authAdmin } from '@/libs/firebaseAdmin';
 
@@ -9,12 +11,13 @@ export async function POST(request) {
     }
 
     const expiresIn = 24 * 60 * 60 * 1000; // 1 día en ms
-    const sessionCookie = await authAdmin.createSessionCookie(idToken, { expiresIn });
+    const expiresInSeconds = expiresIn / 1000;
+    const sessionCookie = await authAdmin.createSessionCookie(idToken, { expiresIn: expiresInSeconds });
 
     const response = NextResponse.json({ status: 'success' });
     response.cookies.set('session', sessionCookie, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // Solo en producción la cookie será segura
       path: '/',
       maxAge: 60 * 60 * 24, // 1 día en seg
       sameSite: 'strict',

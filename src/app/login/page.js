@@ -26,7 +26,7 @@ export default function LoginPage() {
 
         if (res.ok) {
           // Redirigir al perfil
-          router.push('/profile');
+          router.push('/profile/user');
         } else {
           console.error('Error al crear sesión:', await res.text());
         }
