@@ -1,20 +1,26 @@
-'use client'
+// src/components/Header.js
+
+'use client';
 
 import { useState, useEffect } from "react";
 import { FaSearch, FaHeart, FaUser, FaShoppingCart, FaBars, FaTimes } from "react-icons/fa";
-import '../styles/header.css'
+import '../styles/header.css';
 import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
 import FavoritesModal from "./FavoritesModal"; // Importar el nuevo modal
 import Link from 'next/link'; // Importar Link de next/link
+import { useContext } from "react";
+import { AuthContext } from "@/context/AuthContext"; // Asegúrate de tener tu contexto de autenticación
 
-export default function Header({ textColor = 'text-white', position="absolute"}) { 
+export default function Header({ textColor = 'text-white', position = "absolute" }) { 
   const [isHovered, setIsHovered] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isFavoritesOpen, setFavoritesOpen] = useState(false); // Estado para favoritos
   const [cartCount, setCartCount] = useState(0);
+
+  const { currentUser } = useContext(AuthContext); // Obtener el usuario actual
 
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState({});
@@ -119,6 +125,7 @@ export default function Header({ textColor = 'text-white', position="absolute"})
                 <Link
                   href={`/category/${category.url}`}
                   className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}
+                  aria-label={`Categoría ${category.name}`}
                 >
                   {category.name}
                 </Link>
@@ -130,6 +137,7 @@ export default function Header({ textColor = 'text-white', position="absolute"})
                           <Link 
                             href={`/category/${category.url}/${subcat.url}`} 
                             className="py-1 hover:text-gray-700 block"
+                            aria-label={`Subcategoría ${subcat.name}`}
                           >
                             {subcat.name}
                           </Link>
@@ -151,23 +159,36 @@ export default function Header({ textColor = 'text-white', position="absolute"})
           <FaSearch
             className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
             onClick={handleSearchClick}
+            aria-label="Buscar"
           />
           {/* Icono de Favoritos */}
           <FaHeart
             className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
             onClick={handleFavoritesClick}
+            aria-label="Favoritos"
           />
-          <FaUser
-            className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
-          />
+          {/* Condicional para Usuario */}
+          {currentUser ? (
+            <Link href="/profile" aria-label="Perfil">
+              <FaUser
+                className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
+              />
+            </Link>
+          ) : (
+            <Link href="/login" className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-gray-700`} aria-label="Ingresar">
+              Ingresar
+            </Link>
+          )}
           <div className="relative">
             <FaShoppingCart
               className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
               onClick={handleCartClick}
+              aria-label="Carrito de compras"
             />
             {cartCount > 0 && (
               <span
                 className="absolute -top-3 -right-3 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex justify-center items-center"
+                aria-label={`Tienes ${cartCount} productos en el carrito`}
               >
                 {cartCount}
               </span>
@@ -196,7 +217,7 @@ export default function Header({ textColor = 'text-white', position="absolute"})
               const filteredSubcategories = subcategories[category.uniqueID] || [];
               return (
                 <li key={category.uniqueID}>
-                  <Link href={`/category/${category.url}`} className="cursor-pointer hover:text-gray-700 block">
+                  <Link href={`/category/${category.url}`} className="cursor-pointer hover:text-gray-700 block" aria-label={`Categoría ${category.name}`}>
                     {category.name}
                   </Link>
                   {filteredSubcategories.length > 0 && (
@@ -206,6 +227,7 @@ export default function Header({ textColor = 'text-white', position="absolute"})
                           <Link 
                             href={`/category/${category.url}/${subcat.url}`} 
                             className="cursor-pointer hover:text-gray-700 block text-sm"
+                            aria-label={`Subcategoría ${subcat.name}`}
                           >
                             {subcat.name}
                           </Link>
