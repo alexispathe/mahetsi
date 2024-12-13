@@ -10,125 +10,113 @@ import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
 import Header from '../../components/Header';
 import HeroSection from '../HeroSection';
-// Eliminamos la importación de brands y types desde data.js
 
 export default function CategoryPage() {
   const params = useParams();
   const categoryUrl = params.categoryUrl;
 
-  // Estados para manejar las categorías y el estado de carga
-  const [categories, setCategories] = useState([]);
+  // Estados de carga
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-
-  // Estados para manejar los brands
-  const [brands, setBrands] = useState([]);
   const [isLoadingBrands, setIsLoadingBrands] = useState(true);
-
-  // Estados para manejar los types
-  const [types, setTypes] = useState([]);
   const [isLoadingTypes, setIsLoadingTypes] = useState(true);
-
-  // Estados para manejar los productos
-  const [products, setProducts] = useState([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
 
-  // Llamada a los hooks antes de cualquier condicional
+  // Datos
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [types, setTypes] = useState([]);
+  const [products, setProducts] = useState([]);
+
+  // Estados de filtros
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  // Estados para filtros
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
 
-  // Buscar la categoría por su url
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
-  // useEffect para obtener las categorías desde la API
+  // Obtener categorías
   useEffect(() => {
     const fetchCategories = async () => {
+      setIsLoadingCategories(true);
       try {
         const response = await fetch('/api/categories/public/get/getAllCategories');
-        if (!response.ok) {
-          throw new Error('Error al obtener las categorías');
-        }
+        if (!response.ok) throw new Error('Error al obtener las categorías');
         const data = await response.json();
         setCategories(data.categories);
       } catch (error) {
-        console.error('Error al obtener las categorías:', error);
+        console.error(error);
       } finally {
         setIsLoadingCategories(false);
       }
     };
-
     fetchCategories();
   }, []);
 
-  // useEffect para obtener los brands, types y productos una vez que se tiene currentCategory
+  // Obtener brands y types cuando tengamos la categoría actual
   useEffect(() => {
     if (currentCategory) {
       const { uniqueID } = currentCategory;
 
-      // Función para obtener los brands
       const fetchBrands = async () => {
         setIsLoadingBrands(true);
         try {
           const response = await fetch(`/api/brands/public/get/getBrandsByCategory?categoryID=${uniqueID}`);
-          if (!response.ok) {
-            throw new Error('Error al obtener los brands');
-          }
+          if (!response.ok) throw new Error('Error al obtener los brands');
           const data = await response.json();
           setBrands(data.brands);
         } catch (error) {
-          console.error('Error al obtener los brands:', error);
+          console.error(error);
         } finally {
           setIsLoadingBrands(false);
         }
       };
 
-      // Función para obtener los types
       const fetchTypes = async () => {
         setIsLoadingTypes(true);
         try {
           const response = await fetch(`/api/types/public/get/getTypesByCategory?categoryID=${uniqueID}`);
-          if (!response.ok) {
-            throw new Error('Error al obtener los types');
-          }
+          if (!response.ok) throw new Error('Error al obtener los types');
           const data = await response.json();
           setTypes(data.types);
         } catch (error) {
-          console.error('Error al obtener los types:', error);
+          console.error(error);
         } finally {
           setIsLoadingTypes(false);
         }
       };
 
-      // Función para obtener los productos
-      const fetchProducts = async () => {
-        setIsLoadingProducts(true);
-        try {
-          const response = await fetch(`/api/products/public/get/getProductsByCategory?categoryID=${uniqueID}`);
-          if (!response.ok) {
-            throw new Error('Error al obtener los productos');
-          }
-          const data = await response.json();
-          setProducts(data.products);
-        } catch (error) {
-          console.error('Error al obtener los productos:', error);
-        } finally {
-          setIsLoadingProducts(false);
-        }
-      };
-
       fetchBrands();
       fetchTypes();
-      fetchProducts();
     }
   }, [currentCategory]);
 
-  // useEffect para manejar el overflow del body al abrir/cerrar filtros
+  // Función para obtener todos los productos desde el servidor
+  const fetchAllProducts = async () => {
+    setIsLoadingProducts(true);
+    try {
+      const response = await fetch('/api/products/public/get/getAllProducts');
+      if (!response.ok) throw new Error('Error al obtener todos los productos');
+      const data = await response.json();
+      setProducts(data.products);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
+  // Obtener todos los productos cuando se carga la categoría actual
+  useEffect(() => {
+    if (currentCategory) {
+      fetchAllProducts();
+    }
+  }, [currentCategory]);
+
+  // Manejar el overflow del body al abrir/cerrar filtros
   useEffect(() => {
     if (isFilterOpen) {
       document.body.style.overflow = 'hidden';
@@ -152,23 +140,31 @@ export default function CategoryPage() {
     );
   }
 
+  // Función de filtrado en el cliente
   const filterProducts = () => {
     return products.filter(product => {
+      // Filtrar por rango de precio
       const withinPrice = product.price >= minPrice && product.price <= maxPrice;
 
-      const productCategory = categories.find(cat => cat.uniqueID === product.categoryID);
-      const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(productCategory?.name);
+      // Filtrar por categorías seleccionadas
+      const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(getCategoryName(product.categoryID));
 
-      const brandName = getBrandName(product.brandID);
-      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(brandName);
+      // Filtrar por marcas seleccionadas
+      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(getBrandName(product.brandID));
 
-      const typeName = getTypeName(product.typeID);
-      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(typeName);
+      // Filtrar por tipos seleccionados
+      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(getTypeName(product.typeID));
 
+      // Filtrar por tallas seleccionadas
       const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size);
 
       return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize;
     });
+  };
+
+  const getCategoryName = (categoryID) => {
+    const category = categories.find(cat => cat.uniqueID === categoryID);
+    return category ? category.name : '';
   };
 
   const getBrandName = (brandID) => {
@@ -207,21 +203,20 @@ export default function CategoryPage() {
             <span className="text-left">Filtros</span>
           </button>
         </div>
+
         <div className="flex justify-center">
-          {/* Filtro lateral en pantallas medianas y grandes */}
+          {/* Barra lateral de filtros */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
-            {/* Mostrar "cargando..." mientras se cargan las categorías */}
             {isLoadingCategories ? (
               <div>cargando...</div>
             ) : (
               <CategoryFilter
-                categories={categories.filter(cat => cat.uniqueID === currentCategory.uniqueID)}
+                categories={categories.filter(cat => cat.uniqueID === currentCategory?.uniqueID)}
                 selectedCategories={selectedCategories}
                 setSelectedCategories={setSelectedCategories}
               />
             )}
 
-            {/* Mostrar "cargando..." mientras se cargan los brands */}
             {isLoadingBrands ? (
               <div className="mt-4">cargando...</div>
             ) : (
@@ -237,19 +232,17 @@ export default function CategoryPage() {
               />
             )}
 
-            {/* Mostrar "cargando..." mientras se cargan los types */}
-            {/* Si tienes un filtro separado para types, puedes agregarlo aquí.
-                En este caso, asumimos que `BrandFilter` maneja los types. */}
-
             <PriceFilter
               minPrice={minPrice}
               maxPrice={maxPrice}
-              onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
+              onPriceChange={(min, max) => {
+                setMinPrice(min); 
+                setMaxPrice(max);
+              }}
             />
           </aside>
 
           <main className="w-full md:w-3/4 lg:w-9/12 xl:w-7/10 px-5 md:px-10 lg:px-10 sm:px-0">
-            {/* Mostrar "cargando..." mientras se cargan los productos */}
             {isLoadingProducts ? (
               <div>cargando...</div>
             ) : (
@@ -266,6 +259,9 @@ export default function CategoryPage() {
                 setSelectedBrands={setSelectedBrands}
                 setSelectedTypes={setSelectedTypes}
                 setSelectedSizes={setSelectedSizes}
+                loading={isLoadingProducts}
+                brands={brands}
+                types={types}
               />
             )}
           </main>
@@ -283,20 +279,17 @@ export default function CategoryPage() {
                 <FaTimes className="h-6 w-6 text-black" />
               </button>
 
-              {/* Aquí puedes poner un div adicional con overflow para asegurarte del scroll */}
               <div className="max-h-[80vh] overflow-y-auto">
-                {/* Mostrar "cargando..." mientras se cargan las categorías */}
                 {isLoadingCategories ? (
                   <div>cargando...</div>
                 ) : (
                   <CategoryFilter
-                    categories={categories.filter(cat => cat.uniqueID === currentCategory.uniqueID)}
+                    categories={categories.filter(cat => cat.uniqueID === currentCategory?.uniqueID)}
                     selectedCategories={selectedCategories}
                     setSelectedCategories={setSelectedCategories}
                   />
                 )}
 
-                {/* Mostrar "cargando..." mientras se cargan los brands */}
                 {isLoadingBrands ? (
                   <div className="mt-4">cargando...</div>
                 ) : (
@@ -328,7 +321,6 @@ export default function CategoryPage() {
             </div>
           </div>
         )}
-
       </div>
     </>
   );

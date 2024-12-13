@@ -1,5 +1,6 @@
-// BrandFilter.js
 'use client';
+// BrandFilter.js
+
 import { useState } from 'react';
 
 export default function BrandFilter({ 

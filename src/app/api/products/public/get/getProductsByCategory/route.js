@@ -32,7 +32,8 @@ export async function GET(request) {
         brandID: data.brandID,
         typeID: data.typeID,
         size: data.size,
-        images: data.images
+        images: data.images,
+        url: data.url
         // Agrega otros campos si es necesario
       };
     });

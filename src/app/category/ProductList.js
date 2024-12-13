@@ -1,8 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { FaTimes } from 'react-icons/fa'; 
 import Link from 'next/link'; 
-import { brands, types } from './data'; 
 import Pagination from './Pagination'; // Importa el componente
 
 export default function ProductList({ 
@@ -23,16 +22,20 @@ export default function ProductList({
   const [sortOption, setSortOption] = useState('');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 1; 
+  const productsPerPage = 10; // Puedes ajustar según tus necesidades
 
-  const sortedProducts = [...products];
-  if (sortOption === 'price: hi low') {
-    sortedProducts.sort((a, b) => b.price - a.price);
-  } else if (sortOption === 'price: low hi') {
-    sortedProducts.sort((a, b) => a.price - b.price);
-  } else if (sortOption === 'name') {
-    sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
-  }
+  // Ordenar productos según la opción seleccionada
+  const sortedProducts = useMemo(() => {
+    let sorted = [...products];
+    if (sortOption === 'price: hi low') {
+      sorted.sort((a, b) => b.price - a.price);
+    } else if (sortOption === 'price: low hi') {
+      sorted.sort((a, b) => a.price - b.price);
+    } else if (sortOption === 'name') {
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return sorted;
+  }, [products, sortOption]);
 
   const removeFilter = (type, value) => {
     if (type === 'Category') {
@@ -42,36 +45,28 @@ export default function ProductList({
     } else if (type === 'Type') {
       setSelectedTypes(selectedTypes.filter(item => item !== value));
     } else if (type === 'Size') {
-      setSelectedSizes(selectedSizes.filter(item => item !== value));
+      setSelectedSizes(selectedSizes.filter(s => s !== value));
     }
   };
 
-  const activeFilters = [
-    ...selectedCategories.map(category => ({ type: 'Category', value: category })),
-    ...selectedBrands.map(brand => ({ type: 'Brand', value: brand })),
-    ...selectedTypes.map(type => ({ type: 'Type', value: type })),
-    ...selectedSizes.map(size => ({ type: 'Size', value: size })),
-  ];
-
-  if (minPrice > 0 || maxPrice < 1000) {
-    activeFilters.push({ type: 'Price', value: `${minPrice} - ${maxPrice}` });
-  }
-
-  const getBrandName = (brandID) => {
-    const brand = brands.find(b => b.uniqueID === brandID);
-    return brand ? brand.name : '';
-  };
-
-  const getTypeName = (typeID) => {
-    const type = types.find(t => t.uniqueID === typeID);
-    return type ? type.name : '';
-  };
+  const activeFilters = useMemo(() => {
+    const filters = [
+      ...selectedCategories.map(category => ({ type: 'Category', value: category })),
+      ...selectedBrands.map(brand => ({ type: 'Brand', value: brand })),
+      ...selectedTypes.map(type => ({ type: 'Type', value: type })),
+      ...selectedSizes.map(size => ({ type: 'Size', value: size })),
+    ];
+    if (minPrice > 0 || maxPrice < 1000) {
+      filters.push({ type: 'Price', value: `${minPrice} - ${maxPrice}` });
+    }
+    return filters;
+  }, [selectedCategories, selectedBrands, selectedTypes, selectedSizes, minPrice, maxPrice]);
 
   // Calcular paginación
-  const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
+  const totalPages = useMemo(() => Math.ceil(sortedProducts.length / productsPerPage), [sortedProducts.length, productsPerPage]);
   const startIndex = (currentPage - 1) * productsPerPage;
   const endIndex = startIndex + productsPerPage;
-  const currentProducts = sortedProducts.slice(startIndex, endIndex);
+  const currentProducts = useMemo(() => sortedProducts.slice(startIndex, endIndex), [sortedProducts, startIndex, endIndex]);
 
   const handleSort = (option) => {
     setSortOption(option);
@@ -146,7 +141,7 @@ export default function ProductList({
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-4 gap-6">
         {loading ? (
           // Skeleton screen
-          Array(currentPage).fill(0).map((_, index) => (
+          Array(productsPerPage).fill(0).map((_, index) => (
             <div key={index} className="bg-gray-200 p-4 rounded-lg shadow-md">
               <div className="animate-pulse">
                 <div className="bg-gray-300 h-48 rounded-md mb-4"></div>
@@ -157,30 +152,36 @@ export default function ProductList({
             </div>
           ))
         ) : (
-          currentProducts.map((product) => (
-            <div key={product.url} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-              <Link href={`/product/${product.url}`} className="block">
-                <img 
-                  src={product.images[0]} 
-                  alt={product.name} 
-                  className="w-full h-48 object-cover mb-4 rounded-md"
-                />
-                <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
-                <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
-                <p className="text-xs text-gray-400">{getBrandName(product.brandID)}</p>
-                <p className="text-xs text-gray-400">{getTypeName(product.typeID)}</p>
-              </Link>
-            </div>
-          ))
+          currentProducts.length > 0 ? (
+            currentProducts.map((product) => (
+              <div key={product.uniqueID} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                <Link href={`/product/${product.url}`} className="block">
+                  <img 
+                    src={product.images[0]} 
+                    alt={product.name} 
+                    className="w-full h-48 object-cover mb-4 rounded-md"
+                  />
+                  <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
+                  <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
+                  {/* Aquí deberías insertar el nombre de la marca y tipo si los tienes disponibles */}
+                  {/* Puedes pasarlos como props o procesar los datos previamente */}
+                </Link>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center text-gray-600">No se encontraron productos con los filtros seleccionados.</div>
+          )
         )}
       </div>
 
       {/* Paginación */}
-      <Pagination 
-        currentPage={currentPage} 
-        totalPages={totalPages} 
-        onPageChange={setCurrentPage} 
-      />
+      {!loading && totalPages > 1 && (
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onPageChange={setCurrentPage} 
+        />
+      )}
     </div>
   );
 }

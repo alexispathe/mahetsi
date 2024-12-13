@@ -1,5 +1,5 @@
-// PriceFilter.js
 'use client';
+// PriceFilter.js
 
 import React, { useState, useEffect } from 'react';
 import { Range } from 'react-range';
