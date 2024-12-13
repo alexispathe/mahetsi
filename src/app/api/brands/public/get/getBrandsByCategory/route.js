@@ -5,8 +5,8 @@ import { firestore } from '../../../../../../libs/firebaseAdmin'; // Asegúrate 
 
 export async function GET(request) {
   try {
-    // Obtener los parámetros de la consulta
-    const { searchParams } = new URL(request.url);
+    // Utilizar request.nextUrl en lugar de new URL(request.url)
+    const { searchParams } = request.nextUrl;
     const categoryID = searchParams.get('categoryID');
 
     if (!categoryID) {
