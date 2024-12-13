@@ -1,144 +1,65 @@
+// components/CategoryPage/CategoryPage.jsx
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { FaTimes } from 'react-icons/fa';
 import { IoOptions } from "react-icons/io5";
+import Header from '../../components/Header';
+import HeroSection from '../HeroSection';
 import CategoryFilter from '../CategoryFilter';
 import PriceFilter from '../PriceFilter';
 import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
-import Header from '../../components/Header';
-import HeroSection from '../HeroSection';
+
+// Hooks personalizados
+import { useCategories } from '../../../hooks/useCategories';
+import { useBrandsAndTypes } from '../../../hooks/useBrandsAndTypes';
+import { useProducts } from '../../../hooks/useProducts';
+import { useFilters } from '../../../hooks/useFilters';
 
 export default function CategoryPage() {
   const params = useParams();
   const categoryUrl = params.categoryUrl;
 
-  // Estados de carga
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const [isLoadingBrands, setIsLoadingBrands] = useState(true);
-  const [isLoadingTypes, setIsLoadingTypes] = useState(true);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
-
-  // Datos
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [types, setTypes] = useState([]);
-  const [products, setProducts] = useState([]);
-
-  // Estados de filtros
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(1000);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedTypes, setSelectedTypes] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]);
-
+  // Utilizacion de  hooks personalizados
+  const { isLoadingCategories, categories } = useCategories();
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
-  // Obtener categorías
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setIsLoadingCategories(true);
-      try {
-        const response = await fetch('/api/categories/public/get/getAllCategories');
-        if (!response.ok) throw new Error('Error al obtener las categorías');
-        const data = await response.json();
-        setCategories(data.categories);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoadingCategories(false);
-      }
-    };
-    fetchCategories();
-  }, []);
+  const { isLoadingBrands, isLoadingTypes, brands, types } = useBrandsAndTypes(currentCategory);
+  const { isLoadingProducts, products } = useProducts(currentCategory);
+  const {
+    minPrice,
+    maxPrice,
+    setMinPrice,
+    setMaxPrice,
+    isFilterOpen,
+    setIsFilterOpen,
+    selectedCategories,
+    setSelectedCategories,
+    selectedBrands,
+    setSelectedBrands,
+    selectedTypes,
+    setSelectedTypes,
+    selectedSizes,
+    setSelectedSizes,
+    clearAllFilters,
+  } = useFilters();
 
-  // Obtener brands y types cuando tengamos la categoría actual
-  useEffect(() => {
-    if (currentCategory) {
-      const { uniqueID } = currentCategory;
-
-      const fetchBrands = async () => {
-        setIsLoadingBrands(true);
-        try {
-          const response = await fetch(`/api/brands/public/get/getBrandsByCategory?categoryID=${uniqueID}`);
-          if (!response.ok) throw new Error('Error al obtener los brands');
-          const data = await response.json();
-          setBrands(data.brands);
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setIsLoadingBrands(false);
-        }
-      };
-
-      const fetchTypes = async () => {
-        setIsLoadingTypes(true);
-        try {
-          const response = await fetch(`/api/types/public/get/getTypesByCategory?categoryID=${uniqueID}`);
-          if (!response.ok) throw new Error('Error al obtener los types');
-          const data = await response.json();
-          setTypes(data.types);
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setIsLoadingTypes(false);
-        }
-      };
-
-      fetchBrands();
-      fetchTypes();
-    }
-  }, [currentCategory]);
-
-  // Función para obtener todos los productos desde el servidor
-  const fetchAllProducts = async () => {
-    setIsLoadingProducts(true);
-    try {
-      const response = await fetch('/api/products/public/get/getAllProducts');
-      if (!response.ok) throw new Error('Error al obtener todos los productos');
-      const data = await response.json();
-      setProducts(data.products);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoadingProducts(false);
-    }
+  // Funciones auxiliares para obtener nombres
+  const getCategoryName = (categoryID) => {
+    const category = categories.find(cat => cat.uniqueID === categoryID);
+    return category ? category.name : '';
   };
 
-  // Obtener todos los productos cuando se carga la categoría actual
-  useEffect(() => {
-    if (currentCategory) {
-      fetchAllProducts();
-    }
-  }, [currentCategory]);
+  const getBrandName = (brandID) => {
+    const brand = brands.find(b => b.uniqueID === brandID);
+    return brand ? brand.name : '';
+  };
 
-  // Manejar el overflow del body al abrir/cerrar filtros
-  useEffect(() => {
-    if (isFilterOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isFilterOpen]);
-
-  if (!currentCategory && !isLoadingCategories) {
-    return (
-      <>
-        <Header />
-        <div className="container mx-auto p-6">
-          <h2 className="text-2xl font-bold">Categoría no encontrada</h2>
-        </div>
-      </>
-    );
-  }
+  const getTypeName = (typeID) => {
+    const type = types.find(t => t.uniqueID === typeID);
+    return type ? type.name : '';
+  };
 
   // Función de filtrado en el cliente
   const filterProducts = () => {
@@ -162,31 +83,18 @@ export default function CategoryPage() {
     });
   };
 
-  const getCategoryName = (categoryID) => {
-    const category = categories.find(cat => cat.uniqueID === categoryID);
-    return category ? category.name : '';
-  };
-
-  const getBrandName = (brandID) => {
-    const brand = brands.find(b => b.uniqueID === brandID);
-    return brand ? brand.name : '';
-  };
-
-  const getTypeName = (typeID) => {
-    const type = types.find(t => t.uniqueID === typeID);
-    return type ? type.name : '';
-  };
-
   const filteredProducts = filterProducts();
 
-  const clearAllFilters = () => {
-    setSelectedCategories([]);
-    setSelectedBrands([]);
-    setSelectedTypes([]);
-    setSelectedSizes([]);
-    setMinPrice(0);
-    setMaxPrice(1000);
-  };
+  if (!currentCategory && !isLoadingCategories) {
+    return (
+      <>
+        <Header />
+        <div className="container mx-auto p-6">
+          <h2 className="text-2xl font-bold">Categoría no encontrada</h2>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -243,9 +151,6 @@ export default function CategoryPage() {
           </aside>
 
           <main className="w-full md:w-3/4 lg:w-9/12 xl:w-7/10 px-5 md:px-10 lg:px-10 sm:px-0">
-            {isLoadingProducts ? (
-              <div>cargando...</div>
-            ) : (
               <ProductList
                 products={filteredProducts}
                 selectedCategories={selectedCategories}
@@ -263,7 +168,6 @@ export default function CategoryPage() {
                 brands={brands}
                 types={types}
               />
-            )}
           </main>
         </div>
 
