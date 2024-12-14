@@ -169,7 +169,7 @@ export default function Header({ textColor = 'text-white', position = "absolute"
           />
           {/* Condicional para Usuario */}
           {currentUser ? (
-            <Link href="/profile" aria-label="Perfil">
+            <Link href="/profile/user" aria-label="Perfil">
               <FaUser
                 className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
               />

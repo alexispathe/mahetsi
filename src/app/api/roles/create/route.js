@@ -1,31 +1,43 @@
-// /api/roles/create/route.js
+// src/app/api/roles/create/route.js
 
 import { NextResponse } from 'next/server';
-import { firestore, verifyIdToken } from '../../../../libs/firebaseAdmin';
-import admin from 'firebase-admin'; // Importa el SDK de Firebase Admin
+import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../libs/firebaseAdmin';
+import { cookies } from 'next/headers';
+import admin from 'firebase-admin'; // Asegúrate de tener esta importación
 
 export async function POST(request) {
   try {
-    // Obtener el token del header Authorization
-    const authorization = request.headers.get('authorization');
-    if (!authorization || !authorization.startsWith('Bearer ')) {
+    // Esperar la obtención de las cookies de la solicitud
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('session')?.value;
+
+    if (!sessionCookie) {
       return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
     }
 
-    const idToken = authorization.split('Bearer ')[1];
+    // Verificar la session cookie
+    const decodedToken = await verifySessionCookie(sessionCookie);
+    const uid = decodedToken.uid;
 
-    // Verificar el token con Firebase Admin
-    const decodedToken = await verifyIdToken(idToken);
+    // Obtener el documento del usuario
+    const userData = await getUserDocument(uid);
+    const rolID = userData.rolID;
 
-    // Verificar si el usuario tiene permisos de administrador
-    const userRole = decodedToken.role || 'user'; // Supongamos que el rol está en el token
-
-    if (userRole !== 'admin') {
-      return NextResponse.json({ message: 'Acción no permitida. Se requiere rol de administrador.' }, { status: 403 });
+    if (!rolID) {
+      return NextResponse.json({ message: 'Usuario sin rol asignado' }, { status: 403 });
     }
 
-    const { name, permissions, description } = await request.json();
-    console.log("Datos recibidos:", { name, permissions, description });
+    // Obtener los permisos del rol
+    const permissions = await getRolePermissions(rolID);
+
+    // Verificar si el usuario tiene el permiso 'create'
+    if (!permissions.includes('create')) {
+      return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "create".' }, { status: 403 });
+    }
+
+    // Obtener los datos del rol a crear
+    const { name, permissions: rolePermissions, description } = await request.json();
+    console.log("Datos recibidos:", { name, permissions: rolePermissions, description });
 
     // Validación básica del nombre
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -33,10 +45,10 @@ export async function POST(request) {
     }
 
     // Manejar permissions de forma flexible
-    const permissionsArray = Array.isArray(permissions)
-      ? permissions.map(p => p.trim())
-      : typeof permissions === 'string'
-      ? permissions.split(',').map(p => p.trim())
+    const permissionsArray = Array.isArray(rolePermissions)
+      ? rolePermissions.map(p => p.trim())
+      : typeof rolePermissions === 'string'
+      ? rolePermissions.split(',').map(p => p.trim())
       : [];
 
     // Crear una referencia a un nuevo documento en la colección 'roles'

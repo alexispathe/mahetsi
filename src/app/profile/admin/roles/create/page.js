@@ -1,4 +1,5 @@
 // src/app/profile/admin/roles/create/page.js
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -15,17 +16,27 @@ export default function CreateRole() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false); // Para manejar el estado de carga
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Estado para controlar si el usuario está autenticado
+  const [permissions, setPermissions] = useState([]); // Opcional: Permisos del usuario
 
   // Verificar autenticación usando la API
   useEffect(() => {
     const checkAuth = async () => {
-      const response = await fetch('/api/verify-session');
-      const data = await response.json();
+      try {
+        const response = await fetch('/api/verify-session', {
+          method: 'GET',
+          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+        });
+        const data = await response.json();
 
-      if (response.ok && data.message === 'Autenticado') {
-        setIsAuthenticated(true); // Si la respuesta es positiva, autenticamos al usuario
-      } else {
-        router.push('/login'); // Redirigimos al login si no está autenticado
+        if (response.ok && data.message === 'Autenticado') {
+          setIsAuthenticated(true); // Si la respuesta es positiva, autenticamos al usuario
+          setPermissions(data.user.permissions); // Opcional: Guardar permisos en el estado
+        } else {
+          router.push('/login'); // Redirigimos al login si no está autenticado
+        }
+      } catch (error) {
+        console.error('Error al verificar la autenticación:', error);
+        router.push('/login');
       }
     };
 
@@ -64,20 +75,18 @@ export default function CreateRole() {
     try {
       if (!isAuthenticated) {
         setError('Usuario no autenticado.');
+        setLoading(false);
         return;
       }
-
-      // Obtener el token de la cookie de sesión
-      const sessionCookie = document.cookie.split('; ').find(cookie => cookie.startsWith('session='));
-      const token = sessionCookie ? sessionCookie.split('=')[1] : '';
 
       const response = await fetch('/api/roles/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          // **No es necesario incluir el header Authorization**
         },
         body: JSON.stringify(payload),
+        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
       });
 
       if (!response.ok) {

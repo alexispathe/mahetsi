@@ -27,3 +27,27 @@ export { firestore, authAdmin };
 export const verifyIdToken = async (token) => {
   return await authAdmin.verifyIdToken(token);
 };
+
+// **Nueva Función para Verificar Session Cookies**
+export const verifySessionCookie = async (sessionCookie) => {
+  return await authAdmin.verifySessionCookie(sessionCookie, true);
+};
+
+// Función para obtener el documento del usuario
+export const getUserDocument = async (uid) => {
+  const userDoc = await firestore.collection('users').doc(uid).get();
+  if (!userDoc.exists) {
+    throw new Error('Usuario no encontrado');
+  }
+  return userDoc.data();
+};
+
+// Función para obtener los permisos del rol
+export const getRolePermissions = async (rolID) => {
+  const roleDoc = await firestore.collection('roles').doc(rolID).get();
+  if (!roleDoc.exists) {
+    throw new Error('Rol no encontrado');
+  }
+  return roleDoc.data().permissions || [];
+};
+
