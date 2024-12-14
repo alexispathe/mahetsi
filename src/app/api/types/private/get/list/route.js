@@ -1,12 +1,11 @@
-// src/app/api/brands/private/get/list/route.js
-
+// src/app/api/types/private/get/list/route.js
 import { NextResponse } from 'next/server';
 import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
 
 export async function GET(request) {
   try {
-    // Obtener las cookies de la solicitud
+    // Esperar las cookies antes de usarlas
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
 
@@ -31,22 +30,23 @@ export async function GET(request) {
     // Obtener permisos del rol
     const permissions = await getRolePermissions(rolID);
 
-    // Verificar si el usuario tiene el permiso 'read' para brands
+    // Verificar si el usuario tiene el permiso 'read'
     if (!permissions.includes('read')) {
       return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "read".' }, { status: 403 });
     }
 
-    // Obtener todas las marcas desde Firestore
-    const brandsSnapshot = await firestore.collection('brands').get();
-    const brands = brandsSnapshot.docs.map(doc => doc.data());
+    // Obtener todos los tipos desde Firestore
+    const typesSnapshot = await firestore.collection('types').get();
+    // Aseguramos que sea un arreglo vacío si no hay datos
+    const types = typesSnapshot.empty ? [] : typesSnapshot.docs.map(doc => doc.data());
 
     return NextResponse.json({
-      message: 'Marcas obtenidas exitosamente.',
-      brands,
+      message: 'Tipos obtenidos exitosamente.',
+      types,
     }, { status: 200 });
 
   } catch (error) {
-    console.error('Error al obtener las marcas:', error);
+    console.error('Error al obtener los tipos:', error);
     const errorMessage = error?.message || 'Error interno del servidor.';
     return NextResponse.json({ message: 'Error interno del servidor.', error: errorMessage }, { status: 500 });
   }

@@ -36,13 +36,27 @@ export async function GET(request) {
       return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "read".' }, { status: 403 });
     }
 
-    // Obtener todas las subcategorías desde Firestore
-    const subcategoriesSnapshot = await firestore.collection('subcategories').get();
-    const subcategories = subcategoriesSnapshot.docs.map(doc => doc.data());
+    // Obtener todas las categorías desde Firestore
+    const categoriesSnapshot = await firestore.collection('categories').get();
+
+    // Crear un array para almacenar las subcategorías de todas las categorías
+    const allSubcategories = [];
+
+    // Recorrer cada categoría y obtener sus subcategorías
+    for (const categoryDoc of categoriesSnapshot.docs) {
+      const categoryId = categoryDoc.id;
+
+      // Obtener las subcategorías de la subcolección de esta categoría
+      const subcategoriesSnapshot = await firestore.collection('categories').doc(categoryId).collection('subCategories').get();
+      const subcategories = subcategoriesSnapshot.docs.map(doc => doc.data());
+
+      // Añadir las subcategorías al array
+      allSubcategories.push(...subcategories);
+    }
 
     return NextResponse.json({
       message: 'Subcategorías obtenidas exitosamente.',
-      subcategories,
+      subcategories: allSubcategories,
     }, { status: 200 });
 
   } catch (error) {

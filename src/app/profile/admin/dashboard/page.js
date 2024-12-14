@@ -215,7 +215,7 @@ const AdminDashboard = () => {
             <div className="p-4 bg-white">
               <div className="mb-4">
                 <button
-                  onClick={() => router.push('/categories/create')}
+                  onClick={() => router.push('categories/create')}
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
                 >
                   Crear Categoría
@@ -229,7 +229,7 @@ const AdminDashboard = () => {
                     <li key={category.uniqueID} className="flex justify-between items-center">
                       <span className="text-gray-700">{category.name}</span>
                       <button
-                        onClick={() => router.push(`/categories/update/${category.uniqueID}`)}
+                        onClick={() => router.push(`categories/update/${category.uniqueID}`)}
                         className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors duration-200"
                       >
                         Actualizar
@@ -262,7 +262,7 @@ const AdminDashboard = () => {
             <div className="p-4 bg-white">
               <div className="mb-4">
                 <button
-                  onClick={() => router.push('/subcategories/create')}
+                  onClick={() => router.push('subcategories/create')}
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
                 >
                   Crear Subcategoría
@@ -276,7 +276,7 @@ const AdminDashboard = () => {
                     <li key={subcategory.uniqueID} className="flex justify-between items-center">
                       <span className="text-gray-700">{subcategory.name}</span>
                       <button
-                        onClick={() => router.push(`/subcategories/update/${subcategory.uniqueID}`)}
+                        onClick={() => router.push(`subcategories/update/${subcategory.uniqueID}`)}
                         className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 transition-colors duration-200"
                       >
                         Actualizar
@@ -309,7 +309,7 @@ const AdminDashboard = () => {
             <div className="p-4 bg-white">
               <div className="mb-4">
                 <button
-                  onClick={() => router.push('/brands/create')}
+                  onClick={() => router.push('brands/create')}
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
                 >
                   Crear Marca
@@ -323,7 +323,7 @@ const AdminDashboard = () => {
                     <li key={brand.uniqueID} className="flex justify-between items-center">
                       <span className="text-gray-700">{brand.name}</span>
                       <button
-                        onClick={() => router.push(`/brands/update/${brand.uniqueID}`)}
+                        onClick={() => router.push(`brands/update/${brand.uniqueID}`)}
                         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors duration-200"
                       >
                         Actualizar
@@ -356,7 +356,7 @@ const AdminDashboard = () => {
             <div className="p-4 bg-white">
               <div className="mb-4">
                 <button
-                  onClick={() => router.push('/types/create')}
+                  onClick={() => router.push('types/create')}
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
                 >
                   Crear Tipo
@@ -370,7 +370,7 @@ const AdminDashboard = () => {
                     <li key={type.uniqueID} className="flex justify-between items-center">
                       <span className="text-gray-700">{type.name}</span>
                       <button
-                        onClick={() => router.push(`/types/update/${type.uniqueID}`)}
+                        onClick={() => router.push(`types/update/${type.uniqueID}`)}
                         className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition-colors duration-200"
                       >
                         Actualizar
@@ -403,7 +403,7 @@ const AdminDashboard = () => {
             <div className="p-4 bg-white">
               <div className="mb-4">
                 <button
-                  onClick={() => router.push('/products/create')}
+                  onClick={() => router.push('products/create')}
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
                 >
                   Crear Producto
@@ -417,7 +417,7 @@ const AdminDashboard = () => {
                     <li key={product.uniqueID} className="flex justify-between items-center">
                       <span className="text-gray-700">{product.name}</span>
                       <button
-                        onClick={() => router.push(`/products/update/${product.uniqueID}`)}
+                        onClick={() => router.push(`products/update/${product.uniqueID}`)}
                         className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors duration-200"
                       >
                         Actualizar
