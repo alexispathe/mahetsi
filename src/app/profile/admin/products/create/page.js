@@ -3,8 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '../../../libs/firebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
 
 const CreateProduct = () => {
   const router = useRouter();
@@ -25,134 +23,115 @@ const CreateProduct = () => {
   const [types, setTypes] = useState([]);
   const [error, setError] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
+  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
+    const verifySession = async () => {
+      try {
+        const response = await fetch('/api/verify-session', {
+          method: 'GET',
+          credentials: 'include', // Incluye las cookies en la solicitud
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user.permissions.includes('create')) {
+            setHasPermission(true);
+            await loadCategories();
+          } else {
+            router.push('/not-found'); // Redirige si no tiene permiso
+          }
+        } else {
+          router.push('/login'); // Redirige si no está autenticado
+        }
+      } catch (err) {
+        console.error('Error al verificar la sesión:', err);
+        setError('Error al verificar la sesión.');
         router.push('/login');
-      } else {
-        checkUserPermissions(user.uid);
+      } finally {
+        setLoading(false);
       }
-    });
-    return () => unsubscribe(); // Limpieza del suscriptor
+    };
+
+    verifySession();
   }, [router]);
-
-  const checkUserPermissions = async (userId) => {
-    try {
-      const token = await auth.currentUser.getIdToken(); // Obtén el token del usuario
-      const userResponse = await fetch(`/api/users/${userId}/get`, {
-        headers: {
-          'Authorization': `Bearer ${token}`, // Incluye el token en la cabecera
-        },
-      });
-
-      if (!userResponse.ok) {
-        throw new Error('Error al obtener datos del usuario.');
-      }
-
-      const userData = await userResponse.json();
-      const { roleId } = userData;
-
-      // Verifica los permisos del rol correspondiente
-      const roleResponse = await fetch(`/api/roles/get/${roleId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`, // Incluye el token en la cabecera
-        },
-      });
-
-      if (!roleResponse.ok) {
-        throw new Error('Error al obtener los permisos del rol.');
-      }
-
-      const roleData = await roleResponse.json();
-      // Verifica si el rol tiene el permiso 'create'
-      if (roleData.permissions.includes('create')) {
-        setHasPermission(true);
-        await loadCategories();
-      } else {
-        router.push('/not-found'); // Redirige si no tiene permiso
-      }
-    } catch (err) {
-      setError(err.message);
-    }
-  };
 
   const loadCategories = async () => {
     try {
-      const token = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/categories/get/list', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch('/api/categories/private/get/list', {
+        method: 'GET',
+        credentials: 'include', // Incluye las cookies en la solicitud
       });
 
       if (!response.ok) {
-        throw new Error('Error al cargar las categorías.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar las categorías.');
       }
 
       const data = await response.json();
       setCategories(data.categories);
     } catch (err) {
+      console.error('Error al cargar las categorías:', err);
       setError(err.message);
     }
   };
 
   const loadSubcategories = async (categoryID) => {
     try {
-      const token = await auth.currentUser.getIdToken();
-      const response = await fetch(`/api/categories/subCategories/${categoryID}/get/list`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch(`/api/categories/private/subCategories/get/list/${categoryID}`, {
+        method: 'GET',
+        credentials: 'include', // Incluye las cookies en la solicitud
       });
 
       if (!response.ok) {
-        throw new Error('Error al cargar las subcategorías.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar las subcategorías.');
       }
 
       const data = await response.json();
       setSubcategories(data.subcategories);
     } catch (err) {
+      console.error('Error al cargar las subcategorías:', err);
       setError(err.message);
     }
   };
 
   const loadBrands = async (categoryID) => {
     try {
-      const token = await auth.currentUser.getIdToken();
-      const response = await fetch(`/api/brands/get/byCategory/${categoryID}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch(`/api/brands/private/get/byCategory/${categoryID}`, {
+        method: 'GET',
+        credentials: 'include', // Incluye las cookies en la solicitud
       });
 
       if (!response.ok) {
-        throw new Error('Error al cargar las marcas.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar las marcas.');
       }
 
       const data = await response.json();
       setBrands(data.brands);
     } catch (err) {
+      console.error('Error al cargar las marcas:', err);
       setError(err.message);
     }
   };
 
   const loadTypes = async (categoryID) => {
     try {
-      const token = await auth.currentUser.getIdToken();
-      const response = await fetch(`/api/types/get/byCategory/${categoryID}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch(`/api/types/private/get/byCategory/${categoryID}`, {
+        method: 'GET',
+        credentials: 'include', // Incluye las cookies en la solicitud
       });
 
       if (!response.ok) {
-        throw new Error('Error al cargar los tipos.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar los tipos.');
       }
 
       const data = await response.json();
       setTypes(data.types);
     } catch (err) {
+      console.error('Error al cargar los tipos:', err);
       setError(err.message);
     }
   };
@@ -164,12 +143,12 @@ const CreateProduct = () => {
       images[index] = value;
       setProductData({ ...productData, images });
     } else if (name === 'categoryID') {
-      setProductData({ 
-        ...productData, 
-        categoryID: value, 
+      setProductData({
+        ...productData,
+        categoryID: value,
         subcategoryID: '',
         brandID: '',
-        typeID: ''
+        typeID: '',
       });
       if (value) {
         loadSubcategories(value);
@@ -239,12 +218,10 @@ const CreateProduct = () => {
     const images = productData.images.filter((img) => img.trim() !== '');
 
     try {
-      const token = await auth.currentUser.getIdToken();
       const response = await fetch('/api/products/private/product/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Incluye el token en la cabecera
         },
         body: JSON.stringify({
           name: productData.name,
@@ -257,6 +234,7 @@ const CreateProduct = () => {
           typeID: productData.typeID,
           images: images,
         }),
+        credentials: 'include', // Incluye las cookies en la solicitud
       });
 
       if (!response.ok) {
@@ -266,16 +244,25 @@ const CreateProduct = () => {
 
       const responseData = await response.json();
       alert(`Producto creado correctamente. URL: ${responseData.url}`);
-      router.push('/users/profile'); // Redirige al perfil o a la página deseada
+      router.push('/profile/user'); // Redirige al perfil o a la página deseada
     } catch (err) {
+      console.error('Error al crear el producto:', err);
       setError(err.message);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
   if (!hasPermission) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>Cargando...</p>}
+        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para crear productos.</p>}
       </div>
     );
   }

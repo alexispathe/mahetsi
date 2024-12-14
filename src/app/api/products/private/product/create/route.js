@@ -1,7 +1,7 @@
 // src/app/api/products/private/product/create/route.js
 
 import { NextResponse } from 'next/server';
-import { firestore, verifyIdToken } from '../../../../../../libs/firebaseAdmin';
+import { firestore, verifySessionCookie } from '../../../../../../libs/firebaseAdmin';
 import admin from 'firebase-admin';
 import slugify from 'slugify';
 
@@ -38,15 +38,14 @@ const ensureUniqueSlug = async (slug) => {
 
 export async function POST(request) {
   try {
-    const authorization = request.headers.get('authorization');
-    if (!authorization || !authorization.startsWith('Bearer ')) {
+    const cookieStore = cookies();
+    const sessionCookie = cookieStore.get('session')?.value;
+
+    if (!sessionCookie) {
       return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
     }
 
-    const idToken = authorization.split('Bearer ')[1];
-    const decodedToken = await verifyIdToken(idToken); // Verifica el token del usuario
-
-    // Obtén el ID del usuario del token decodificado
+    const decodedToken = await verifySessionCookie(sessionCookie);
     const ownerId = decodedToken.uid; // El ID del usuario actual
 
     const { name, description, price, stockQuantity, categoryID, subcategoryID, brandID, typeID, images } = await request.json();
@@ -103,7 +102,7 @@ export async function POST(request) {
     }
 
     if (subcategoryDoc.data().categoryID !== categoryID) {
-      return NextResponse.json({ message: 'Subcategoría no pertenece a la categoría seleccionada.' }, { status: 404 });
+      return NextResponse.json({ message: 'Subcategoría no pertenece a la categoría seleccionada.' }, { status: 400 });
     }
 
     // Verifica que la marca exista y pertenezca a la categoría
@@ -113,7 +112,7 @@ export async function POST(request) {
     }
 
     if (brandDoc.data().categoryID !== categoryID) {
-      return NextResponse.json({ message: 'Marca no pertenece a la categoría seleccionada.' }, { status: 404 });
+      return NextResponse.json({ message: 'Marca no pertenece a la categoría seleccionada.' }, { status: 400 });
     }
 
     // Verifica que el tipo exista y pertenezca a la categoría
@@ -123,7 +122,7 @@ export async function POST(request) {
     }
 
     if (typeDoc.data().categoryID !== categoryID) {
-      return NextResponse.json({ message: 'Tipo no pertenece a la categoría seleccionada.' }, { status: 404 });
+      return NextResponse.json({ message: 'Tipo no pertenece a la categoría seleccionada.' }, { status: 400 });
     }
 
     // Genera el slug para la URL
