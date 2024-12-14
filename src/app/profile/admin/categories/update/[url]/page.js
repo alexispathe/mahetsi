@@ -1,15 +1,15 @@
-// src/app/categories/update/page.js
+// src/app/profile/admin/categories/update/[url]/page.js
+
 "use client"; 
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { auth } from '../../../libs/firebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
+import { useRouter, useParams } from 'next/navigation';
 
 const UpdateCategory = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const url = searchParams.get('id'); // Captura el 'id' de la URL
+  const params = useParams();
+  const { url } = params;  
+  // Asegúrate de que el parámetro se llame 'url'
 
   const [categoryData, setCategoryData] = useState({
     name: '',
@@ -17,70 +17,52 @@ const UpdateCategory = () => {
   });
   const [error, setError] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
+  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
 
   useEffect(() => {
     if (!url) {
       setError('No se proporcionó un ID de categoría válido.');
+      setLoading(false);
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
+    const checkAuthAndPermissions = async () => {
+      try {
+        const response = await fetch('/api/verify-session', {
+          method: 'GET',
+          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+        });
+        const data = await response.json();
+
+        if (response.ok && data.message === 'Autenticado') {
+          if (data.user.permissions.includes('update')) {
+            setHasPermission(true);
+            loadCategoryData(url); // Cargar datos de la categoría si tiene permiso
+          } else {
+            router.push('/not-found'); // Redirige si no tiene permiso
+          }
+        } else {
+          router.push('/login'); // Redirige si no está autenticado
+        }
+      } catch (err) {
+        console.error('Error al verificar la autenticación:', err);
+        setError('Error al verificar la autenticación.');
         router.push('/login');
-      } else {
-        checkUserPermissions(user.uid);
+      } finally {
+        setLoading(false);
       }
-    });
-    return () => unsubscribe(); // Limpieza del suscriptor
+    };
+
+    checkAuthAndPermissions();
   }, [router, url]);
-
-  const checkUserPermissions = async (userId) => {
-    try {
-      const token = await auth.currentUser.getIdToken(); // Obtén el token del usuario
-      const userResponse = await fetch(`/api/users/${userId}/get`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!userResponse.ok) {
-        throw new Error('Error al obtener datos del usuario.');
-      }
-
-      const userData = await userResponse.json();
-      const { roleId } = userData;
-
-      const roleResponse = await fetch(`/api/roles/get/${roleId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!roleResponse.ok) {
-        throw new Error('Error al obtener los permisos del rol.');
-      }
-
-      const roleData = await roleResponse.json();
-      if (roleData.permissions.includes('update')) {
-        setHasPermission(true);
-        loadCategoryData(url); // Cargar datos de la categoría si tiene permiso
-      } else {
-        router.push('/not-found'); // Redirige si no tiene permiso
-      }
-    } catch (err) {
-      setError(err.message);
-    }
-  };
 
   const loadCategoryData = async (url) => {
     try {
-      const token = await auth.currentUser.getIdToken(); // Obtén el token del usuario
-      const response = await fetch(`/api/categories/get/category/${url}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
+      const response = await fetch(`/api/categories/private/get/category/${url}`, {
+        method: 'GET',
+        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
       });
-
+      console.log(response)
       if (!response.ok) {
         throw new Error('Error al cargar la categoría.');
       }
@@ -110,17 +92,17 @@ const UpdateCategory = () => {
     }
 
     try {
-      const token = await auth.currentUser.getIdToken(); // Obtén el token del usuario
-      const response = await fetch(`/api/categories/update/${url}`, {
+      const response = await fetch(`/api/categories/private/update/${url}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          // No es necesario incluir el header Authorization
         },
         body: JSON.stringify({
           name: categoryData.name,
           description: categoryData.description,
         }),
+        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
       });
 
       if (!response.ok) {
@@ -129,16 +111,24 @@ const UpdateCategory = () => {
       }
 
       alert("Categoría actualizada correctamente");
-      router.push('/users/profile'); // Redirige al perfil después de la actualización
+      router.push('/profile/user'); // Redirige al perfil después de la actualización
     } catch (err) {
       setError(err.message);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
   if (!hasPermission) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>Cargando...</p>}
+        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para actualizar categorías.</p>}
       </div>
     );
   }
@@ -166,6 +156,7 @@ const UpdateCategory = () => {
             value={categoryData.description}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded"
+            placeholder="Descripción de la categoría (opcional)"
           />
         </div>
         <button

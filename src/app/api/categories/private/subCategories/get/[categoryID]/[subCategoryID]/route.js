@@ -1,8 +1,7 @@
 // src/app/api/categories/private/subCategiries/get/[categoryID]/[subCategoryID]/route.js
 //Devuelve la subCategoria para actualizar posteriormente actualizar su informacion
 import { NextResponse } from 'next/server';
-import { firestore, verifyIdToken } from '../../../../../../../../libs/firebaseAdmin';
-
+import { verifyIdToken,firestore } from '@/libs/firebaseAdmin';
 export async function GET(request, { params }) {
   const { categoryID, subCategoryID } = params;
   console.log(params)

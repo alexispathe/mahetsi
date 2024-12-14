@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { auth } from '../../../../../../libs/firebaseConfig';
+import { auth } from '../../../../../../../../libs/firebaseClient';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const UpdateSubcategory = () => {
