@@ -18,7 +18,7 @@ export default async function ProfilePage() {
     const decodedClaims = await authAdmin.verifySessionCookie(session, true);
     const { email, name, picture, uid } = decodedClaims;
 
-    const userOrders = orders.filter(order => order.ownerId === 'user129');
+    const userOrders = orders.filter(order => order.ownerId === uid);
 
     return (
       <div className="container mx-auto p-4">

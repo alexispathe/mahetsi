@@ -1,17 +1,31 @@
 // src/app/api/sessionLogout/route.js
+
+import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { authAdmin } from '@/libs/firebaseAdmin';
 
 export async function POST(request) {
   try {
-    const { idToken } = await request.json();
-    if (idToken) {
-      await authAdmin.revokeRefreshTokens(idToken);
+    // Obtener las cookies de la solicitud
+    const cookieStore = cookies();
+    const session = cookieStore.get('session')?.value;
+
+    if (session) {
+      // Verificar la cookie de sesión
+      const decodedClaims = await authAdmin.verifySessionCookie(session, true);
+      const uid = decodedClaims.uid;
+
+      // Revocar los tokens de actualización del usuario
+      await authAdmin.revokeRefreshTokens(uid);
     }
-    cookies().delete('session');
-    return new Response(JSON.stringify({ status: 'logged out' }), { status: 200 });
+
+    // Crear una respuesta y eliminar la cookie de sesión
+    const response = NextResponse.json({ status: 'logged out' });
+    response.cookies.delete('session');
+
+    return response;
   } catch (error) {
     console.error('Error during logout:', error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
