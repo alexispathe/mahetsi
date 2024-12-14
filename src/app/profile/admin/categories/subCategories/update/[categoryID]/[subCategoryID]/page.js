@@ -1,12 +1,9 @@
-"use client";
-//http://localhost:3000/categories/subCategories/update/gz5OxtBNgYM5E00v3f3E/jHVK07ATkWuXmRn16s09
 // src/app/categories/subCategories/update/[categoryID]/[subCategoryID]/page.js
+
 "use client";
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { auth } from '../../../../../../../../libs/firebaseClient';
-import { onAuthStateChanged } from 'firebase/auth';
 
 const UpdateSubcategory = () => {
   const router = useRouter();
@@ -16,96 +13,74 @@ const UpdateSubcategory = () => {
   const [subcategoryData, setSubcategoryData] = useState({
     name: '',
     description: '',
-    categoryID: '',
   });
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
+  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
 
   useEffect(() => {
     if (!categoryID || !subCategoryID) {
       setError('Parámetros de URL faltantes.');
+      setLoading(false);
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        router.push('/login');
-      } else {
-        checkUserPermissions(user.uid);
-      }
-    });
-    return () => unsubscribe();
-  }, [router, categoryID, subCategoryID]);
-
-  const checkUserPermissions = async (userId) => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const userResponse = await fetch(`/api/users/${userId}/get`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (userResponse.ok) {
-        const userData = await userResponse.json();
-        const { roleId } = userData;
-
-        const roleResponse = await fetch(`/api/roles/get/${roleId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+    const checkAuthAndPermissions = async () => {
+      try {
+        const response = await fetch('/api/verify-session', {
+          method: 'GET',
+          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
         });
+        const data = await response.json();
 
-        if (roleResponse.ok) {
-          const roleData = await roleResponse.json();
-          if (roleData.permissions.includes('update')) {
+        if (response.ok && data.message === 'Autenticado') {
+          if (data.user.permissions.includes('update')) {
             setHasPermission(true);
-            await loadCategories();
-            await loadSubcategoryData(categoryID, subCategoryID);
+            await loadCategories(); // Cargar categorías si tiene permiso
+            await loadSubcategoryData(categoryID, subCategoryID); // Cargar datos de la subcategoría
           } else {
-            router.push('/not-found');
+            router.push('/not-found'); // Redirige si no tiene permiso
           }
         } else {
-          setError('Error al obtener los permisos del rol.');
+          router.push('/login'); // Redirige si no está autenticado
         }
-      } else {
-        setError('Error al obtener datos del usuario.');
+      } catch (err) {
+        console.error('Error al verificar la autenticación:', err);
+        setError('Error al verificar la autenticación.');
+        router.push('/login');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error al verificar los permisos:', error);
-      setError('Error al verificar los permisos.');
-    }
-  };
+    };
+
+    checkAuthAndPermissions();
+  }, [router, categoryID, subCategoryID]);
 
   const loadCategories = async () => {
     try {
-      const token = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/categories/get/list', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch('/api/categories/private/get/list', {
+        method: 'GET',
+        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
       });
 
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories);
       } else {
-        setError('Error al cargar las categorías.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar las categorías.');
       }
     } catch (error) {
-      console.error('Error al cargar las categorías:', error);
       setError('Error al cargar las categorías.');
     }
   };
 
   const loadSubcategoryData = async (categoryID, subCategoryID) => {
     try {
-      const token = await auth.currentUser.getIdToken();
-      const response = await fetch(`/api/categories/subCategories/get/${categoryID}/${subCategoryID}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch(`/api/categories/private/subCategories/get/${categoryID}/${subCategoryID}`, {
+        method: 'GET',
+        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
       });
 
       if (response.ok) {
@@ -113,10 +88,10 @@ const UpdateSubcategory = () => {
         setSubcategoryData({
           name: data.name,
           description: data.description || '',
-          categoryID: data.categoryID,
         });
       } else {
-        setError('Error al cargar la subcategoría.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar la subcategoría.');
       }
     } catch (error) {
       console.error('Error al cargar la subcategoría:', error);
@@ -138,28 +113,22 @@ const UpdateSubcategory = () => {
       return;
     }
 
-    if (!subcategoryData.categoryID) {
-      setError('Por favor, selecciona una categoría.');
-      return;
-    }
-
     try {
-      const token = await auth.currentUser.getIdToken();
-      const response = await fetch(`/api/categories/subCategories/update/${categoryID}/${subCategoryID}`, {
+      const response = await fetch(`/api/categories/private/subCategories/update/${categoryID}/${subCategoryID}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(subcategoryData),
+        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message);
+        throw new Error(errorData.message || 'Error al actualizar la subcategoría.');
       } else {
         alert("Subcategoría actualizada correctamente");
-        router.push('/users/profile');
+        router.push('/profile/user'); // Redirige al perfil después de la actualización
       }
     } catch (err) {
       console.error('Error al actualizar la subcategoría:', err);
@@ -167,10 +136,18 @@ const UpdateSubcategory = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
   if (!hasPermission) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>Cargando...</p>}
+        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para actualizar subcategorías.</p>}
       </div>
     );
   }
@@ -198,8 +175,11 @@ const UpdateSubcategory = () => {
             value={subcategoryData.description}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded"
+            placeholder="Descripción de la subcategoría (opcional)"
           />
         </div>
+        {/* Si permites cambiar la categoría, descomenta este bloque */}
+        {/* 
         <div className="mb-4">
           <label className="block mb-1">Categoría</label>
           <select
@@ -217,6 +197,7 @@ const UpdateSubcategory = () => {
             ))}
           </select>
         </div>
+        */}
         <button
           type="submit"
           className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"

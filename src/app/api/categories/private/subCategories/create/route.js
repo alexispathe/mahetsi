@@ -1,24 +1,82 @@
 // src/app/api/categories/private/subCategories/create/route.js
-//Las sub categorias se guardan dentro de la coleccion de cateroias como sub coleccion
+
 import { NextResponse } from 'next/server';
-import { firestore, verifyIdToken } from '../../../../../../libs/firebaseAdmin';
+import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../../libs/firebaseAdmin';
+import { cookies } from 'next/headers';
 import admin from 'firebase-admin';
+
+// Función personalizada para generar el slug
+const generateSlug = (text) => {
+  return text
+    .toString()
+    .normalize('NFD')                   // Normaliza la cadena para separar acentos
+    .replace(/[\u0300-\u036f]/g, '')    // Elimina los acentos
+    .toLowerCase()                      // Convierte a minúsculas
+    .trim()                             // Elimina espacios al inicio y al final
+    .replace(/\s+/g, '-')               // Reemplaza espacios por guiones
+    .replace(/[^\w\-]+/g, '')           // Elimina caracteres especiales
+    .replace(/\-\-+/g, '-');            // Reemplaza múltiples guiones por uno solo
+};
+
+// Función para asegurar la unicidad del slug
+const ensureUniqueSlug = async (slug, categoryID) => {
+  let uniqueSlug = slug;
+  let counter = 1;
+
+  while (true) {
+    const existingSubcategory = await firestore
+      .collection('categories')
+      .doc(categoryID)
+      .collection('subCategories')
+      .where('url', '==', uniqueSlug)
+      .get();
+
+    if (existingSubcategory.empty) {
+      break; // El slug es único
+    }
+
+    uniqueSlug = `${slug}-${counter}`;
+    counter += 1;
+  }
+
+  return uniqueSlug;
+};
 
 export async function POST(request) {
   try {
-    const authorization = request.headers.get('authorization');
-    if (!authorization || !authorization.startsWith('Bearer ')) {
+    // Obtener las cookies de la solicitud
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('session')?.value;
+
+    if (!sessionCookie) {
       return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
     }
 
-    const idToken = authorization.split('Bearer ')[1];
-    const decodedToken = await verifyIdToken(idToken);
+    // Verificar la session cookie
+    const decodedToken = await verifySessionCookie(sessionCookie);
+    const uid = decodedToken.uid;
 
-    const ownerId = decodedToken.uid;
+    // Obtener el documento del usuario
+    const userData = await getUserDocument(uid);
+    const rolID = userData.rolID;
 
+    if (!rolID) {
+      return NextResponse.json({ message: 'Usuario sin rol asignado' }, { status: 403 });
+    }
+
+    // Obtener los permisos del rol
+    const permissions = await getRolePermissions(rolID);
+
+    // Verificar si el usuario tiene el permiso 'create'
+    if (!permissions.includes('create')) {
+      return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "create".' }, { status: 403 });
+    }
+
+    // Obtener los datos de la subcategoría
     const { name, description, categoryID } = await request.json();
 
-    if (!name) {
+    // Validaciones básicas
+    if (!name || !name.trim()) {
       return NextResponse.json({ message: 'Nombre de la subcategoría obligatorio.' }, { status: 400 });
     }
 
@@ -26,21 +84,18 @@ export async function POST(request) {
       return NextResponse.json({ message: 'ID de la categoría es obligatorio.' }, { status: 400 });
     }
 
-    // Generar URL única
-    const randomTwoDigits = Math.floor(Math.random() * 90) + 10; // 10 to 99
-    const url = `${name.trim().toLowerCase().replace(/\s+/g, '-')}-${randomTwoDigits}`;
-
-    // Referencia al documento de la categoría
-    const categoryDocRef = firestore.collection('categories').doc(categoryID);
-
-    // Verificar si la categoría existe
-    const categoryDoc = await categoryDocRef.get();
+    // Verificar que la categoría exista
+    const categoryDoc = await firestore.collection('categories').doc(categoryID).get();
     if (!categoryDoc.exists) {
       return NextResponse.json({ message: 'Categoría no encontrada.' }, { status: 404 });
     }
 
-    // Crear referencia al nuevo documento en la subcolección 'subcategories'
-    const subcategoryDocRef = categoryDocRef.collection('subCategories').doc();
+    // Generar URL única
+    const slug = generateSlug(name);
+    const url = await ensureUniqueSlug(slug, categoryID);
+
+    // Crear referencia al nuevo documento en la subcolección 'subCategories'
+    const subcategoryDocRef = firestore.collection('categories').doc(categoryID).collection('subCategories').doc();
 
     const subcategoryData = {
       name: name.trim(),
@@ -48,11 +103,11 @@ export async function POST(request) {
       dateCreated: admin.firestore.FieldValue.serverTimestamp(),
       dateModified: admin.firestore.FieldValue.serverTimestamp(),
       subCategoryID: subcategoryDocRef.id,
-      ownerId,
+      ownerId: uid,
       categoryID,
       url,
     };
-    console.log(subcategoryData)
+    console.log(subcategoryData);
     await subcategoryDocRef.set(subcategoryData);
 
     return NextResponse.json({ message: 'Subcategoría creada exitosamente.', subCategoryID: subcategoryDocRef.id }, { status: 201 });

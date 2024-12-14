@@ -1,93 +1,131 @@
-// src/app/api/categories/subCategories/update/[categoryID]/[subCategoryID]/route.js
+// src/app/api/categories/private/subCategories/update/[categoryID]/[subCategoryID]/route.js
+
 import { NextResponse } from 'next/server';
-import { firestore, verifyIdToken } from '../../../../../../../libs/firebaseAdmin';
+import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../../../../libs/firebaseAdmin';
+import { cookies } from 'next/headers';
 import admin from 'firebase-admin';
 
-export async function PUT(request, { params }) {
-  const { categoryID, subCategoryID } = params;
+// Función personalizada para generar el slug
+const generateSlug = (text) => {
+  return text
+    .toString()
+    .normalize('NFD')                   // Normaliza la cadena para separar acentos
+    .replace(/[\u0300-\u036f]/g, '')    // Elimina los acentos
+    .toLowerCase()                      // Convierte a minúsculas
+    .trim()                             // Elimina espacios al inicio y al final
+    .replace(/\s+/g, '-')               // Reemplaza espacios por guiones
+    .replace(/[^\w\-]+/g, '')           // Elimina caracteres especiales
+    .replace(/\-\-+/g, '-');            // Reemplaza múltiples guiones por uno solo
+};
 
-  try {
-    const authorization = request.headers.get('authorization');
-    if (!authorization || !authorization.startsWith('Bearer ')) {
-      return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
-    }
+// Función para asegurar la unicidad del slug
+const ensureUniqueSlug = async (slug, categoryID, subCategoryID) => {
+  let uniqueSlug = slug;
+  let counter = 1;
 
-    const idToken = authorization.split('Bearer ')[1];
-    const decodedToken = await verifyIdToken(idToken);
-    const userId = decodedToken.uid;
-
-    const { name, description, categoryID: newCategoryID } = await request.json();
-
-    if (!name) {
-      return NextResponse.json({ message: 'Nombre de la subcategoría obligatorio.' }, { status: 400 });
-    }
-
-    if (!newCategoryID) {
-      return NextResponse.json({ message: 'ID de la categoría es obligatorio.' }, { status: 400 });
-    }
-
-    // Referencia al documento actual de la subcategoría
-    const subcategoryDocRef = firestore
+  while (true) {
+    const existingSubcategory = await firestore
       .collection('categories')
       .doc(categoryID)
       .collection('subCategories')
-      .doc(subCategoryID);
+      .where('url', '==', uniqueSlug)
+      .where('subCategoryID', '!=', subCategoryID)
+      .get();
 
+    if (existingSubcategory.empty) {
+      break; // El slug es único
+    }
+
+    uniqueSlug = `${slug}-${counter}`;
+    counter += 1;
+  }
+
+  return uniqueSlug;
+};
+
+export async function PUT(request, { params }) { // Función asíncrona y desestructuración correcta
+  const { categoryID, subCategoryID } = params;
+
+  try {
+    // Obtener las cookies de la solicitud
+    const cookieStore = await cookies(); // Usa await si Next.js lo requiere
+    const sessionCookie = cookieStore.get('session')?.value;
+
+    if (!sessionCookie) {
+      return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
+    }
+
+    // Verificar la session cookie
+    const decodedToken = await verifySessionCookie(sessionCookie);
+    const uid = decodedToken.uid;
+
+    // Obtener el documento del usuario
+    const userData = await getUserDocument(uid);
+    const rolID = userData?.rolID;
+
+    if (!rolID) {
+      return NextResponse.json({ message: 'Usuario sin rol asignado' }, { status: 403 });
+    }
+
+    // Obtener los permisos del rol
+    const permissions = await getRolePermissions(rolID);
+
+    // Verificar si el usuario tiene el permiso 'update'
+    if (!permissions.includes('update')) {
+      return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "update".' }, { status: 403 });
+    }
+
+    // Obtener los datos de la subcategoría desde el cuerpo de la solicitud
+    const body = await request.json();
+
+    // Validaciones básicas
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ message: 'Cuerpo de la solicitud inválido.' }, { status: 400 });
+    }
+
+    const { name, description } = body;
+
+    if (!name || !name.trim()) {
+      return NextResponse.json({ message: 'Nombre de la subcategoría obligatorio.' }, { status: 400 });
+    }
+
+    // Verificar que la categoría exista
+    const categoryDoc = await firestore.collection('categories').doc(categoryID).get();
+    if (!categoryDoc.exists) {
+      return NextResponse.json({ message: 'Categoría no encontrada.' }, { status: 404 });
+    }
+
+    // Buscar la subcategoría por subCategoryID en la categoría especificada
+    const subcategoryDocRef = firestore.collection('categories').doc(categoryID).collection('subCategories').doc(subCategoryID);
     const subcategoryDoc = await subcategoryDocRef.get();
 
     if (!subcategoryDoc.exists) {
       return NextResponse.json({ message: 'Subcategoría no encontrada.' }, { status: 404 });
     }
 
-    const subcategoryData = subcategoryDoc.data();
-
-    // Verificar si el usuario es el propietario
-    if (subcategoryData.ownerId !== userId) {
-      return NextResponse.json({ message: 'No autorizado.' }, { status: 403 });
+    // (Opcional) Generar URL única si el nombre ha cambiado
+    let url = subcategoryDoc.data().url;
+    if (name.trim().toLowerCase() !== subcategoryDoc.data().name.toLowerCase()) {
+      const slug = generateSlug(name);
+      url = await ensureUniqueSlug(slug, categoryID, subCategoryID);
     }
 
-    // Si el categoryID ha cambiado, mover la subcategoría a la nueva categoría
-    if (newCategoryID !== categoryID) {
-      // Referencia a la nueva categoría
-      const newCategoryDocRef = firestore.collection('categories').doc(newCategoryID);
-      const newCategoryDoc = await newCategoryDocRef.get();
+    // Datos actualizados de la subcategoría
+    const updatedSubcategoryData = {
+      name: name.trim(),
+      description: description ? description.trim() : '',
+      dateModified: admin.firestore.FieldValue.serverTimestamp(),
+      url,
+    };
 
-      if (!newCategoryDoc.exists) {
-        return NextResponse.json({ message: 'Nueva categoría no encontrada.' }, { status: 404 });
-      }
-
-      // Crear nuevo documento de subcategoría en la nueva categoría
-      const newSubcategoryDocRef = newCategoryDocRef.collection('subCategories').doc(subCategoryID);
-
-      const updatedData = {
-        name: name.trim(),
-        description: description ? description.trim() : '',
-        dateModified: admin.firestore.FieldValue.serverTimestamp(),
-        categoryID: newCategoryID,
-      };
-
-      // Copiar los datos de la subcategoría al nuevo lugar
-      await newSubcategoryDocRef.set({
-        ...subcategoryData,
-        ...updatedData,
-      });
-
-      // Eliminar el documento de subcategoría antiguo
-      await subcategoryDocRef.delete();
-    } else {
-      // Actualizar la subcategoría en la misma categoría
-      const updatedData = {
-        name: name.trim(),
-        description: description ? description.trim() : '',
-        dateModified: admin.firestore.FieldValue.serverTimestamp(),
-      };
-
-      await subcategoryDocRef.update(updatedData);
-    }
+    // Actualizar la subcategoría en Firestore
+    await subcategoryDocRef.update(updatedSubcategoryData);
 
     return NextResponse.json({ message: 'Subcategoría actualizada exitosamente.' }, { status: 200 });
+
   } catch (error) {
     console.error('Error al actualizar la subcategoría:', error);
-    return NextResponse.json({ message: 'Error interno del servidor.', error: error.message }, { status: 500 });
+    const errorMessage = error?.message || 'Unknown error';
+    return NextResponse.json({ message: 'Error interno del servidor.', error: errorMessage }, { status: 500 });
   }
 }

@@ -1,4 +1,4 @@
-// src/app/products/update/[url]/page.js
+// src/app/profile/admin/products/update/[url]/page.js
 "use client";
 
 import { useEffect, useState } from 'react';

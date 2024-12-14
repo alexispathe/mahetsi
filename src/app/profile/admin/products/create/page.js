@@ -1,3 +1,4 @@
+// src/app/profile/admin/products/create/page.js
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -239,7 +240,7 @@ const CreateProduct = () => {
 
     try {
       const token = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/products/create', {
+      const response = await fetch('/api/products/private/product/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

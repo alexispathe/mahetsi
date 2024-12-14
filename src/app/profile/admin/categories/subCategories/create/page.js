@@ -1,10 +1,9 @@
-// src/app/categories/subCategiries/create/page.js
+// src/app/profile/admin/categories/subCategiries/create/page.js
+
 "use client";
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '../../../../../../libs/firebaseClient';
-import { onAuthStateChanged } from 'firebase/auth';
 
 const CreateSubcategory = () => {
   const router = useRouter();
@@ -16,70 +15,52 @@ const CreateSubcategory = () => {
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
+  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        router.push('/login');
-      } else {
-        checkUserPermissions(user.uid);
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
-
-  const checkUserPermissions = async (userId) => {
-    try {
-      const token = await auth.currentUser.getIdToken();
-      const userResponse = await fetch(`/api/users/${userId}/get`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (userResponse.ok) {
-        const userData = await userResponse.json();
-        const { roleId } = userData;
-
-        const roleResponse = await fetch(`/api/roles/get/${roleId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+    const checkAuthAndPermissions = async () => {
+      try {
+        const response = await fetch('/api/verify-session', {
+          method: 'GET',
+          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
         });
+        const data = await response.json();
 
-        if (roleResponse.ok) {
-          const roleData = await roleResponse.json();
-          if (roleData.permissions.includes('create')) {
+        if (response.ok && data.message === 'Autenticado') {
+          if (data.user.permissions.includes('create')) {
             setHasPermission(true);
-            await loadCategories();
+            await loadCategories(); // Cargar categorías si tiene permiso
           } else {
-            router.push('/not-found');
+            router.push('/not-found'); // Redirige si no tiene permiso
           }
         } else {
-          setError('Error al obtener los permisos del rol.');
+          router.push('/login'); // Redirige si no está autenticado
         }
-      } else {
-        setError('Error al obtener datos del usuario.');
+      } catch (err) {
+        console.error('Error al verificar la autenticación:', err);
+        setError('Error al verificar la autenticación.');
+        router.push('/login');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      setError('Error al verificar los permisos.');
-    }
-  };
+    };
+
+    checkAuthAndPermissions();
+  }, [router]);
 
   const loadCategories = async () => {
     try {
-      const token = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/categories/get/list', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch('/api/categories/private/get/list', {
+        method: 'GET',
+        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
       });
 
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories);
       } else {
-        setError('Error al cargar las categorías.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar las categorías.');
       }
     } catch (error) {
       setError('Error al cargar las categorías.');
@@ -105,25 +86,45 @@ const CreateSubcategory = () => {
       return;
     }
 
-    const token = await auth.currentUser.getIdToken();
-    const response = await fetch('/api/categories/subCategories/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(subcategoryData),
-    });
+    try {
+      const response = await fetch('/api/categories/private/subCategories/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // No es necesario incluir el header Authorization
+        },
+        body: JSON.stringify(subcategoryData),
+        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      setError(errorData.message);
-    } else {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al crear la subcategoría.');
+      }
+
+      const responseData = await response.json();
       alert("Subcategoría creada correctamente");
+      router.push('/profile/user'); // Redirige al perfil después de la creación
+    } catch (err) {
+      setError(err.message);
     }
   };
 
-  if (!hasPermission) return null;
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (!hasPermission) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
+        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para crear subcategorías.</p>}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
@@ -148,6 +149,7 @@ const CreateSubcategory = () => {
             value={subcategoryData.description}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded"
+            placeholder="Descripción de la subcategoría (opcional)"
           />
         </div>
         <div className="mb-4">
