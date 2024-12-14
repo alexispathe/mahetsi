@@ -1,24 +1,46 @@
-// src/app/api/brands/update/[url]/route.js
+// src/app/api/brands/private/update/[url]/route.js
 
 import { NextResponse } from 'next/server';
-import { firestore, verifyIdToken } from '../../../../../libs/firebaseAdmin';
+import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../../libs/firebaseAdmin';
+import { cookies } from 'next/headers';
 import admin from 'firebase-admin';
 
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
+  // Espera a que `params` se resuelva
+  const params = await context.params;
   const { url } = params; // Obtiene la propiedad url desde los parámetros
   console.log(params);
 
   try {
-    const authorization = request.headers.get('authorization');
-    if (!authorization || !authorization.startsWith('Bearer ')) {
+    // Obtener las cookies de la solicitud y esperar
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('session')?.value;
+
+    if (!sessionCookie) {
       return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
     }
 
-    const idToken = authorization.split('Bearer ')[1];
-    const decodedToken = await verifyIdToken(idToken); // Verifica el token del usuario
+    // Verificar la session cookie
+    const decodedToken = await verifySessionCookie(sessionCookie);
+    const uid = decodedToken.uid;
 
-    const ownerId = decodedToken.uid; // El ID del usuario actual
+    // Obtener el documento del usuario
+    const userData = await getUserDocument(uid);
+    const rolID = userData.rolID;
 
+    if (!rolID) {
+      return NextResponse.json({ message: 'Usuario sin rol asignado' }, { status: 403 });
+    }
+
+    // Obtener los permisos del rol
+    const permissions = await getRolePermissions(rolID);
+
+    // Verificar si el usuario tiene el permiso 'update'
+    if (!permissions.includes('update')) {
+      return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "update".' }, { status: 403 });
+    }
+
+    // Obtener los datos de la marca
     const { name, description, categoryID } = await request.json();
 
     if (!name || !name.trim()) {

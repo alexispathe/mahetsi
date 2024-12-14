@@ -1,9 +1,9 @@
+// src/app/profile/admin/brand/create/page.js
+
 "use client";
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '../../../../../libs/firebaseClient';
-import { onAuthStateChanged } from 'firebase/auth';
 
 const CreateBrand = () => {
   const router = useRouter();
@@ -15,77 +15,52 @@ const CreateBrand = () => {
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
+  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
+    const checkAuthAndPermissions = async () => {
+      try {
+        const response = await fetch('/api/verify-session', {
+          method: 'GET',
+          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+        });
+        const data = await response.json();
+
+        if (response.ok && data.message === 'Autenticado') {
+          if (data.user.permissions.includes('create')) {
+            setHasPermission(true);
+            fetchCategories(); // Cargar categorías si tiene permiso
+          } else {
+            router.push('/not-found'); // Redirige si no tiene permiso
+          }
+        } else {
+          router.push('/login'); // Redirige si no está autenticado
+        }
+      } catch (err) {
+        console.error('Error al verificar la autenticación:', err);
+        setError('Error al verificar la autenticación.');
         router.push('/login');
-      } else {
-        checkUserPermissions(user.uid);
+      } finally {
+        setLoading(false);
       }
-    });
-    return () => unsubscribe(); // Limpieza del suscriptor
+    };
+
+    checkAuthAndPermissions();
   }, [router]);
-
-  useEffect(() => {
-    if (hasPermission) {
-      fetchCategories();
-    }
-  }, [hasPermission]);
-
-  const checkUserPermissions = async (userId) => {
-    try {
-      const token = await auth.currentUser.getIdToken(); // Obtén el token del usuario
-      const userResponse = await fetch(`/api/users/${userId}/get`, {
-        headers: {
-          'Authorization': `Bearer ${token}`, // Incluye el token en la cabecera
-        },
-      });
-
-      if (!userResponse.ok) {
-        throw new Error('Error al obtener datos del usuario.');
-      }
-
-      const userData = await userResponse.json();
-      const { roleId } = userData;
-
-      // Verifica los permisos del rol correspondiente
-      const roleResponse = await fetch(`/api/roles/get/${roleId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`, // Incluye el token en la cabecera
-        },
-      });
-
-      if (!roleResponse.ok) {
-        throw new Error('Error al obtener los permisos del rol.');
-      }
-
-      const roleData = await roleResponse.json();
-      // Verifica si el rol tiene el permiso 'create'
-      if (roleData.permissions.includes('create')) {
-        setHasPermission(true);
-      } else {
-        router.push('/not-found'); // Redirige si no tiene permiso
-      }
-    } catch (err) {
-      setError(err.message);
-    }
-  };
 
   const fetchCategories = async () => {
     try {
-      const token = await auth.currentUser.getIdToken();
-      const response = await fetch('/api/categories/get/list', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch('/api/categories/private/get/list', {
+        method: 'GET',
+        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
       });
 
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories);
       } else {
-        setError('Error al cargar las categorías.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar las categorías.');
       }
     } catch (error) {
       setError('Error al cargar las categorías.');
@@ -112,18 +87,18 @@ const CreateBrand = () => {
     }
 
     try {
-      const token = await auth.currentUser.getIdToken(); // Obtén el token del usuario
-      const response = await fetch('/api/brands/create', {
+      const response = await fetch('/api/brands/private/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Incluye el token en la cabecera
+          // No es necesario incluir el header Authorization
         },
         body: JSON.stringify({
           name: brandData.name,
           description: brandData.description,
           categoryID: brandData.categoryID,
         }),
+        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
       });
 
       if (!response.ok) {
@@ -133,16 +108,24 @@ const CreateBrand = () => {
 
       const responseData = await response.json();
       alert(`Marca creada correctamente. URL: ${responseData.url}`);
-      router.push('/users/profile'); // Redirige al perfil después de la creación
+      router.push('/profile/user'); // Redirige al perfil después de la creación
     } catch (err) {
       setError(err.message);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
   if (!hasPermission) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>Cargando...</p>}
+        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para crear marcas.</p>}
       </div>
     );
   }
@@ -170,6 +153,7 @@ const CreateBrand = () => {
             value={brandData.description}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded"
+            placeholder="Descripción de la marca (opcional)"
           />
         </div>
         <div className="mb-4">
