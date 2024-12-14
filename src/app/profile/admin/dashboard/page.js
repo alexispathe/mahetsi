@@ -1,4 +1,4 @@
-// src/app/profile/dashboard/page.js
+// src/app/profile/admin/dashboard/page.js
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -14,23 +14,9 @@ const AdminDashboard = () => {
   const [types, setTypes] = useState([]);
   const [products, setProducts] = useState([]);
 
-  // Estados para carga
-  const [loading, setLoading] = useState({
-    categories: true,
-    subcategories: true,
-    brands: true,
-    types: true,
-    products: true,
-  });
-
-  // Estados para errores
-  const [error, setError] = useState({
-    categories: null,
-    subcategories: null,
-    brands: null,
-    types: null,
-    products: null,
-  });
+  // Estados para carga y errores
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Estados para colapsar secciones
   const [isOpen, setIsOpen] = useState({
@@ -41,12 +27,17 @@ const AdminDashboard = () => {
     products: false,
   });
 
+  // Función para alternar la visibilidad de las secciones
+  const toggleCollapse = (section) => {
+    setIsOpen((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
   // Funciones para obtener datos
   const fetchCategories = async () => {
     try {
       const res = await fetch('/api/categories/private/get/list', {
         method: 'GET',
-        credentials: 'include',
+        credentials: 'include', // Incluye las cookies en la solicitud
       });
       if (!res.ok) {
         const data = await res.json();
@@ -54,11 +45,8 @@ const AdminDashboard = () => {
       }
       const data = await res.json();
       setCategories(data.categories);
-      setError(prev => ({ ...prev, categories: null }));
     } catch (err) {
-      setError(prev => ({ ...prev, categories: err.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, categories: false }));
+      setError(err.message);
     }
   };
 
@@ -74,11 +62,8 @@ const AdminDashboard = () => {
       }
       const data = await res.json();
       setSubcategories(data.subcategories);
-      setError(prev => ({ ...prev, subcategories: null }));
     } catch (err) {
-      setError(prev => ({ ...prev, subcategories: err.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, subcategories: false }));
+      setError(err.message);
     }
   };
 
@@ -94,11 +79,8 @@ const AdminDashboard = () => {
       }
       const data = await res.json();
       setBrands(data.brands);
-      setError(prev => ({ ...prev, brands: null }));
     } catch (err) {
-      setError(prev => ({ ...prev, brands: err.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, brands: false }));
+      setError(err.message);
     }
   };
 
@@ -114,17 +96,14 @@ const AdminDashboard = () => {
       }
       const data = await res.json();
       setTypes(data.types);
-      setError(prev => ({ ...prev, types: null }));
     } catch (err) {
-      setError(prev => ({ ...prev, types: err.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, types: false }));
+      setError(err.message);
     }
   };
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/products/private/get/list', {
+      const res = await fetch('/api/products/private/product/get/list', {
         method: 'GET',
         credentials: 'include',
       });
@@ -134,27 +113,81 @@ const AdminDashboard = () => {
       }
       const data = await res.json();
       setProducts(data.products);
-      setError(prev => ({ ...prev, products: null }));
     } catch (err) {
-      setError(prev => ({ ...prev, products: err.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, products: false }));
+      setError(err.message);
     }
   };
 
-  // useEffect para cargar todos los datos al montar el componente
+  // useEffect para verificar la sesión y permisos al montar el componente
   useEffect(() => {
-    fetchCategories();
-    fetchSubcategories();
-    fetchBrands();
-    fetchTypes();
-    fetchProducts();
-  }, []);
+    const verifySessionAndPermissions = async () => {
+      try {
+        const res = await fetch('/api/verify-session', {
+          method: 'GET',
+          credentials: 'include', // Incluye las cookies en la solicitud
+        });
 
-  // Función para alternar la visibilidad de las secciones
-  const toggleCollapse = (section) => {
-    setIsOpen(prev => ({ ...prev, [section]: !prev[section] }));
-  };
+        if (res.status === 401) {
+          // Usuario no autenticado o sesión expirada
+          router.push('/login');
+          return;
+        }
+
+        if (!res.ok) {
+          // Otros errores
+          const data = await res.json();
+          throw new Error(data.message || 'Error al verificar la sesión.');
+        }
+
+        const data = await res.json();
+
+        const userPermissions = data.user.permissions;
+
+        // Verificar si el usuario tiene ambos permisos: "create" y "update"
+        const hasCreate = userPermissions.includes('create');
+        const hasUpdate = userPermissions.includes('update');
+
+        if (hasCreate && hasUpdate) {
+          // El usuario tiene los permisos necesarios, cargar los datos
+          await fetchCategories();
+          await fetchSubcategories();
+          await fetchBrands();
+          await fetchTypes();
+          await fetchProducts();
+        } else {
+          // El usuario no tiene los permisos necesarios, redirigir al inicio
+          router.push('/');
+        }
+      } catch (err) {
+        console.error('Error en la verificación de sesión y permisos:', err);
+        setError(err.message);
+        router.push('/login'); // Redirigir al login en caso de error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifySessionAndPermissions();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error:</strong>
+          <span className="block sm:inline"> {error}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">
@@ -163,10 +196,10 @@ const AdminDashboard = () => {
       {/* Secciones Desplegables */}
       <div className="space-y-6">
         {/* Categorías */}
-        <div className="border rounded-lg shadow-sm">
+        <div className="border rounded-lg shadow-sm overflow-hidden">
           <button
             onClick={() => toggleCollapse('categories')}
-            className="w-full flex justify-between items-center p-4 bg-blue-500 text-white rounded-t-lg hover:bg-blue-600 focus:outline-none"
+            className="w-full flex justify-between items-center p-4 bg-blue-500 text-white hover:bg-blue-600 focus:outline-none"
           >
             <span className="text-xl font-semibold">Categorías</span>
             <svg
@@ -188,10 +221,8 @@ const AdminDashboard = () => {
                   Crear Categoría
                 </button>
               </div>
-              {loading.categories ? (
-                <p className="text-gray-500">Cargando categorías...</p>
-              ) : error.categories ? (
-                <p className="text-red-500">Error: {error.categories}</p>
+              {categories.length === 0 ? (
+                <p className="text-gray-500">No hay categorías disponibles.</p>
               ) : (
                 <ul className="space-y-3">
                   {categories.map(category => (
@@ -212,7 +243,7 @@ const AdminDashboard = () => {
         </div>
         
         {/* Subcategorías */}
-        <div className="border rounded-lg shadow-sm">
+        <div className="border rounded-lg shadow-sm overflow-hidden">
           <button
             onClick={() => toggleCollapse('subcategories')}
             className="w-full flex justify-between items-center p-4 bg-purple-500 text-white hover:bg-purple-600 focus:outline-none"
@@ -237,10 +268,8 @@ const AdminDashboard = () => {
                   Crear Subcategoría
                 </button>
               </div>
-              {loading.subcategories ? (
-                <p className="text-gray-500">Cargando subcategorías...</p>
-              ) : error.subcategories ? (
-                <p className="text-red-500">Error: {error.subcategories}</p>
+              {subcategories.length === 0 ? (
+                <p className="text-gray-500">No hay subcategorías disponibles.</p>
               ) : (
                 <ul className="space-y-3">
                   {subcategories.map(subcategory => (
@@ -261,7 +290,7 @@ const AdminDashboard = () => {
         </div>
         
         {/* Marcas */}
-        <div className="border rounded-lg shadow-sm">
+        <div className="border rounded-lg shadow-sm overflow-hidden">
           <button
             onClick={() => toggleCollapse('brands')}
             className="w-full flex justify-between items-center p-4 bg-red-500 text-white hover:bg-red-600 focus:outline-none"
@@ -286,10 +315,8 @@ const AdminDashboard = () => {
                   Crear Marca
                 </button>
               </div>
-              {loading.brands ? (
-                <p className="text-gray-500">Cargando marcas...</p>
-              ) : error.brands ? (
-                <p className="text-red-500">Error: {error.brands}</p>
+              {brands.length === 0 ? (
+                <p className="text-gray-500">No hay marcas disponibles.</p>
               ) : (
                 <ul className="space-y-3">
                   {brands.map(brand => (
@@ -310,7 +337,7 @@ const AdminDashboard = () => {
         </div>
         
         {/* Tipos */}
-        <div className="border rounded-lg shadow-sm">
+        <div className="border rounded-lg shadow-sm overflow-hidden">
           <button
             onClick={() => toggleCollapse('types')}
             className="w-full flex justify-between items-center p-4 bg-yellow-500 text-white hover:bg-yellow-600 focus:outline-none"
@@ -335,10 +362,8 @@ const AdminDashboard = () => {
                   Crear Tipo
                 </button>
               </div>
-              {loading.types ? (
-                <p className="text-gray-500">Cargando tipos...</p>
-              ) : error.types ? (
-                <p className="text-red-500">Error: {error.types}</p>
+              {types.length === 0 ? (
+                <p className="text-gray-500">No hay tipos disponibles.</p>
               ) : (
                 <ul className="space-y-3">
                   {types.map(type => (
@@ -359,7 +384,7 @@ const AdminDashboard = () => {
         </div>
         
         {/* Productos */}
-        <div className="border rounded-lg shadow-sm">
+        <div className="border rounded-lg shadow-sm overflow-hidden">
           <button
             onClick={() => toggleCollapse('products')}
             className="w-full flex justify-between items-center p-4 bg-green-500 text-white hover:bg-green-600 focus:outline-none"
@@ -384,10 +409,8 @@ const AdminDashboard = () => {
                   Crear Producto
                 </button>
               </div>
-              {loading.products ? (
-                <p className="text-gray-500">Cargando productos...</p>
-              ) : error.products ? (
-                <p className="text-red-500">Error: {error.products}</p>
+              {products.length === 0 ? (
+                <p className="text-gray-500">No hay productos disponibles.</p>
               ) : (
                 <ul className="space-y-3">
                   {products.map(product => (
