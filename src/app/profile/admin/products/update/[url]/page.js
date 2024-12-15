@@ -3,8 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { auth } from '../../../../libs/firebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
 
 const UpdateProduct = () => {
   const router = useRouter();
@@ -18,10 +16,14 @@ const UpdateProduct = () => {
     stockQuantity: '',
     categoryID: '',
     subcategoryID: '',
+    brandID: '',
+    typeID: '',
     images: [''],
   });
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [types, setTypes] = useState([]);
   const [error, setError] = useState('');
   const [hasPermission, setHasPermission] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -33,83 +35,122 @@ const UpdateProduct = () => {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
+    const verifySession = async () => {
+      try {
+        const response = await fetch('/api/verify-session', {
+          method: 'GET',
+          credentials: 'include', // Incluye las cookies en la solicitud
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user.permissions.includes('update')) {
+            setHasPermission(true);
+            await loadCategories();
+            await loadProductData(url);
+          } else {
+            router.push('/not-found'); // Redirige si no tiene permiso
+          }
+        } else {
+          router.push('/login'); // Redirige si no está autenticado
+        }
+      } catch (err) {
+        console.error('Error al verificar la sesión:', err);
+        setError('Error al verificar la sesión.');
         router.push('/login');
-      } else {
-        checkUserPermissions(user.uid);
+      } finally {
+        setLoading(false);
       }
-    });
-    return () => unsubscribe(); // Limpieza del suscriptor
+    };
+
+    verifySession();
   }, [router, url]);
 
-  const checkUserPermissions = async (userId) => {
+  const loadCategories = async () => {
     try {
-      const token = await auth.currentUser.getIdToken(); // Obtén el token del usuario
-      const userResponse = await fetch(`/api/users/${userId}/get`, {
-        headers: {
-          'Authorization': `Bearer ${token}`, // Incluye el token en la cabecera
-        },
-      });
-
-      if (!userResponse.ok) {
-        throw new Error('Error al obtener datos del usuario.');
-      }
-
-      const userData = await userResponse.json();
-      const { roleId } = userData;
-
-      // Verifica los permisos del rol correspondiente
-      const roleResponse = await fetch(`/api/roles/get/${roleId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`, // Incluye el token en la cabecera
-        },
-      });
-
-      if (!roleResponse.ok) {
-        throw new Error('Error al obtener los permisos del rol.');
-      }
-
-      const roleData = await roleResponse.json();
-      // Verifica si el rol tiene el permiso 'update'
-      if (roleData.permissions.includes('update')) {
-        setHasPermission(true);
-        await loadCategories(token);
-        await loadProductData(url, token);
-      } else {
-        router.push('/not-found'); // Redirige si no tiene permiso
-      }
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  };
-
-  const loadCategories = async (token) => {
-    try {
-      const response = await fetch('/api/categories/get/list', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch('/api/categories/private/get/list', {
+        method: 'GET',
+        credentials: 'include', // Incluye las cookies en la solicitud
       });
 
       if (!response.ok) {
-        throw new Error('Error al cargar las categorías.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar las categorías.');
       }
 
       const data = await response.json();
       setCategories(data.categories);
     } catch (err) {
+      console.error('Error al cargar las categorías:', err);
       setError(err.message);
     }
   };
 
-  const loadProductData = async (productUrl, token) => {
+  const loadSubcategories = async (categoryID) => {
     try {
-      const response = await fetch(`/api/products/get/${productUrl}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch(`/api/categories/private/subCategories/get/list/${categoryID}`, {
+        method: 'GET',
+        credentials: 'include', // Incluye las cookies en la solicitud
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar las subcategorías.');
+      }
+
+      const data = await response.json();
+      setSubcategories(data.subcategories);
+    } catch (err) {
+      console.error('Error al cargar las subcategorías:', err);
+      setError(err.message);
+    }
+  };
+
+  const loadBrands = async (categoryID) => {
+    try {
+      const response = await fetch(`/api/brands/private/get/byCategory/${categoryID}`, {
+        method: 'GET',
+        credentials: 'include', // Incluye las cookies en la solicitud
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar las marcas.');
+      }
+
+      const data = await response.json();
+      setBrands(data.brands);
+    } catch (err) {
+      console.error('Error al cargar las marcas:', err);
+      setError(err.message);
+    }
+  };
+
+  const loadTypes = async (categoryID) => {
+    try {
+      const response = await fetch(`/api/types/private/get/byCategory/${categoryID}`, {
+        method: 'GET',
+        credentials: 'include', // Incluye las cookies en la solicitud
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al cargar los tipos.');
+      }
+
+      const data = await response.json();
+      setTypes(data.types);
+    } catch (err) {
+      console.error('Error al cargar los tipos:', err);
+      setError(err.message);
+    }
+  };
+
+  const loadProductData = async (productUrl) => {
+    try {
+      const response = await fetch(`/api/products/private/product/get/${productUrl}`, {
+        method: 'GET',
+        credentials: 'include', // Incluye las cookies en la solicitud
       });
 
       if (!response.ok) {
@@ -125,32 +166,15 @@ const UpdateProduct = () => {
         stockQuantity: data.stockQuantity,
         categoryID: data.categoryID,
         subcategoryID: data.subcategoryID,
+        brandID: data.brandID,
+        typeID: data.typeID,
         images: data.images.length > 0 ? data.images : [''],
       });
 
-      // Cargar las subcategorías basadas en la categoría del producto
-      await loadSubcategories(data.categoryID, token);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadSubcategories = async (categoryID, token) => {
-    try {
-      const response = await fetch(`/api/categories/subCategories/${categoryID}/get/list`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al cargar las subcategorías.');
-      }
-
-      const data = await response.json();
-      setSubcategories(data.subcategories);
+      // Cargar las subcategorías, marcas y tipos basados en la categoría del producto
+      await loadSubcategories(data.categoryID);
+      await loadBrands(data.categoryID);
+      await loadTypes(data.categoryID);
     } catch (err) {
       setError(err.message);
     }
@@ -163,11 +187,21 @@ const UpdateProduct = () => {
       images[index] = value;
       setProductData({ ...productData, images });
     } else if (name === 'categoryID') {
-      setProductData({ ...productData, categoryID: value, subcategoryID: '' });
+      setProductData({
+        ...productData,
+        categoryID: value,
+        subcategoryID: '',
+        brandID: '',
+        typeID: '',
+      });
       if (value) {
-        loadSubcategories(value, auth.currentUser.getIdToken());
+        loadSubcategories(value);
+        loadBrands(value);
+        loadTypes(value);
       } else {
         setSubcategories([]);
+        setBrands([]);
+        setTypes([]);
       }
     } else {
       setProductData({ ...productData, [name]: value });
@@ -214,16 +248,24 @@ const UpdateProduct = () => {
       return;
     }
 
+    if (!productData.brandID) {
+      setError('Por favor, selecciona una marca.');
+      return;
+    }
+
+    if (!productData.typeID) {
+      setError('Por favor, selecciona un tipo.');
+      return;
+    }
+
     // Filtrar imágenes vacías
     const images = productData.images.filter((img) => img.trim() !== '');
 
     try {
-      const token = await auth.currentUser.getIdToken();
-      const response = await fetch(`/api/products/update/${url}`, {
+      const response = await fetch(`/api/products/private/product/update/${url}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Incluye el token en la cabecera
         },
         body: JSON.stringify({
           name: productData.name,
@@ -232,8 +274,11 @@ const UpdateProduct = () => {
           stockQuantity: Number(productData.stockQuantity),
           categoryID: productData.categoryID,
           subcategoryID: productData.subcategoryID,
+          brandID: productData.brandID,
+          typeID: productData.typeID,
           images: images,
         }),
+        credentials: 'include', // Incluye las cookies en la solicitud
       });
 
       if (!response.ok) {
@@ -243,8 +288,9 @@ const UpdateProduct = () => {
 
       const responseData = await response.json();
       alert(`Producto actualizado correctamente. URL: ${responseData.url}`);
-      router.push('/users/profile'); // Redirige al perfil o a la página deseada
+      router.push('/profile/admin/dashboard'); // Redirige al dashboard o a la página deseada
     } catch (err) {
+      console.error('Error al actualizar el producto:', err);
       setError(err.message);
     }
   };
@@ -260,7 +306,7 @@ const UpdateProduct = () => {
   if (!hasPermission) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>Cargando...</p>}
+        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para actualizar productos.</p>}
       </div>
     );
   }
@@ -357,8 +403,50 @@ const UpdateProduct = () => {
             >
               <option value="">Selecciona una subcategoría</option>
               {subcategories.map((subcategory) => (
-                <option key={subcategory.uniqueID} value={subcategory.uniqueID}>
+                <option key={subcategory.subCategoryID} value={subcategory.subCategoryID}>
                   {subcategory.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Marca */}
+        {brands.length > 0 && (
+          <div className="mb-4">
+            <label className="block mb-1">Marca</label>
+            <select
+              name="brandID"
+              value={productData.brandID}
+              onChange={handleChange}
+              className="w-full border px-3 py-2 rounded"
+              required
+            >
+              <option value="">Selecciona una marca</option>
+              {brands.map((brand) => (
+                <option key={brand.uniqueID} value={brand.uniqueID}>
+                  {brand.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Tipo */}
+        {types.length > 0 && (
+          <div className="mb-4">
+            <label className="block mb-1">Tipo</label>
+            <select
+              name="typeID"
+              value={productData.typeID}
+              onChange={handleChange}
+              className="w-full border px-3 py-2 rounded"
+              required
+            >
+              <option value="">Selecciona un tipo</option>
+              {types.map((type) => (
+                <option key={type.uniqueID} value={type.uniqueID}>
+                  {type.name}
                 </option>
               ))}
             </select>

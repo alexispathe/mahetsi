@@ -1,9 +1,10 @@
 // src/app/api/products/private/product/update/[url]/route.js
 
 import { NextResponse } from 'next/server';
-import { firestore, verifyIdToken } from '../../../../../../../libs/firebaseAdmin';
+import { firestore, verifySessionCookie } from '../../../../../../../libs/firebaseAdmin';
 import admin from 'firebase-admin';
 import slugify from 'slugify';
+import { cookies } from 'next/headers'; // Importación añadida
 
 // Función para generar el slug
 const generateSlug = (text) => {
@@ -53,21 +54,20 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // 2. Obtener el token de autenticación desde los headers
-    const authorization = request.headers.get('authorization');
+    // 2. Obtener las cookies de la solicitud
+    const cookieStore = cookies();
+    const sessionCookie = cookieStore.get('session')?.value;
 
-    if (!authorization || !authorization.startsWith('Bearer ')) {
+    if (!sessionCookie) {
       return NextResponse.json(
         { message: 'No autorizado.' },
         { status: 401 }
       );
     }
 
-    const idToken = authorization.split('Bearer ')[1];
     let decodedToken;
-
     try {
-      decodedToken = await verifyIdToken(idToken);
+      decodedToken = await verifySessionCookie(sessionCookie);
     } catch (tokenError) {
       return NextResponse.json(
         { message: 'Token de autenticación inválido.' },
@@ -103,7 +103,8 @@ export async function PUT(request, { params }) {
     }
 
     // 5. Obtener los datos de la solicitud
-    const { name, description, price, stockQuantity, categoryID, subcategoryID, images } = await request.json();
+    const { name, description, price, stockQuantity, categoryID, subcategoryID, brandID, typeID, images } = await request.json();
+    console.log("esta es la sub ", subcategoryID);
 
     // 6. Validaciones básicas
     if (!name || typeof name !== 'string' || name.trim() === '') {
@@ -141,6 +142,20 @@ export async function PUT(request, { params }) {
       );
     }
 
+    if (!brandID || typeof brandID !== 'string') {
+      return NextResponse.json(
+        { message: 'ID de marca es obligatorio y debe ser una cadena de texto.' },
+        { status: 400 }
+      );
+    }
+
+    if (!typeID || typeof typeID !== 'string') {
+      return NextResponse.json(
+        { message: 'ID de tipo es obligatorio y debe ser una cadena de texto.' },
+        { status: 400 }
+      );
+    }
+
     if (!Array.isArray(images)) {
       return NextResponse.json(
         { message: 'Las imágenes deben ser un arreglo de URLs.' },
@@ -148,14 +163,77 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // 7. Generar y asegurar la unicidad del nuevo slug si el nombre ha cambiado
+    // 7. Verifica que la categoría exista
+    const categoryDoc = await firestore.collection('categories').doc(categoryID).get();
+    if (!categoryDoc.exists) {
+      return NextResponse.json(
+        { message: 'Categoría no encontrada.' },
+        { status: 404 }
+      );
+    }
+
+    // 8. Verifica que la subcategoría exista y pertenezca a la categoría
+    const subcategoryDoc = await firestore
+      .collection('categories')
+      .doc(categoryID)
+      .collection('subCategories')
+      .doc(subcategoryID)
+      .get();
+
+    if (!subcategoryDoc.exists) {
+      return NextResponse.json(
+        { message: 'Subcategoría no encontrada.' },
+        { status: 404 }
+      );
+    }
+
+    if (subcategoryDoc.data().categoryID !== categoryID) {
+      return NextResponse.json(
+        { message: 'Subcategoría no pertenece a la categoría seleccionada.' },
+        { status: 400 }
+      );
+    }
+
+    // 9. Verifica que la marca exista y pertenezca a la categoría
+    const brandDoc = await firestore.collection('brands').doc(brandID).get();
+    if (!brandDoc.exists) {
+      return NextResponse.json(
+        { message: 'Marca no encontrada.' },
+        { status: 404 }
+      );
+    }
+
+    if (brandDoc.data().categoryID !== categoryID) {
+      return NextResponse.json(
+        { message: 'Marca no pertenece a la categoría seleccionada.' },
+        { status: 400 }
+      );
+    }
+
+    // 10. Verifica que el tipo exista y pertenezca a la categoría
+    const typeDoc = await firestore.collection('types').doc(typeID).get();
+    if (!typeDoc.exists) {
+      return NextResponse.json(
+        { message: 'Tipo no encontrado.' },
+        { status: 404 }
+      );
+    }
+
+    if (typeDoc.data().categoryID !== categoryID) {
+      return NextResponse.json(
+        { message: 'Tipo no pertenece a la categoría seleccionada.' },
+        { status: 400 }
+      );
+    }
+
+    // 11. Genera y asegura la unicidad del nuevo slug si el nombre ha cambiado
     let newUrl = productData.url;
     if (name.trim() !== productData.name) {
       newUrl = generateSlug(name.trim());
       newUrl = await ensureUniqueSlug(newUrl, productDoc.id);
     }
 
-    // 8. Preparar los datos actualizados
+    // 12. Preparar los datos actualizados
     const updatedData = {
       name: name.trim(),
       description: description ? description.trim() : '',
@@ -163,12 +241,14 @@ export async function PUT(request, { params }) {
       stockQuantity,
       categoryID: categoryID.trim(),
       subcategoryID: subcategoryID.trim(),
+      brandID: brandID.trim(),
+      typeID: typeID.trim(),
       images: images.map((img) => img.trim()),
       dateModified: admin.firestore.FieldValue.serverTimestamp(),
       url: newUrl,
     };
 
-    // 9. Actualizar el documento en Firestore
+    // 13. Actualizar el documento en Firestore
     await firestore.collection('products').doc(productDoc.id).update(updatedData);
 
     return NextResponse.json(

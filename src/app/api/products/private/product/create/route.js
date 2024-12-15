@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { firestore, verifySessionCookie } from '../../../../../../libs/firebaseAdmin';
 import admin from 'firebase-admin';
 import slugify from 'slugify';
+import { cookies } from 'next/headers'; // Importación añadida
 
 // Función para generar el slug
 const generateSlug = (text) => {
@@ -38,7 +39,7 @@ const ensureUniqueSlug = async (slug) => {
 
 export async function POST(request) {
   try {
-    const cookieStore = cookies();
+    const cookieStore = cookies(); // Ahora 'cookies' está definido
     const sessionCookie = cookieStore.get('session')?.value;
 
     if (!sessionCookie) {
@@ -49,7 +50,7 @@ export async function POST(request) {
     const ownerId = decodedToken.uid; // El ID del usuario actual
 
     const { name, description, price, stockQuantity, categoryID, subcategoryID, brandID, typeID, images } = await request.json();
-
+    console.log("esta es la sub ",subcategoryID )
     // Validaciones básicas
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return NextResponse.json({ message: 'Nombre del producto es obligatorio y debe ser una cadena de texto.' }, { status: 400 });
@@ -90,6 +91,7 @@ export async function POST(request) {
     }
 
     // Verifica que la subcategoría exista y pertenezca a la categoría
+    
     const subcategoryDoc = await firestore
       .collection('categories')
       .doc(categoryID)

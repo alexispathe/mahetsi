@@ -244,7 +244,7 @@ const CreateProduct = () => {
 
       const responseData = await response.json();
       alert(`Producto creado correctamente. URL: ${responseData.url}`);
-      router.push('/profile/user'); // Redirige al perfil o a la página deseada
+      router.push('/profile/admin/dashboard'); // Redirige al perfil o a la página deseada
     } catch (err) {
       console.error('Error al crear el producto:', err);
       setError(err.message);
@@ -359,7 +359,8 @@ const CreateProduct = () => {
             >
               <option value="">Selecciona una subcategoría</option>
               {subcategories.map((subcategory) => (
-                <option key={subcategory.uniqueID} value={subcategory.uniqueID}>
+                
+                <option key={subcategory.subCategoryID} value={subcategory.subCategoryID}>
                   {subcategory.name}
                 </option>
               ))}

@@ -1,13 +1,13 @@
-// src/app/api/products/get/[url]/route.js
+// src/app/api/products/private/product/get/[url]/route.js
 
 import { NextResponse } from 'next/server';
-import { firestore, verifyIdToken } from '../../../../../libs/firebaseAdmin';
+import { firestore, verifySessionCookie } from '../../../../../../../libs/firebaseAdmin';
+import { cookies } from 'next/headers';
 
 export async function GET(request, { params }) {
   const { url } = params;
 
   try {
-    // 1. Verificar que 'url' está presente y es una cadena válida
     if (!url || typeof url !== 'string') {
       return NextResponse.json(
         { message: 'URL de producto inválida.' },
@@ -15,21 +15,20 @@ export async function GET(request, { params }) {
       );
     }
 
-    // 2. Obtener el token de autenticación desde los headers
-    const authorization = request.headers.get('authorization');
+    // Obtener las cookies de la solicitud
+    const cookieStore = cookies();
+    const sessionCookie = cookieStore.get('session')?.value;
 
-    if (!authorization || !authorization.startsWith('Bearer ')) {
+    if (!sessionCookie) {
       return NextResponse.json(
         { message: 'No autorizado.' },
         { status: 401 }
       );
     }
 
-    const idToken = authorization.split('Bearer ')[1];
     let decodedToken;
-
     try {
-      decodedToken = await verifyIdToken(idToken);
+      decodedToken = await verifySessionCookie(sessionCookie);
     } catch (tokenError) {
       return NextResponse.json(
         { message: 'Token de autenticación inválido.' },
@@ -39,7 +38,7 @@ export async function GET(request, { params }) {
 
     const userId = decodedToken.uid;
 
-    // 3. Buscar el producto por su 'url'
+    // Buscar el producto por 'url'
     const productQuery = await firestore
       .collection('products')
       .where('url', '==', url)
@@ -56,30 +55,17 @@ export async function GET(request, { params }) {
     const productDoc = productQuery.docs[0];
     const productData = productDoc.data();
 
-    // 4. (Opcional) Verificar permisos específicos si es necesario
-    // Por ejemplo, si solo propietarios pueden ver ciertos detalles
-    // En este ejemplo, permitimos que cualquier usuario autenticado vea el producto
+    // Verificar permisos (opcional, dependiendo de tu lógica)
+    // Por ejemplo, solo el propietario puede ver el producto
+    if (productData.ownerId !== userId) {
+      return NextResponse.json(
+        { message: 'No tienes permisos para ver este producto.' },
+        { status: 403 }
+      );
+    }
 
-    // 5. Responder con los datos del producto
-    return NextResponse.json(
-      {
-        uniqueID: productDoc.id,
-        name: productData.name,
-        description: productData.description,
-        price: productData.price,
-        stockQuantity: productData.stockQuantity,
-        categoryID: productData.categoryID,
-        subcategoryID: productData.subcategoryID,
-        images: productData.images,
-        averageRating: productData.averageRating,
-        numReviews: productData.numReviews,
-        dateCreated: productData.dateCreated,
-        dateModified: productData.dateModified,
-        ownerId: productData.ownerId,
-        url: productData.url,
-      },
-      { status: 200 }
-    );
+    // Devolver los datos del producto
+    return NextResponse.json(productData, { status: 200 });
 
   } catch (error) {
     console.error('Error al obtener el producto:', error);
