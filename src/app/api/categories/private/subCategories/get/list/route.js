@@ -45,10 +45,18 @@ export async function GET(request) {
     // Recorrer cada categoría y obtener sus subcategorías
     for (const categoryDoc of categoriesSnapshot.docs) {
       const categoryId = categoryDoc.id;
+      const categoryData = categoryDoc.data();
 
       // Obtener las subcategorías de la subcolección de esta categoría
       const subcategoriesSnapshot = await firestore.collection('categories').doc(categoryId).collection('subCategories').get();
-      const subcategories = subcategoriesSnapshot.docs.map(doc => doc.data());
+
+      const subcategories = subcategoriesSnapshot.docs.map(doc => {
+        const subcategoryData = doc.data();
+        return {
+          ...subcategoryData,
+          categoryUrl: categoryData.url // Agregamos la url de la categoría
+        };
+      });
 
       // Añadir las subcategorías al array
       allSubcategories.push(...subcategories);

@@ -4,14 +4,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const CollapsibleSection = ({ 
-  title, 
-  color, 
-  createPath, 
-  updatePath, 
-  items, 
-  itemKey = 'url', 
-  itemName = 'name' 
+const CollapsibleSection = ({
+  title,
+  color,
+  createPath,
+  updatePath,
+  items,
+  itemKey = 'url',
+  itemName = 'name'
 }) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -53,8 +53,15 @@ const CollapsibleSection = ({
               {items.map(item => (
                 <li key={item[itemKey]} className="flex justify-between items-center">
                   <span className="text-gray-700">{item[itemName]}</span>
+                
                   <button
-                    onClick={() => router.push(`${updatePath}/${item[itemKey]}`)}
+                    onClick={() => {
+                      if (title == 'Subcategorías') {
+                        router.push(`${updatePath}/${item.categoryUrl}/${item[itemKey]}`);
+                      } else {
+                        router.push(`${updatePath}/${item[itemKey]}`);
+                      }
+                    }}
                     className={`${color} text-white px-3 py-1 rounded hover:opacity-90 transition-colors duration-200`}
                   >
                     Actualizar
