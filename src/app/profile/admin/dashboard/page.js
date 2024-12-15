@@ -4,9 +4,10 @@
 import useFetchData from '@/hooks/useFetchData';
 import useSessionVerification from '@/hooks/useSessionVerification';
 import CollapsibleSection from './components/CollapsibleSection';
+import Header from '@/app/components/Header';
 const AdminDashboard = () => {
   const { isVerified, loading: sessionLoading, error: sessionError } = useSessionVerification();
-  
+
   // Solo fetch data si la sesión está verificada
   const shouldFetch = isVerified;
 
@@ -40,19 +41,19 @@ const AdminDashboard = () => {
     error: productsError,
   } = useFetchData('/api/products/private/product/get/list', 'products');
 
-  const loading = sessionLoading || 
-                  categoriesLoading || 
-                  subcategoriesLoading || 
-                  brandsLoading || 
-                  typesLoading || 
-                  productsLoading;
+  const loading = sessionLoading ||
+    categoriesLoading ||
+    subcategoriesLoading ||
+    brandsLoading ||
+    typesLoading ||
+    productsLoading;
 
-  const error = sessionError || 
-                categoriesError || 
-                subcategoriesError || 
-                brandsError || 
-                typesError || 
-                productsError;
+  const error = sessionError ||
+    categoriesError ||
+    subcategoriesError ||
+    brandsError ||
+    typesError ||
+    productsError;
 
   if (loading) {
     return (
@@ -74,48 +75,52 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-4xl font-bold mb-8 text-center">Panel de Administración</h1>
-      
-      {/* Secciones Desplegables */}
-      <div className="space-y-6">
-        <CollapsibleSection
-          title="Categorías"
-          color="bg-blue-500 hover:bg-blue-600"
-          createPath="/profile/admin/categories/create"
-          updatePath="/profile/admin/categories/update"
-          items={categories}
-        />
-        <CollapsibleSection
-          title="Subcategorías"
-          color="bg-purple-500 hover:bg-purple-600"
-          createPath="/profile/admin/subCategories/create"
-          updatePath="/profile/admin/subCategories/update"
-          items={subcategories}
-        />
-        <CollapsibleSection
-          title="Marcas"
-          color="bg-red-500 hover:bg-red-600"
-          createPath="/profile/admin/brands/create"
-          updatePath="/profile/admin/brands/update"
-          items={brands}
-        />
-        <CollapsibleSection
-          title="Tipos"
-          color="bg-yellow-500 hover:bg-yellow-600"
-          createPath="/profile/admin/types/create"
-          updatePath="/profile/admin/types/update"
-          items={types}
-        />
-        <CollapsibleSection
-          title="Productos"
-          color="bg-green-500 hover:bg-green-600"
-          createPath="/profile/admin/products/create"
-          updatePath="/profile/admin/products/update"
-          items={products}
-        />
+    <>
+      <div className="container mx-auto p-6">
+
+        <h1 className="text-4xl font-bold mb-8 text-center">Panel de Administración</h1>
+
+        {/* Secciones Desplegables */}
+        <div className="space-y-6">
+          <CollapsibleSection
+            title="Categorías"
+            color="bg-blue-500 hover:bg-blue-600"
+            createPath="/profile/admin/categories/create"
+            updatePath="/profile/admin/categories/update"
+            items={categories}
+          />
+          <CollapsibleSection
+            title="Subcategorías"
+            color="bg-purple-500 hover:bg-purple-600"
+            createPath="/profile/admin/subCategories/create"
+            updatePath="/profile/admin/subCategories/update"
+            items={subcategories}
+          />
+          <CollapsibleSection
+            title="Marcas"
+            color="bg-red-500 hover:bg-red-600"
+            createPath="/profile/admin/brands/create"
+            updatePath="/profile/admin/brands/update"
+            items={brands}
+          />
+          <CollapsibleSection
+            title="Tipos"
+            color="bg-yellow-500 hover:bg-yellow-600"
+            createPath="/profile/admin/types/create"
+            updatePath="/profile/admin/types/update"
+            items={types}
+          />
+          <CollapsibleSection
+            title="Productos"
+            color="bg-green-500 hover:bg-green-600"
+            createPath="/profile/admin/products/create"
+            updatePath="/profile/admin/products/update"
+            items={products}
+          />
+        </div>
       </div>
-    </div>
+    </>
+
   );
 };
 
