@@ -2,9 +2,10 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { authAdmin } from '@/libs/firebaseAdmin';
+import { authAdmin, getUserDocument, getRolePermissions } from '@/libs/firebaseAdmin';
 import { orders } from '../../category/data';
 import OrdersTable from './OrderTable';
+import AdminButton from './AdminButton'; // Importar el componente
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
@@ -17,6 +18,20 @@ export default async function ProfilePage() {
   try {
     const decodedClaims = await authAdmin.verifySessionCookie(session, true);
     const { email, name, picture, uid } = decodedClaims;
+
+    // Obtener el documento del usuario
+    const userData = await getUserDocument(uid);
+    const rolID = userData.rolID;
+
+    if (!rolID) {
+      redirect('/login');
+    }
+
+    // Obtener los permisos del rol
+    const permissions = await getRolePermissions(rolID);
+
+    // Verificar si el usuario tiene permisos 'create' o 'update'
+    const hasAdminAccess = permissions.includes('create') || permissions.includes('update');
 
     const userOrders = orders.filter(order => order.ownerId === uid);
 
@@ -43,6 +58,8 @@ export default async function ProfilePage() {
               Cerrar Sesión
             </button>
           </form>
+          {/* Botón del Panel de Administrador */}
+          {hasAdminAccess && <AdminButton />}
         </div>
 
         {/* Órdenes del Usuario */}

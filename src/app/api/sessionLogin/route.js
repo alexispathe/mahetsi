@@ -31,7 +31,7 @@ export async function POST(request) {
         email: email || '',
         dateCreated: timestamp,
         dateModified: timestamp,
-        rolID: uid, // Puedes ajustar esto según tu lógica
+        rolID: "gB4kyZZNT8HLbsyTBRGi", 
         ownerId: uid,
       });
       console.log(`Usuario ${uid} creado en Firestore.`);
