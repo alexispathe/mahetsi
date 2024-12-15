@@ -89,8 +89,8 @@ const AdminDashboard = () => {
         <CollapsibleSection
           title="Subcategorías"
           color="bg-purple-500 hover:bg-purple-600"
-          createPath="/profile/admin/subcategories/create"
-          updatePath="/profile/admin/subcategories/update"
+          createPath="/profile/admin/subCategories/create"
+          updatePath="/profile/admin/subCategories/update"
           items={subcategories}
         />
         <CollapsibleSection
@@ -103,8 +103,8 @@ const AdminDashboard = () => {
         <CollapsibleSection
           title="Tipos"
           color="bg-yellow-500 hover:bg-yellow-600"
-          createPath="/types/create"
-          updatePath="/types/update"
+          createPath="/profile/admin/types/create"
+          updatePath="/profile/admin/types/update"
           items={types}
         />
         <CollapsibleSection

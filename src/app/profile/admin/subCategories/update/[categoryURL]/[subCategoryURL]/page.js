@@ -1,5 +1,4 @@
-// src/app/categories/subCategories/update/[categoryID]/[subCategoryID]/page.js
-
+// src/app/categories/subCategories/update/[categoryURL]/[subCategoryURL]/page.js
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -8,7 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 const UpdateSubcategory = () => {
   const router = useRouter();
   const params = useParams();
-  const { categoryID, subCategoryID } = params;
+  const { categoryURL, subCategoryURL } = params;
 
   const [subcategoryData, setSubcategoryData] = useState({
     name: '',
@@ -20,7 +19,7 @@ const UpdateSubcategory = () => {
   const [loading, setLoading] = useState(true); // Para manejar el estado de carga
 
   useEffect(() => {
-    if (!categoryID || !subCategoryID) {
+    if (!categoryURL || !subCategoryURL) {
       setError('Parámetros de URL faltantes.');
       setLoading(false);
       return;
@@ -38,7 +37,7 @@ const UpdateSubcategory = () => {
           if (data.user.permissions.includes('update')) {
             setHasPermission(true);
             await loadCategories(); // Cargar categorías si tiene permiso
-            await loadSubcategoryData(categoryID, subCategoryID); // Cargar datos de la subcategoría
+            await loadSubcategoryData(categoryURL, subCategoryURL); // Cargar datos de la subcategoría
           } else {
             router.push('/not-found'); // Redirige si no tiene permiso
           }
@@ -55,7 +54,7 @@ const UpdateSubcategory = () => {
     };
 
     checkAuthAndPermissions();
-  }, [router, categoryID, subCategoryID]);
+  }, [router, categoryURL, subCategoryURL]);
 
   const loadCategories = async () => {
     try {
@@ -76,9 +75,9 @@ const UpdateSubcategory = () => {
     }
   };
 
-  const loadSubcategoryData = async (categoryID, subCategoryID) => {
+  const loadSubcategoryData = async (categoryURL, subCategoryURL) => {
     try {
-      const response = await fetch(`/api/categories/private/subCategories/get/${categoryID}/${subCategoryID}`, {
+      const response = await fetch(`/api/categories/private/subCategories/get/${categoryURL}/${subCategoryURL}`, {
         method: 'GET',
         credentials: 'include', // Asegura que las cookies se envíen con la solicitud
       });
@@ -114,7 +113,7 @@ const UpdateSubcategory = () => {
     }
 
     try {
-      const response = await fetch(`/api/categories/private/subCategories/update/${categoryID}/${subCategoryID}`, {
+      const response = await fetch(`/api/categories/private/subCategories/update/${categoryURL}/${subCategoryURL}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -128,7 +127,7 @@ const UpdateSubcategory = () => {
         throw new Error(errorData.message || 'Error al actualizar la subcategoría.');
       } else {
         alert("Subcategoría actualizada correctamente");
-        router.push('/profile/user'); // Redirige al perfil después de la actualización
+        router.push('/profile/admin/dashboard'); // Redirige al perfil después de la actualización
       }
     } catch (err) {
       console.error('Error al actualizar la subcategoría:', err);
@@ -178,26 +177,6 @@ const UpdateSubcategory = () => {
             placeholder="Descripción de la subcategoría (opcional)"
           />
         </div>
-        {/* Si permites cambiar la categoría, descomenta este bloque */}
-        {/* 
-        <div className="mb-4">
-          <label className="block mb-1">Categoría</label>
-          <select
-            name="categoryID"
-            value={subcategoryData.categoryID}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
-            required
-          >
-            <option value="">Selecciona una categoría</option>
-            {categories.map((category) => (
-              <option key={category.uniqueID} value={category.uniqueID}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        */}
         <button
           type="submit"
           className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"

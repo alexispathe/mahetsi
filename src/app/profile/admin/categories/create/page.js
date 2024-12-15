@@ -80,7 +80,7 @@ const CreateCategory = () => {
 
       const responseData = await response.json();
       alert(`Categoría creada correctamente. URL: ${responseData.url}`);
-      router.push('/profile/user'); // Redirige al perfil después de la creación
+      router.push('/profile/admin/dashboard'); // Redirige al perfil después de la creación
     } catch (err) {
       setError(err.message);
     }

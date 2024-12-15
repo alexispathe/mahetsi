@@ -1,11 +1,11 @@
-// src/app/api/categories/private/subCategories/get/[categoryID]/[subCategoryID]/route.js
+// src/app/api/categories/private/subCategories/get/[categoryURL]/[subCategoryURL]/route.js
 
 import { NextResponse } from 'next/server';
 import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
 
 export async function GET(request, { params }) { // Asegúrate de que la función es async
-  const { categoryID, subCategoryID } = params; // Desestructurar params
+  const { categoryURL, subCategoryURL } = params; // Desestructurar params
 
   try {
     // Obtener las cookies de la solicitud
@@ -36,14 +36,28 @@ export async function GET(request, { params }) { // Asegúrate de que la funció
       return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "read".' }, { status: 403 });
     }
 
-    // Buscar la subcategoría por subCategoryID en la categoría especificada
-    const subcategoryDocRef = firestore.collection('categories').doc(categoryID).collection('subCategories').doc(subCategoryID);
-    const subcategoryDoc = await subcategoryDocRef.get();
+    // Buscar la categoría por categoryURL
+    const categoryDocSnapshot = await firestore.collection('categories').where('url', '==', categoryURL).get();
 
-    if (!subcategoryDoc.exists) {
+    if (categoryDocSnapshot.empty) {
+      return NextResponse.json({ message: 'Categoría no encontrada.' }, { status: 404 });
+    }
+
+    const categoryDoc = categoryDocSnapshot.docs[0];
+
+    // Buscar la subcategoría en la subcolección de subcategorías usando subCategoryURL
+    const subcategoryDocSnapshot = await firestore
+      .collection('categories')
+      .doc(categoryDoc.id)
+      .collection('subCategories')
+      .where('url', '==', subCategoryURL)
+      .get();
+
+    if (subcategoryDocSnapshot.empty) {
       return NextResponse.json({ message: 'Subcategoría no encontrada.' }, { status: 404 });
     }
 
+    const subcategoryDoc = subcategoryDocSnapshot.docs[0];
     const subcategoryData = subcategoryDoc.data();
 
     return NextResponse.json({
@@ -60,7 +74,7 @@ export async function GET(request, { params }) { // Asegúrate de que la funció
 
   } catch (error) {
     console.error('Error al obtener la subcategoría:', error);
-    const errorMessage = error?.message || 'Unknown error';
+    const errorMessage = error?.message || 'Error desconocido';
     return NextResponse.json({ message: 'Error interno del servidor.', error: errorMessage }, { status: 500 });
   }
 }

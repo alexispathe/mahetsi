@@ -1,5 +1,4 @@
 // src/app/api/categories/private/subCategories/update/[categoryID]/[subCategoryID]/route.js
-
 import { NextResponse } from 'next/server';
 import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
@@ -19,20 +18,26 @@ const generateSlug = (text) => {
 };
 
 // Función para asegurar la unicidad del slug
-const ensureUniqueSlug = async (slug, categoryID, subCategoryID) => {
+const ensureUniqueSlug = async (slug, categoryURL, subCategoryURL) => {
   let uniqueSlug = slug;
   let counter = 1;
 
   while (true) {
     const existingSubcategory = await firestore
       .collection('categories')
-      .doc(categoryID)
-      .collection('subCategories')
-      .where('url', '==', uniqueSlug)
-      .where('subCategoryID', '!=', subCategoryID)
+      .where('url', '==', categoryURL)
       .get();
 
-    if (existingSubcategory.empty) {
+    // Verificamos si existe la subcategoría con el mismo slug en la subcolección
+    const categoryDoc = existingSubcategory.docs[0];
+    const existingSubcategoryDoc = await firestore
+      .collection('categories')
+      .doc(categoryDoc.id)
+      .collection('subCategories')
+      .where('url', '==', uniqueSlug)
+      .get();
+
+    if (existingSubcategoryDoc.empty) {
       break; // El slug es único
     }
 
@@ -44,7 +49,7 @@ const ensureUniqueSlug = async (slug, categoryID, subCategoryID) => {
 };
 
 export async function PUT(request, { params }) { // Función asíncrona y desestructuración correcta
-  const { categoryID, subCategoryID } = params;
+  const { categoryURL, subCategoryURL } = await params; // Aquí se usa await
 
   try {
     // Obtener las cookies de la solicitud
@@ -90,24 +95,32 @@ export async function PUT(request, { params }) { // Función asíncrona y desest
     }
 
     // Verificar que la categoría exista
-    const categoryDoc = await firestore.collection('categories').doc(categoryID).get();
-    if (!categoryDoc.exists) {
+    const categoryDocSnapshot = await firestore.collection('categories').where('url', '==', categoryURL).get();
+    if (categoryDocSnapshot.empty) {
       return NextResponse.json({ message: 'Categoría no encontrada.' }, { status: 404 });
     }
 
-    // Buscar la subcategoría por subCategoryID en la categoría especificada
-    const subcategoryDocRef = firestore.collection('categories').doc(categoryID).collection('subCategories').doc(subCategoryID);
-    const subcategoryDoc = await subcategoryDocRef.get();
+    const categoryDoc = categoryDocSnapshot.docs[0];
 
-    if (!subcategoryDoc.exists) {
+    // Buscar la subcategoría en la subcolección de subcategorías
+    const subcategoryDocSnapshot = await firestore
+      .collection('categories')
+      .doc(categoryDoc.id)
+      .collection('subCategories')
+      .where('url', '==', subCategoryURL)
+      .get();
+
+    if (subcategoryDocSnapshot.empty) {
       return NextResponse.json({ message: 'Subcategoría no encontrada.' }, { status: 404 });
     }
+
+    const subcategoryDoc = subcategoryDocSnapshot.docs[0];
 
     // (Opcional) Generar URL única si el nombre ha cambiado
     let url = subcategoryDoc.data().url;
     if (name.trim().toLowerCase() !== subcategoryDoc.data().name.toLowerCase()) {
       const slug = generateSlug(name);
-      url = await ensureUniqueSlug(slug, categoryID, subCategoryID);
+      url = await ensureUniqueSlug(slug, categoryURL, subCategoryURL);
     }
 
     // Datos actualizados de la subcategoría
@@ -119,13 +132,19 @@ export async function PUT(request, { params }) { // Función asíncrona y desest
     };
 
     // Actualizar la subcategoría en Firestore
+    const subcategoryDocRef = firestore
+      .collection('categories')
+      .doc(categoryDoc.id)
+      .collection('subCategories')
+      .doc(subcategoryDoc.id);
+
     await subcategoryDocRef.update(updatedSubcategoryData);
 
     return NextResponse.json({ message: 'Subcategoría actualizada exitosamente.' }, { status: 200 });
 
   } catch (error) {
     console.error('Error al actualizar la subcategoría:', error);
-    const errorMessage = error?.message || 'Unknown error';
+    const errorMessage = error?.message || 'Error desconocido';
     return NextResponse.json({ message: 'Error interno del servidor.', error: errorMessage }, { status: 500 });
   }
 }

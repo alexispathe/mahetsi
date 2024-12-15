@@ -140,7 +140,7 @@ const UpdateType = () => {
       }
 
       alert("Tipo actualizado correctamente");
-      router.push('/profile/user'); // Redirige al perfil después de la actualización
+      router.push('/profile/admin/dashboard'); // Redirige al perfil después de la actualización
     } catch (err) {
       setError(err.message);
     }

@@ -10,7 +10,7 @@ const CollapsibleSection = ({
   createPath, 
   updatePath, 
   items, 
-  itemKey = 'uniqueID', 
+  itemKey = 'url', 
   itemName = 'name' 
 }) => {
   const router = useRouter();
