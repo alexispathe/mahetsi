@@ -7,7 +7,7 @@ import { authAdmin } from '@/libs/firebaseAdmin';
 export async function POST(request) {
   try {
     // Obtener las cookies de la solicitud
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const session = cookieStore.get('session')?.value;
 
     if (session) {

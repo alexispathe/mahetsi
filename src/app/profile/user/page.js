@@ -7,6 +7,7 @@ import { orders } from '../../category/data';
 import OrdersTable from './OrderTable';
 import AdminButton from './AdminButton';
 import Header from '@/app/components/Header';
+import LogoutButton from './LogoutButton'; 
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
@@ -53,14 +54,10 @@ export default async function ProfilePage() {
                 <p className="text-gray-600">Email: {email}</p>
               </div>
             </div>
-            <form action="/api/sessionLogout" method="POST" className="mt-4">
-              <button
-                type="submit"
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-              >
-                Cerrar Sesión
-              </button>
-            </form>
+            {/* Reemplazar el formulario por el componente LogoutButton */}
+            <div className="mt-4">
+              <LogoutButton />
+            </div>
             {/* Botón del Panel de Administrador */}
             {hasAdminAccess && <AdminButton />}
           </div>
