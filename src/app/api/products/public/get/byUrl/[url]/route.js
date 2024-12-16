@@ -2,13 +2,14 @@
 //Muestra la informacion de un producto mediante su url
 import { NextResponse } from 'next/server';
 import { firestore } from '../../../../../../../libs/firebaseAdmin';
+export async function GET(request, context) {
+  const params = await context.params; // Espera a que params se resuelva
+  const { url } = params; // Ahora puedes acceder a url de manera segura
 
-export async function GET(request, { params }) {
-  const { url } = params; // Obtener el parámetro 'url' de la ruta
   console.log(`Obteniendo detalles del producto para la URL: ${url}`);
 
   try {
-    // Buscar el producto por su URL
+    // Resto de tu lógica para obtener el producto
     const productsRef = firestore.collection('products');
     const querySnapshot = await productsRef.where('url', '==', url).get();
 
