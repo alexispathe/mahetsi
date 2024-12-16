@@ -1,9 +1,13 @@
 // src/components/CartDrawer.js
+
 'use client'
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import Link from "next/link";
+import { AuthContext } from "@/context/AuthContext"; // Importar el contexto de autenticación
+import { getLocalCart, removeFromLocalCart } from "../utils/cartLocalStorage";
 
 export default function CartDrawer({ isOpen, onClose }) {
+  const { currentUser } = useContext(AuthContext);
   const [cartItems, setCartItems] = useState([]); 
   const [products, setProducts] = useState([]);  
   const [loading, setLoading] = useState(true); 
@@ -16,25 +20,40 @@ export default function CartDrawer({ isOpen, onClose }) {
         setError(null);
 
         try {
-          // 1. Obtener los ítems del carrito desde Firestore vía nuestra API
-          const res = await fetch('/api/cart/getItems', { method: 'GET' });
-          if (!res.ok) {
-            if (res.status === 401) {
-              // Usuario no autenticado
-              setError('Debes iniciar sesión para ver el carrito.');
-              setCartItems([]);
-              setProducts([]);
-              setLoading(false);
-              return;
+          let firestoreItems = [];
+          let localCartItems = [];
+
+          if (currentUser) {
+            // 1. Obtener los ítems del carrito desde Firestore vía nuestra API
+            const res = await fetch('/api/cart/getItems', { method: 'GET' });
+            if (!res.ok) {
+              if (res.status === 401) {
+                // Usuario no autenticado
+                setError('Debes iniciar sesión para ver el carrito.');
+                setCartItems([]);
+                setProducts([]);
+                setLoading(false);
+                return;
+              }
+              const data = await res.json();
+              throw new Error(data.error || 'Error al obtener el carrito');
             }
+
             const data = await res.json();
-            throw new Error(data.error || 'Error al obtener el carrito');
+            firestoreItems = data.cartItems; // [{ uniqueID, size, qty }, ...]
+
+            // Opcional: Obtener ítems del localStorage también si deseas
+            // Por ejemplo, si quieres combinar ambos carritos
+            const localCart = getLocalCart();
+            localCartItems = localCart; // Puedes decidir cómo combinarlos
+          } else {
+            // Usuario no autenticado: obtener ítems del localStorage
+            localCartItems = getLocalCart();
           }
 
-          const data = await res.json();
-          const firestoreItems = data.cartItems; // [{ uniqueID, size, qty }, ...]
+          const combinedCartItems = currentUser ? firestoreItems : localCartItems;
 
-          if (firestoreItems.length === 0) {
+          if (combinedCartItems.length === 0) {
             // Carrito vacío
             setCartItems([]);
             setProducts([]);
@@ -42,10 +61,10 @@ export default function CartDrawer({ isOpen, onClose }) {
             return;
           }
 
-          // 2. Extraer los uniqueIDs para obtener los detalles de los productos
-          const uniqueIDs = firestoreItems.map(i => i.uniqueID);
+          // Extraer los uniqueIDs para obtener los detalles de los productos
+          const uniqueIDs = combinedCartItems.map(i => i.uniqueID);
 
-          // 3. Llamar a /api/shoppingCart/public/get/cartIds para obtener info de los productos
+          // Llamar a /api/shoppingCart/public/get/cartIds para obtener info de los productos
           const response = await fetch('/api/shoppingCart/public/get/cartIds', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -60,7 +79,7 @@ export default function CartDrawer({ isOpen, onClose }) {
           const enrichedData = await response.json();
           const allProducts = enrichedData.products;
 
-          setCartItems(firestoreItems);
+          setCartItems(combinedCartItems);
           setProducts(allProducts);
 
         } catch (err) {
@@ -85,7 +104,7 @@ export default function CartDrawer({ isOpen, onClose }) {
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, currentUser]);
 
   if (!isOpen) return null;
 
@@ -105,6 +124,37 @@ export default function CartDrawer({ isOpen, onClose }) {
   const shippingThreshold = 255;
   const shippingProgress = (subtotal >= shippingThreshold ? 100 : (subtotal / shippingThreshold) * 100);
   const shippingFee = subtotal >= shippingThreshold ? 0 : 9.99;
+
+  // Función para eliminar ítems del carrito
+  const handleRemoveItem = async (uniqueID, size) => {
+    if (currentUser) {
+      // Eliminar del carrito en la base de datos
+      try {
+        const res = await fetch('/api/cart/removeItem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uniqueID, size })
+        });
+
+        if (res.ok) {
+          setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID && item.size === size)));
+          alert("Producto eliminado del carrito.");
+        } else {
+          const data = await res.json();
+          console.error("Error al eliminar del carrito:", data.error);
+          alert("Error al eliminar el producto del carrito.");
+        }
+      } catch (error) {
+        console.error('Error al eliminar del carrito:', error);
+      }
+    } else {
+      // Eliminar del carrito en el localStorage
+      removeFromLocalCart(uniqueID, size);
+      setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID && item.size === size)));
+      setProducts(prev => prev.filter(product => product.uniqueID !== uniqueID)); // Opcional
+      alert("Producto eliminado del carrito (localmente).");
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end z-50">
@@ -195,12 +245,22 @@ export default function CartDrawer({ isOpen, onClose }) {
                       className="w-24 h-24 object-cover rounded-md"
                     />
                     <div>
-                      <p className="font-semibold text-gray-800">{item.name}</p>
+                      <Link href={`/product/${item.url}`}>
+                        <p className="font-semibold text-gray-800 hover:underline">{item.name}</p>
+                      </Link>
                       <p className="text-sm text-gray-600">Tamaño: {item.size}</p>
                       <p className="text-sm text-gray-600">Cantidad: {item.qty}</p>
                     </div>
                   </div>
-                  <span className="font-semibold text-lg text-gray-800">${(item.price * item.qty).toFixed(2)}</span>
+                  <div className="flex flex-col items-end">
+                    <span className="font-semibold text-lg text-gray-800">${(item.price * item.qty).toFixed(2)}</span>
+                    <button 
+                      className="text-red-500 mt-2 hover:text-red-700"
+                      onClick={() => handleRemoveItem(item.uniqueID, item.size)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

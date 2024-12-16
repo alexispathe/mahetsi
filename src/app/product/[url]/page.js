@@ -6,6 +6,7 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../components/Header";
 import { AuthContext } from "@/context/AuthContext"; // Contexto de autenticación
+import { addToLocalCart } from "../../utils/cartLocalStorage";
 
 export default function ProductDetail() {
   const params = useParams();
@@ -111,33 +112,39 @@ export default function ProductDetail() {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    if (!currentUser) {
-      alert("Por favor inicia sesión para agregar productos al carrito.");
-      return;
-    }
-    try {
-      const res = await fetch('/api/cart/addItem', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uniqueID: product.uniqueID,
-          size: selectedSize,
-          qty: 1
-        })
-      });
 
-      if (res.ok) {
-        alert("Producto agregado al carrito!");
-      } else {
-        const data = await res.json();
-        console.error("Error al agregar al carrito:", data.error);
-        if (res.status === 401) {
-          alert("No has iniciado sesión. Redireccionando a login...");
-          window.location.href = '/login';
+    const cartItem = {
+      uniqueID: product.uniqueID,
+      size: selectedSize,
+      qty: 1
+    };
+
+    if (currentUser) {
+      // Usuario autenticado: agregar al carrito en la base de datos
+      try {
+        const res = await fetch('/api/cart/addItem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cartItem)
+        });
+
+        if (res.ok) {
+          alert("Producto agregado al carrito!");
+        } else {
+          const data = await res.json();
+          console.error("Error al agregar al carrito:", data.error);
+          if (res.status === 401) {
+            alert("No has iniciado sesión. Redireccionando a login...");
+            window.location.href = '/login';
+          }
         }
+      } catch (error) {
+        console.error('Error al agregar al carrito:', error);
       }
-    } catch (error) {
-      console.error('Error al agregar al carrito:', error);
+    } else {
+      // Usuario no autenticado: agregar al carrito en el localStorage
+      addToLocalCart(cartItem);
+      alert("Producto agregado al carrito (guardado localmente).");
     }
   };
 

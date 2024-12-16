@@ -5,6 +5,7 @@ import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
 import { useState } from 'react';
 import Header from '../components/Header';
+import { getLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage'; // Importar utilidades
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -18,23 +19,30 @@ export default function LoginPage() {
 
       if (user) {
         const idToken = await user.getIdToken();
+        const localCart = getLocalCart(); // Obtener carrito local
+
         // Enviar al API route para crear la cookie y gestionar Firestore
         const res = await fetch('/api/sessionLogin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken }),
+          credentials: 'include', // Incluir credenciales para enviar cookies
+          body: JSON.stringify({ idToken, items: localCart }), // Enviar carrito
         });
 
         if (res.ok) {
+          // Limpiar el carrito local después de la sincronización
+          clearLocalCart();
           // Redirigir al perfil
           router.push('/profile/user');
         } else {
           const errorData = await res.json();
           console.error('Error al crear sesión:', errorData.error);
+          alert(`Error al crear sesión: ${errorData.error}`);
         }
       }
     } catch (error) {
       console.error('Error con el login:', error.message);
+      alert(`Error con el login: ${error.message}`);
     } finally {
       setLoading(false);
     }

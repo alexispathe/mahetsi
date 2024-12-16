@@ -6,7 +6,7 @@ import admin from 'firebase-admin';
 
 export async function POST(request) {
   try {
-    const { idToken } = await request.json();
+    const { idToken, items } = await request.json();
     if (!idToken) {
       return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
     }
@@ -41,6 +41,35 @@ export async function POST(request) {
       await userRef.update({
         dateModified: admin.firestore.FieldValue.serverTimestamp(),
       });
+    }
+
+    // Sincronizar el carrito si se proporcionan ítems
+    if (Array.isArray(items) && items.length > 0) {
+      const batch = firestore.batch();
+      items.forEach((item) => {
+        const { uniqueID, size, qty } = item;
+        if (!uniqueID || !size || !qty) return; // Omite ítems inválidos
+
+        const itemRef = firestore
+          .collection('carts')
+          .doc(uid)
+          .collection('items')
+          .doc(`${uniqueID}_${size}`);
+
+        batch.set(
+          itemRef,
+          {
+            uniqueID,
+            size,
+            qty,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          },
+          { merge: true } // Merge para actualizar si existe
+        );
+      });
+
+      await batch.commit();
+      console.log('Carrito sincronizado exitosamente.');
     }
 
     // Configurar la cookie de sesión
