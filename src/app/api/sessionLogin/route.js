@@ -4,14 +4,29 @@ import { NextResponse } from 'next/server';
 import { authAdmin, firestore } from '@/libs/firebaseAdmin';
 import admin from 'firebase-admin';
 
+// Asegúrate de que Firebase Admin esté inicializado
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      // Tus credenciales de Firebase Admin
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    }),
+    databaseURL: process.env.FIREBASE_DATABASE_URL,
+  });
+}
+
 export async function POST(request) {
   try {
-    const { idToken, items } = await request.json();
+    // Extraer datos del cuerpo de la solicitud
+    const { idToken, items, favorites } = await request.json();
+
     if (!idToken) {
       return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
     }
 
-    // Crear la sesión
+    // Crear la sesión de usuario
     const expiresInMilliseconds = 24 * 60 * 60 * 1000; // 1 día en ms
     const sessionCookie = await authAdmin.createSessionCookie(idToken, { expiresIn: expiresInMilliseconds });
 
@@ -70,6 +85,25 @@ export async function POST(request) {
 
       await batch.commit();
       console.log('Carrito sincronizado exitosamente.');
+    }
+
+    // Sincronizar los favoritos si se proporcionan
+    if (Array.isArray(favorites) && favorites.length > 0) {
+      const batch = firestore.batch();
+      favorites.forEach((uniqueID) => {
+        const favRef = firestore.collection('favorites').doc(uid).collection('items').doc(uniqueID);
+        batch.set(
+          favRef,
+          {
+            uniqueID,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
+      });
+
+      await batch.commit();
+      console.log('Favoritos sincronizados exitosamente.');
     }
 
     // Configurar la cookie de sesión

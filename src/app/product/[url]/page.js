@@ -7,6 +7,12 @@ import { useParams } from "next/navigation";
 import Header from "../../components/Header";
 import { AuthContext } from "@/context/AuthContext"; // Contexto de autenticación
 import { addToLocalCart } from "../../utils/cartLocalStorage";
+import { 
+  getLocalFavorites, 
+  addToLocalFavorites, 
+  removeFromLocalFavorites, 
+  clearLocalFavorites 
+} from "../../utils/favoritesLocalStorage"; // Importar utilidades de favoritos
 
 export default function ProductDetail() {
   const params = useParams();
@@ -24,6 +30,7 @@ export default function ProductDetail() {
   const modalRef = useRef(null);
   const [isLiked, setIsLiked] = useState(false);
   const [selectedSize, setSelectedSize] = useState("Medium");
+  const [localFavorites, setLocalFavorites] = useState([]);
 
   const thumbnails = product ? product.images : [];
 
@@ -54,8 +61,9 @@ export default function ProductDetail() {
         setTypeName(data.typeName);
         setMainImage(data.product.images[0]);
 
-        // Si el usuario está logueado, verificar si el producto es favorito en Firestore
+        // Manejo de Favoritos
         if (currentUser) {
+          // Usuario autenticado: verificar si el producto es favorito en Firestore
           const checkRes = await fetch(`/api/favorites/checkItem?uniqueID=${data.product.uniqueID}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
@@ -67,8 +75,10 @@ export default function ProductDetail() {
             console.error("Error checking if product is favorite");
           }
         } else {
-          // Si no está logueado, no es favorito
-          setIsLiked(false);
+          // Usuario no autenticado: verificar si el producto está en localStorage
+          const favorites = getLocalFavorites();
+          setLocalFavorites(favorites);
+          setIsLiked(favorites.includes(data.product.uniqueID));
         }
 
       } catch (err) {
@@ -132,14 +142,11 @@ export default function ProductDetail() {
           alert("Producto agregado al carrito!");
         } else {
           const data = await res.json();
-          console.error("Error al agregar al carrito:", data.error);
-          if (res.status === 401) {
-            alert("No has iniciado sesión. Redireccionando a login...");
-            window.location.href = '/login';
-          }
+          throw new Error(data.error || 'No se pudo agregar al carrito.');
         }
       } catch (error) {
         console.error('Error al agregar al carrito:', error);
+        alert(`Error al agregar al carrito: ${error.message}`);
       }
     } else {
       // Usuario no autenticado: agregar al carrito en el localStorage
@@ -150,47 +157,92 @@ export default function ProductDetail() {
 
   const handleToggleFavorite = async () => {
     if (!product) return;
-    if (!currentUser) {
-      alert("Por favor inicia sesión para guardar productos favoritos.");
-      return;
-    }
 
-    try {
-      if (isLiked) {
-        // Si ya es favorito, lo removemos
-        const res = await fetch('/api/favorites/removeItem', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uniqueID: product.uniqueID })
-        });
-        if (res.ok) {
-          setIsLiked(false);
+    if (currentUser) {
+      // Usuario autenticado: manejar favoritos en Firestore
+      try {
+        if (isLiked) {
+          // Remover favorito
+          const res = await fetch('/api/favorites/removeItem', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uniqueID: product.uniqueID })
+          });
+          if (res.ok) {
+            setIsLiked(false);
+          } else {
+            const data = await res.json();
+            throw new Error(data.error || 'No se pudo remover el favorito.');
+          }
         } else {
-          const data = await res.json();
-          console.error("Error removing favorite:", data.error);
+          // Agregar favorito
+          const res = await fetch('/api/favorites/addItem', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uniqueID: product.uniqueID })
+          });
+          if (res.ok) {
+            setIsLiked(true);
+          } else {
+            const data = await res.json();
+            throw new Error(data.error || 'No se pudo agregar el favorito.');
+          }
         }
-      } else {
-        // Si no es favorito, lo agregamos
-        const res = await fetch('/api/favorites/addItem', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uniqueID: product.uniqueID })
-        });
-        if (res.ok) {
-          setIsLiked(true);
-        } else {
-          const data = await res.json();
-          console.error("Error adding favorite:", data.error);
-        }
+      } catch (err) {
+        console.error('Error toggling favorite:', err);
+        alert(`Error al toggling favorito: ${err.message}`);
       }
-    } catch (err) {
-      console.error('Error toggling favorite:', err);
+    } else {
+      // Usuario no autenticado: manejar favoritos en localStorage
+      if (isLiked) {
+        // Remover favorito
+        removeFromLocalFavorites(product.uniqueID);
+        setLocalFavorites(prev => prev.filter(id => id !== product.uniqueID));
+        setIsLiked(false);
+        alert("Favorito removido (guardado localmente).");
+      } else {
+        // Agregar favorito
+        addToLocalFavorites(product.uniqueID);
+        setLocalFavorites(prev => [...prev, product.uniqueID]);
+        setIsLiked(true);
+        alert("Favorito agregado (guardado localmente).");
+      }
     }
   };
 
   const handleSizeChange = (e) => {
     setSelectedSize(e.target.value);
   };
+
+  // Función para sincronizar favoritos al iniciar sesión
+  const syncFavoritesOnLogin = async () => {
+    if (currentUser && localFavorites.length > 0) {
+      try {
+        const res = await fetch('/api/favorites/syncFavorites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ favorites: localFavorites }),
+        });
+
+        if (res.ok) {
+          // Limpiar los favoritos locales después de sincronizar
+          clearLocalFavorites();
+          setLocalFavorites([]);
+          setIsLiked(true); // Asumimos que el producto actual es favorito
+          console.log('Favoritos sincronizados con Firestore.');
+        } else {
+          const data = await res.json();
+          console.error("Error sincronizando favoritos:", data.error);
+        }
+      } catch (error) {
+        console.error('Error sincronizando favoritos:', error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    syncFavoritesOnLogin();
+  }, [currentUser]);
 
   if (loading) {
     return (
@@ -203,7 +255,7 @@ export default function ProductDetail() {
               {/* Thumbnails Skeleton */}
               <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto max-h-96 lg:max-h-full gap-2">
                 {Array(4).fill(0).map((_, index) => (
-                  <div key={index} className="w-20 h-20 bg-gray-200 rounded-md animate-pulse"></div>
+                  <div key={index} className="w-20 h-20 bg-gray-300 rounded-md animate-pulse"></div>
                 ))}
               </div>
 
@@ -323,11 +375,11 @@ export default function ProductDetail() {
                 Agregar al carrito
               </button>
               <button 
+                onClick={handleToggleFavorite}
                 className={`px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 
                   ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
-                onClick={handleToggleFavorite}
               >
-                {isLiked ? '❤' : '♡'}
+                {isLiked ? '❤ Favorito' : '♡ Favorito'}
               </button>
             </div>
             <div className="text-sm text-gray-600">

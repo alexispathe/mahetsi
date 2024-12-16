@@ -1,15 +1,20 @@
+// src/app/login/page.jsx
+
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import Header from '../components/Header';
-import { getLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage'; // Importar utilidades
+import { getLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage'; // Importar utilidades del carrito
+import { getLocalFavorites, clearLocalFavorites } from '@/app/utils/favoritesLocalStorage'; // Importar utilidades de favoritos
+import { AuthContext } from '@/context/AuthContext'; // Importar AuthContext
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { currentUser } = useContext(AuthContext);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -20,19 +25,25 @@ export default function LoginPage() {
       if (user) {
         const idToken = await user.getIdToken();
         const localCart = getLocalCart(); // Obtener carrito local
+        const localFavorites = getLocalFavorites(); // Obtener favoritos locales
 
         // Enviar al API route para crear la cookie y gestionar Firestore
         const res = await fetch('/api/sessionLogin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include', // Incluir credenciales para enviar cookies
-          body: JSON.stringify({ idToken, items: localCart }), // Enviar carrito
+          body: JSON.stringify({ 
+            idToken, 
+            items: localCart, // Enviar carrito
+            favorites: localFavorites, // Enviar favoritos
+          }),
         });
 
         if (res.ok) {
-          // Limpiar el carrito local después de la sincronización
+          // Limpiar el carrito y favoritos locales después de la sincronización
           clearLocalCart();
-          // Redirigir al perfil
+          clearLocalFavorites();
+          // Redirigir al perfil o a la página deseada
           router.push('/profile/user');
         } else {
           const errorData = await res.json();
