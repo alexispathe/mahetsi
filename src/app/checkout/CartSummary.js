@@ -1,116 +1,13 @@
 // src/components/CartSummary.js
 
 'use client'
-import { useEffect, useState, useContext } from 'react';
+import { useContext } from 'react';
 import Link from 'next/link';
 import '../styles/cartSummary.css';
-import { AuthContext } from '@/context/AuthContext'; // Importar AuthContext
-import { getLocalCart, clearLocalCart, removeFromLocalCart } from '@/app/utils/cartLocalStorage'; // Importar utilidades
+import { CartContext } from '@/context/CartContext'; // Importar CartContext
 
 export default function CartSummary() {
-  const { currentUser } = useContext(AuthContext); // Obtener el usuario actual desde AuthContext
-  const [cartItems, setCartItems] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchCartData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      if (currentUser) {
-        // Usuario autenticado: obtener ítems desde la API
-        const res = await fetch('/api/cart/getItems', {
-          method: 'GET',
-          credentials: 'include', // Incluir credenciales para enviar cookies
-        });
-
-        if (!res.ok) {
-          if (res.status === 401) {
-            setError('Debes iniciar sesión para ver el carrito.');
-            setCartItems([]);
-            setProducts([]);
-            setLoading(false);
-            return;
-          }
-          const data = await res.json();
-          throw new Error(data.error || 'Error al obtener el carrito');
-        }
-
-        const data = await res.json();
-        const firestoreItems = data.cartItems; // [{ uniqueID, size, qty }, ...]
-
-        if (firestoreItems.length === 0) {
-          // Carrito vacío
-          setCartItems([]);
-          setProducts([]);
-          setLoading(false);
-          return;
-        }
-
-        // Extraer los uniqueIDs para obtener los detalles de los productos
-        const uniqueIDs = firestoreItems.map(i => i.uniqueID);
-
-        // Llamar a la API para obtener detalles de productos
-        const response = await fetch('/api/shoppingCart/public/get/cartIds', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productIDs: uniqueIDs })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Error al obtener detalles de productos.');
-        }
-
-        const enrichedData = await response.json();
-        const allProducts = enrichedData.products;
-
-        setCartItems(firestoreItems);
-        setProducts(allProducts);
-      } else {
-        // Usuario no autenticado: obtener ítems desde localStorage
-        const localCart = getLocalCart(); // Obtener carrito local
-
-        if (localCart.length === 0) {
-          setCartItems([]);
-          setProducts([]);
-          setLoading(false);
-          return;
-        }
-
-        // Extraer los uniqueIDs para obtener los detalles de los productos
-        const uniqueIDs = localCart.map(i => i.uniqueID);
-
-        // Llamar a la API para obtener detalles de productos
-        const response = await fetch('/api/shoppingCart/public/get/cartIds', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productIDs: uniqueIDs })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Error al obtener detalles de productos.');
-        }
-
-        const enrichedData = await response.json();
-        const allProducts = enrichedData.products;
-
-        setCartItems(localCart);
-        setProducts(allProducts);
-      }
-    } catch (err) {
-      console.error('Error al obtener productos del carrito:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCartData();
-  }, [currentUser]); // Ejecutar cada vez que cambie currentUser
+  const { cartItems, products, loading, error, removeItemFromCart } = useContext(CartContext);
 
   // Combinar los detalles del producto con el carrito
   const detailedCartItems = cartItems.map(cartItem => {
@@ -127,39 +24,8 @@ export default function CartSummary() {
   // Calcular subtotal desde los ítems del carrito
   const subtotal = detailedCartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
   const shipping = subtotal >= 255 ? 0 : 9.99;
-  const salesTax = 45.89;
+  const salesTax = 45.89; // Puedes ajustar esto según tu lógica
   const grandTotal = subtotal + shipping + salesTax;
-
-  // Función para eliminar un producto del carrito
-  const handleRemoveFromCart = async (uniqueID, size) => {
-    try {
-      if (currentUser) {
-        // Usuario autenticado: eliminar ítem desde la API
-        const res = await fetch('/api/cart/removeItem', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', // Incluir credenciales para enviar cookies
-          body: JSON.stringify({ uniqueID, size })
-        });
-
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || 'No se pudo eliminar el producto del carrito.');
-        }
-
-        // Volver a obtener el carrito después de eliminar
-        await fetchCartData();
-      } else {
-        // Usuario no autenticado: eliminar ítem desde localStorage
-        removeFromLocalCart(uniqueID, size); // Función para eliminar del localStorage
-        // Volver a obtener el carrito después de eliminar
-        fetchCartData();
-      }
-    } catch (err) {
-      console.error('Error al eliminar el producto del carrito:', err);
-      setError(err.message);
-    }
-  };
 
   return (
     <section className="cart-summary bg-white p-6 rounded-lg shadow-md w-full">
@@ -224,7 +90,7 @@ export default function CartSummary() {
                   <p className="font-semibold">${(item.price * item.qty).toFixed(2)}</p>
                   <p className="text-sm text-gray-500">{item.qty} @ ${item.price.toFixed(2)}</p>
                   <button
-                    onClick={() => handleRemoveFromCart(item.uniqueID, item.size)}
+                    onClick={() => removeItemFromCart(item.uniqueID, item.size)}
                     className="text-red-500 hover:text-red-700 text-sm"
                   >
                     Eliminar
@@ -246,7 +112,9 @@ export default function CartSummary() {
             </div>
             <div className="flex justify-between mb-4">
               <p className="text-sm">Total</p>
-              <p className="font-semibold">${grandTotal.toFixed(2)} <span className="text-xs">(Incluye ${salesTax.toFixed(2)} impuestos)</span></p>
+              <p className="font-semibold">
+                ${grandTotal.toFixed(2)} <span className="text-xs">(Incluye ${salesTax.toFixed(2)} impuestos)</span>
+              </p>
             </div>
           </div>
 

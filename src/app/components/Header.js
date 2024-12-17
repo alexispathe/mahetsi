@@ -2,15 +2,15 @@
 
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { FaSearch, FaHeart, FaUser, FaShoppingCart, FaBars, FaTimes } from "react-icons/fa";
 import '../styles/header.css';
 import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
 import FavoritesModal from "./FavoritesModal"; // Importar el nuevo modal
 import Link from 'next/link'; // Importar Link de next/link
-import { useContext } from "react";
 import { AuthContext } from "@/context/AuthContext"; // Asegúrate de tener tu contexto de autenticación
+import { CartContext } from "@/context/CartContext"; // Importar CartContext
 
 export default function Header({ textColor = 'text-white', position = "absolute" }) { 
   const [isHovered, setIsHovered] = useState(false);
@@ -18,20 +18,14 @@ export default function Header({ textColor = 'text-white', position = "absolute"
   const [isCartOpen, setCartOpen] = useState(false);
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isFavoritesOpen, setFavoritesOpen] = useState(false); // Estado para favoritos
-  const [cartCount, setCartCount] = useState(0);
 
   const { currentUser } = useContext(AuthContext); // Obtener el usuario actual
+  const { cartCount } = useContext(CartContext); // Obtener el conteo de productos del carrito
 
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    const totalCount = cart.reduce((acc, item) => acc + item.qty, 0);
-    setCartCount(totalCount);
-  }, [isCartOpen]);
 
   useEffect(() => {
     const fetchCategories = async () => {

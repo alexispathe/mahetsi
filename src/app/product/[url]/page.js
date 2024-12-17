@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../components/Header";
 import { AuthContext } from "@/context/AuthContext"; // Contexto de autenticación
-import { addToLocalCart } from "../../utils/cartLocalStorage";
+import { CartContext } from "@/context/CartContext"; // Contexto del carrito
 import { 
   getLocalFavorites, 
   addToLocalFavorites, 
@@ -19,6 +19,7 @@ export default function ProductDetail() {
   const productUrl = params.url;
 
   const { currentUser } = useContext(AuthContext);
+  const { addItemToCart } = useContext(CartContext); // Obtener el método del contexto
 
   const [product, setProduct] = useState(null);
   const [brandName, setBrandName] = useState('');
@@ -120,7 +121,7 @@ export default function ProductDetail() {
     };
   }, [showModal]);
 
-  const handleAddToCart = async () => {
+  const handleAddToCartClick = async () => {
     if (!product) return;
 
     const cartItem = {
@@ -129,30 +130,7 @@ export default function ProductDetail() {
       qty: 1
     };
 
-    if (currentUser) {
-      // Usuario autenticado: agregar al carrito en la base de datos
-      try {
-        const res = await fetch('/api/cart/addItem', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(cartItem)
-        });
-
-        if (res.ok) {
-          alert("Producto agregado al carrito!");
-        } else {
-          const data = await res.json();
-          throw new Error(data.error || 'No se pudo agregar al carrito.');
-        }
-      } catch (error) {
-        console.error('Error al agregar al carrito:', error);
-        alert(`Error al agregar al carrito: ${error.message}`);
-      }
-    } else {
-      // Usuario no autenticado: agregar al carrito en el localStorage
-      addToLocalCart(cartItem);
-      alert("Producto agregado al carrito (guardado localmente).");
-    }
+    await addItemToCart(cartItem);
   };
 
   const handleToggleFavorite = async () => {
@@ -370,7 +348,7 @@ export default function ProductDetail() {
             <div className="flex space-x-4">
               <button 
                 className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
-                onClick={handleAddToCart}
+                onClick={handleAddToCartClick}
               >
                 Agregar al carrito
               </button>
