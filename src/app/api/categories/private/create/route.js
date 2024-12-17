@@ -43,7 +43,7 @@ const ensureUniqueSlug = async (slug) => {
 export async function POST(request) {
   try {
     // Obtener las cookies de la solicitud de manera síncrona
-    const cookieStore = cookies();
+    const cookieStore = await  cookies();
     const sessionCookie = cookieStore.get('session')?.value;
 
     if (!sessionCookie) {

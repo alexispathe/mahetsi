@@ -55,7 +55,7 @@ export async function PUT(request, { params }) {
     }
 
     // 2. Obtener las cookies de la solicitud
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
 
     if (!sessionCookie) {

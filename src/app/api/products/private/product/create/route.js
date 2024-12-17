@@ -39,7 +39,7 @@ const ensureUniqueSlug = async (slug) => {
 
 export async function POST(request) {
   try {
-    const cookieStore = cookies(); // Ahora 'cookies' está definido
+    const cookieStore = await cookies(); // Ahora 'cookies' está definido
     const sessionCookie = cookieStore.get('session')?.value;
 
     if (!sessionCookie) {
