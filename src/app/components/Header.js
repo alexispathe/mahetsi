@@ -61,7 +61,9 @@ export default function Header({ textColor = 'text-white', position = "absolute"
   const handleCartClick = () => setCartOpen(true);
   const handleFavoritesClick = () => setFavoritesOpen(true); // Abrir favoritos
   const toggleMenu = () => setMenuOpen(!isMenuOpen);
-
+  const redirectProfile =()=>{
+    window.location.href = '/profile/user';
+  }
   if (isLoading) {
     return (
       <header
@@ -163,11 +165,9 @@ export default function Header({ textColor = 'text-white', position = "absolute"
           />
           {/* Condicional para Usuario */}
           {currentUser ? (
-            <Link href="/profile/user" aria-label="Perfil">
               <FaUser
-                className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
+                className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`   } onClick={redirectProfile}
               />
-            </Link>
           ) : (
             <Link href="/login" className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-gray-700`} aria-label="Ingresar">
               Ingresar

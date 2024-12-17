@@ -8,6 +8,7 @@ import OrdersTable from './OrderTable';
 import AdminButton from './AdminButton';
 import Header from '@/app/components/Header';
 import LogoutButton from './LogoutButton'; 
+import Image from 'next/image'; // Importar Image desde Next.js
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
@@ -44,10 +45,12 @@ export default async function ProfilePage() {
           {/* Perfil del Usuario */}
           <div className="bg-white shadow-md rounded-lg p-6 mb-6">
             <div className="flex flex-col md:flex-row items-center">
-              <img
+              <Image
                 src={picture}
                 alt="Foto de perfil"
                 className="w-24 h-24 rounded-full mb-4 md:mb-0 md:mr-6 object-cover"
+                width={96} // Ancho de la imagen
+                height={96} // Alto de la imagen
               />
               <div>
                 <h1 className="text-2xl font-semibold mb-2">Perfil de {name}</h1>
