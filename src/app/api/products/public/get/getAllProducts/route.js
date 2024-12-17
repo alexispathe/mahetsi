@@ -1,5 +1,5 @@
 // src/app/api/products/public/get/getAllProducts/route.js
-
+//Devuelve todos los productos 
 import { NextResponse } from 'next/server';
 import { firestore } from '../../../../../../libs/firebaseAdmin'; // Ajusta la ruta según tu proyecto
 

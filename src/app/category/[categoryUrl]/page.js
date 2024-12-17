@@ -1,4 +1,4 @@
-// components/CategoryPage/CategoryPage.jsx
+// components/Category/[categoryURL]/page.js
 'use client';
 
 import { useParams } from 'next/navigation';

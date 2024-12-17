@@ -1,5 +1,6 @@
-'use client';
 // CategoryFilter.js
+'use client';
+
 
 export default function CategoryFilter({ categories, selectedCategories, setSelectedCategories }) {
   const toggleCategory = (categoryName) => {
