@@ -10,6 +10,7 @@ import "swiper/css/navigation";
 import "swiper/css/a11y";
 
 import { products as productsData, reviews as reviewsData } from '../category/data'; // Asegúrate de importar los datos correctamente
+import Image from 'next/image'; // Importar la etiqueta Image
 
 export default function FavoriteProductsCarousel() {
   const [sortedProducts, setSortedProducts] = useState([]);
@@ -98,9 +99,11 @@ export default function FavoriteProductsCarousel() {
                     href={"/product/"+product.url} 
                     className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md"
                   >
-                    <img
+                    <Image
                       src={product.images[0]}
                       alt={product.name}
+                      width={500} // Ancho de la imagen
+                      height={400} // Alto de la imagen
                       className="w-full h-72 object-cover rounded-md mb-4"
                       loading="lazy"
                     />

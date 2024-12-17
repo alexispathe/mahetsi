@@ -1,10 +1,10 @@
 // src/components/CartSummary.js
-
-'use client'
+'use client';
 import { useContext } from 'react';
 import Link from 'next/link';
 import '../styles/cartSummary.css';
 import { CartContext } from '@/context/CartContext'; // Importar CartContext
+import Image from 'next/image'; // Importar la etiqueta Image
 
 export default function CartSummary() {
   const { cartItems, products, loading, error, removeItemFromCart } = useContext(CartContext);
@@ -77,7 +77,13 @@ export default function CartSummary() {
               <div key={index} className="flex justify-between items-center mb-4">
                 <div className="flex items-center">
                   {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded-md mr-4" />
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      width={96} // Ancho de la imagen
+                      height={96} // Alto de la imagen
+                      className="object-cover rounded-md mr-4"
+                    />
                   ) : (
                     <div className="w-24 h-24 bg-gray-300 rounded-md mr-4"></div>
                   )}

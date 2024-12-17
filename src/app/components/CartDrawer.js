@@ -1,10 +1,10 @@
 // src/components/CartDrawer.js
-
 'use client';
 
 import { useContext } from "react";
 import Link from "next/link";
 import { CartContext } from "@/context/CartContext"; // Importar el contexto del carrito
+import Image from "next/image"; // Importar la etiqueta Image
 
 export default function CartDrawer({ isOpen, onClose }) {
   const { cartItems, products, loading, error, removeItemFromCart } = useContext(CartContext);
@@ -111,10 +111,12 @@ export default function CartDrawer({ isOpen, onClose }) {
               {detailedCartItems.map((item, index) => (
                 <div key={index} className="flex justify-between items-center">
                   <div className="flex items-center space-x-4">
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.name}
-                      className="w-24 h-24 object-cover rounded-md"
+                      width={96} // Ancho de la imagen
+                      height={96} // Alto de la imagen
+                      className="object-cover rounded-md"
                     />
                     <div>
                       <Link href={`/product/${item.url}`}>

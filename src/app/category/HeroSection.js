@@ -1,12 +1,16 @@
 'use client';
 
+import Image from 'next/image';
+
 export default function HeroSection() {
   return (
     <div className="relative w-full h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden">
-      <img
+      <Image
         src="https://mahetsipage.web.app/assets/images/instagram/NaranjaAvenaAloe0.jpeg"
         alt="Outdoor adventure"
-        className="w-full h-full object-cover"
+        layout="fill" // Utiliza "fill" para cubrir el contenedor
+        objectFit="cover" // Asegura que la imagen cubra todo el contenedor
+        className="w-full h-full" // Clases de Tailwind para asegurar que la imagen ocupe todo el contenedor
       />
       <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center pl-10">
         <div className="max-w-2xl text-left text-white px-4">

@@ -1,12 +1,13 @@
 'use client'
 import { FaEnvelope } from "react-icons/fa"; // Icono para el correo electrónico
 import '../styles/footer.css'
+import Image from 'next/image'; // Importamos Image
 
 export default function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-10">
-         <div className="border-t border-[gray] mt-8 pt-6 text-center">
-        </div>
+      <div className="border-t border-[gray] mt-8 pt-6 text-center">
+      </div>
       <div className="container mx-auto px-6">
         {/* Estructura del footer con 3 columnas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -59,9 +60,24 @@ export default function Footer() {
 
             {/* Métodos de pago */}
             <div className="flex justify-start gap-4">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/PayPal_logo_2014.png" alt="PayPal" className="w-12" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Visa_Inc._logo_2014.png" alt="Visa" className="w-12" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/MasterCard_logo.svg" alt="MasterCard" className="w-12" />
+              <Image 
+                src="https://upload.wikimedia.org/wikipedia/commons/4/42/PayPal_logo_2014.png" 
+                alt="PayPal" 
+                width={48} // Ancho de la imagen
+                height={48} // Alto de la imagen
+              />
+              <Image 
+                src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Visa_Inc._logo_2014.png" 
+                alt="Visa" 
+                width={48} // Ancho de la imagen
+                height={48} // Alto de la imagen
+              />
+              <Image 
+                src="https://upload.wikimedia.org/wikipedia/commons/5/53/MasterCard_logo.svg" 
+                alt="MasterCard" 
+                width={48} // Ancho de la imagen
+                height={48} // Alto de la imagen
+              />
             </div>
           </div>
         </div>

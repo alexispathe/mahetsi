@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { FaTimes } from 'react-icons/fa'; 
 import Link from 'next/link'; 
 import Pagination from './Pagination'; // Importa el componente
+import Image from 'next/image'; // Importa la etiqueta Image
 
 export default function ProductList({ 
   products, 
@@ -156,9 +157,11 @@ export default function ProductList({
             currentProducts.map((product) => (
               <div key={product.uniqueID} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
                 <Link href={`/product/${product.url}`} className="block">
-                  <img 
+                  <Image 
                     src={product.images[0]} 
                     alt={product.name} 
+                    width={500} 
+                    height={500} 
                     className="w-full h-48 object-cover mb-4 rounded-md"
                   />
                   <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>

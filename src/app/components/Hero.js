@@ -1,5 +1,8 @@
+'use client';
+
 import { useState, useEffect } from "react";
 import { FaArrowRight } from "react-icons/fa";
+import Image from "next/image"; // Importar la etiqueta Image de Next.js
 
 export default function Hero() {
   const [imageIndex, setImageIndex] = useState(0);
@@ -41,13 +44,15 @@ export default function Hero() {
 
   return (
     <section className="relative w-full h-screen overflow-hidden">
-      {/* Imagen de Fondo */}
-      <img
+      {/* Imagen de Fondo con Next.js Image */}
+      <Image
         src={images[imageIndex]}
         alt="Productos Naturales"
         className={`w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
           fade ? "opacity-0" : "opacity-100"
         }`}
+        layout="fill" // Esto hace que la imagen ocupe toda la pantalla
+        objectFit="cover" // Mantiene la proporción y cubre el área
         style={{
           transform: `translateY(${scrollY * 0.1}px)`,
         }}

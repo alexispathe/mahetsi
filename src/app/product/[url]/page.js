@@ -1,5 +1,4 @@
 // src/app/product/[url]/page.js
-
 'use client';
 
 import React, { useState, useRef, useEffect, useContext } from "react";
@@ -13,6 +12,7 @@ import {
   removeFromLocalFavorites, 
   clearLocalFavorites 
 } from "../../utils/favoritesLocalStorage"; // Importar utilidades de favoritos
+import Image from 'next/image'; // Importamos la etiqueta Image
 
 export default function ProductDetail() {
   const params = useParams();
@@ -224,58 +224,32 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <>
-        <Header position="relative" textColor="text-black"/>
-        <div className="flex justify-center items-center my-10 px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-6xl">
-            {/* Skeleton de Imágenes */}
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Thumbnails Skeleton */}
-              <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto max-h-96 lg:max-h-full gap-2">
-                {Array(4).fill(0).map((_, index) => (
-                  <div key={index} className="w-20 h-20 bg-gray-300 rounded-md animate-pulse"></div>
-                ))}
-              </div>
-
-              {/* Imagen Principal Skeleton */}
-              <div className="flex-1 relative flex justify-center items-center">
-                <div className="w-auto h-full max-h-96 bg-gray-200 rounded-md animate-pulse"></div>
-              </div>
-            </div>
-
-            {/* Skeleton de Información */}
-            <div className="space-y-6">
-              <div className="w-1/2 h-6 bg-gray-200 rounded-md animate-pulse"></div>
-              <div className="w-3/4 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-              <div className="w-1/2 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-              <div className="w-1/3 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-              <div className="w-1/2 h-8 bg-gray-200 rounded-md animate-pulse"></div>
-            </div>
-          </div>
-        </div>
-      </>
+      <Header position="relative" textColor="text-black"/>
+      // Skeleton UI
     );
   }
 
   if (error) {
     return (
       <>
-        <Header position="relative" textColor="text-black"/>
-        <div className="flex justify-center items-center my-10 px-4">
-          <h2 className="text-2xl font-bold text-red-500">{error}</h2>
-        </div>
+       <Header position="relative" textColor="text-black"/>
+      <div className="flex justify-center items-center my-10 px-4">
+        <h2 className="text-2xl font-bold text-red-500">{error}</h2>
+      </div>
       </>
+     
     );
   }
 
   if (!product) {
     return (
       <>
-        <Header position="relative" textColor="text-black"/>
-        <div className="flex justify-center items-center my-10 px-4">
-          <h2 className="text-2xl font-bold">Producto no encontrado</h2>
-        </div>
+      <Header position="relative" textColor="text-black"/>
+      <div className="flex justify-center items-center my-10 px-4">
+        <h2 className="text-2xl font-bold">Producto no encontrado</h2>
+      </div>
       </>
+      
     );
   }
 
@@ -289,26 +263,26 @@ export default function ProductDetail() {
             {/* Thumbnails */}
             <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto max-h-96 lg:max-h-full gap-2">
               {thumbnails.map((image, index) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={`Thumbnail ${index + 1}`}
-                  className={`w-20 h-20 rounded-md border-2 ${
-                    mainImage === image ? 'border-gray-800' : 'border-transparent'
-                  } cursor-pointer object-cover transition`}
-                  onClick={() => handleThumbnailClick(image)}
-                />
+                <div key={index} className={`w-20 h-20 rounded-md border-2 ${mainImage === image ? 'border-gray-800' : 'border-transparent'}`}>
+                  <Image
+                    src={image}
+                    alt={`Thumbnail ${index + 1}`}
+                    width={80} // Añadir ancho y altura
+                    height={80} // Añadir ancho y altura
+                    className="cursor-pointer object-cover transition"
+                    onClick={() => handleThumbnailClick(image)}
+                  />
+                </div>
               ))}
             </div>
 
             {/* Imagen Principal */}
-            <div
-              className="flex-1 relative flex justify-center items-center"
-              onClick={handleImageClick}
-            >
-              <img
+            <div className="flex-1 relative flex justify-center items-center" onClick={handleImageClick}>
+              <Image
                 src={mainImage}
                 alt="Producto principal"
+                width={500} // Añadir ancho y altura
+                height={500} // Añadir ancho y altura
                 className="w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105"
               />
             </div>
@@ -346,7 +320,7 @@ export default function ProductDetail() {
               </div>
             </div>
             <div className="flex space-x-4">
-              <button 
+              <button
                 className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
                 onClick={handleAddToCartClick}
               >
@@ -384,9 +358,11 @@ export default function ProductDetail() {
             >
               ✖
             </button>
-            <img
+            <Image
               src={mainImage}
               alt="Producto principal expandido"
+              width={1000} // Añadir ancho y altura
+              height={1000} // Añadir ancho y altura
               className="max-w-full max-h-screen rounded-md object-contain cursor-pointer"
               onClick={() => setShowModal(false)}
             />

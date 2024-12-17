@@ -1,6 +1,7 @@
 'use client';
 import { FaInstagram, FaWhatsapp, FaTruck, FaSyncAlt } from 'react-icons/fa'; // Importando los iconos necesarios
 import { useState, useEffect } from 'react'; // Para manejar el estado del modal de imagen
+import Image from 'next/image'; // Importar la etiqueta Image de Next.js
 
 export default function InstagramSection() {
   const [isZoomed, setIsZoomed] = useState(false); // Controla la visibilidad del modal
@@ -39,10 +40,12 @@ export default function InstagramSection() {
               // Skeleton para la imagen grande
               <div className="w-full h-80 bg-gray-200 rounded-xl animate-pulse"></div>
             ) : (
-              <img
+              <Image
                 src="https://mahetsipage.web.app/assets/images/products/img-5.jpeg"
                 alt="Producto destacado"
                 className="w-full h-80 object-cover rounded-xl cursor-pointer transition-transform duration-300 transform hover:scale-105"
+                width={640} // Especificar el ancho
+                height={320} // Especificar el alto
                 onClick={() => handleZoom('https://mahetsipage.web.app/assets/images/products/img-5.jpeg')} // Abre el modal al hacer click
               />
             )}
@@ -63,10 +66,12 @@ export default function InstagramSection() {
                   // Skeleton para las imágenes pequeñas
                   <div className="w-full h-40 bg-gray-200 rounded-xl animate-pulse"></div>
                 ) : (
-                  <img
+                  <Image
                     src={imgSrc}
                     alt={`Producto ${index + 1}`}
                     className="w-full h-40 object-cover rounded-xl transition-transform duration-300 transform hover:scale-105"
+                    width={640} // Especificar el ancho
+                    height={320} // Especificar el alto
                     onClick={() => handleZoom(imgSrc)} // Abre el modal al hacer click
                   />
                 )}
@@ -116,10 +121,12 @@ export default function InstagramSection() {
           onClick={closeZoom} // Cierra el modal al hacer click en el fondo
         >
           <div className="relative flex justify-center">
-            <img
+            <Image
               src={currentImage}
               alt="Imagen ampliada"
               className="w-11/12 max-w-3xl rounded-xl shadow-lg"
+              width={640} // Especificar el ancho
+              height={320} // Especificar el alto
               onClick={(e) => e.stopPropagation()} // Evita que el click en la imagen cierre el modal
             />
             <button

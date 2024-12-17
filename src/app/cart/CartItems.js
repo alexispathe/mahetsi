@@ -3,6 +3,7 @@
 'use client'
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image'; // Importar la etiqueta Image
 
 export default function CartItems({ items, handleRemoveItem }) {
   if (items.length === 0) {
@@ -17,7 +18,13 @@ export default function CartItems({ items, handleRemoveItem }) {
           <div key={index} className="flex justify-between items-center mb-4">
             <div className="flex items-center">
               {item.image ? (
-                <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded-md mr-4" />
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  width={96} // Ancho de la imagen
+                  height={96} // Alto de la imagen
+                  className="object-cover rounded-md mr-4"
+                />
               ) : (
                 <div className="w-24 h-24 bg-gray-300 rounded-md mr-4"></div>
               )}

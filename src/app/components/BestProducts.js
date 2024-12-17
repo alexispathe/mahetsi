@@ -1,8 +1,8 @@
 'use client'
-
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { products, orders } from '../category/data'; // Asegúrate de importar los datos correctamente
+import Image from 'next/image'; // Importar Image
 
 export default function BestProducts() {
   const [topProducts, setTopProducts] = useState([]);
@@ -36,8 +36,6 @@ export default function BestProducts() {
   return (
     <section className="py-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-
         {/* Sección de productos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Producto destacado */}
@@ -54,13 +52,15 @@ export default function BestProducts() {
                     href={`/product/${topProducts[0].url}`} // Enlace al producto principal
                     className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md border-none hover:border-2 hover:border-gray-600"
                   >
-                    <img
+                    <Image
                       src={topProducts[0].images[0]} // Usar la primera imagen del producto
                       alt={topProducts[0].name}
+                      width={500} // Especificar ancho
+                      height={400} // Especificar alto
                       className="w-full h-72 object-cover rounded-md mb-4"
                     />
                     <h3 className="text-lg font-semibold text-center">{topProducts[0].name}</h3>
-                    <p className="text-xl font-bold ">${topProducts[0].price}</p>
+                    <p className="text-xl font-bold">${topProducts[0].price}</p>
                   </Link>
                 </>
               )
@@ -86,9 +86,11 @@ export default function BestProducts() {
                       href={`/product/${product.url}`} // Enlace al producto
                       className="flex flex-col items-center w-full transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-300 p-4 rounded-md border-none hover:border-2 hover:border-gray-600"
                     >
-                      <img
+                      <Image
                         src={product.images[0]} // Usar la primera imagen del producto
                         alt={product.name}
+                        width={500} // Especificar ancho
+                        height={400} // Especificar alto
                         className="w-full h-48 object-cover rounded-md mb-4"
                       />
                       <div className="flex text-yellow-500">
@@ -99,7 +101,7 @@ export default function BestProducts() {
                         ))}
                       </div>
                       <h3 className="text-lg font-semibold text-center">{product.name}</h3>
-                      <p className="text-xl font-bold ">${product.price}</p>
+                      <p className="text-xl font-bold">${product.price}</p>
                     </Link>
                   </div>
                 ))

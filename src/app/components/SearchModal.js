@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from 'next/link';
+import Image from 'next/image'; // Importar Image de Next.js
 
 export default function SearchModal({ isOpen, onClose }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -106,10 +107,12 @@ export default function SearchModal({ isOpen, onClose }) {
                 className="flex items-center justify-between hover:bg-gray-100 p-2 rounded-md transition-colors"
               >
                 <div className="flex items-center space-x-4">
-                  <img
+                  <Image
                     src={product.images[0]}
                     alt={product.name}
                     className="w-16 h-16 object-cover rounded-md"
+                    width={64} // Especificar el ancho
+                    height={64} // Especificar el alto
                   />
                   <div>
                     <p className="font-semibold">{product.name}</p>
