@@ -2,19 +2,16 @@
 
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
-import { useState, useContext } from 'react';
+import { useState} from 'react';
 import Header from '../components/Header';
 import { getLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage'; // Importar utilidades del carrito
 import { getLocalFavorites, clearLocalFavorites } from '@/app/utils/favoritesLocalStorage'; // Importar utilidades de favoritos
-import { AuthContext } from '@/context/AuthContext'; // Importar AuthContext
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const { currentUser } = useContext(AuthContext);
+  
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -44,7 +41,7 @@ export default function LoginPage() {
           clearLocalCart();
           clearLocalFavorites();
           // Redirigir al perfil o a la página deseada
-          router.push('/profile/user');
+          window.location.href = "/profile/user";
         } else {
           const errorData = await res.json();
           console.error('Error al crear sesión:', errorData.error);

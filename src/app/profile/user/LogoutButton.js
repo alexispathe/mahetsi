@@ -2,11 +2,9 @@
 
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function LogoutButton() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -24,8 +22,7 @@ export default function LogoutButton() {
       });
 
       if (response.ok) {
-        // Redirigir al usuario a la ruta "/"
-        router.push('/');
+        window.location.href = '/'; // Cambia la URL y recarga la página
       } else {
         const data = await response.json();
         throw new Error(data.error || 'Error al cerrar sesión');
