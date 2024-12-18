@@ -115,19 +115,12 @@ export default function CategoryPage() {
         <div className="flex justify-center">
           {/* Barra lateral de filtros */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
-            {isLoadingCategories ? (
-              <div>cargando...</div>
-            ) : (
+           
               <CategoryFilter
                 categories={categories}
                 selectedCategories={selectedCategories}
                 setSelectedCategories={setSelectedCategories}
               />
-            )}
-
-            {isLoadingBrands ? (
-              <div className="mt-4">cargando...</div>
-            ) : (
               <BrandFilter
                 brands={brands}
                 types={types}
@@ -138,7 +131,6 @@ export default function CategoryPage() {
                 selectedSizes={selectedSizes}
                 setSelectedSizes={setSelectedSizes}
               />
-            )}
 
             <PriceFilter
               minPrice={minPrice}
