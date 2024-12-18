@@ -19,9 +19,9 @@ import { useFilters } from '../../../hooks/useFilters';
 
 export default function CategoryPage() {
   const params = useParams();
-  const categoryUrl = params.categoryUrl;
+  const categoryUrl = params.categoryURL; // Asegúrate de que el nombre del parámetro coincide
 
-  // Utilizacion de  hooks personalizados
+  // Utilización de hooks personalizados
   const { isLoadingCategories, categories } = useCategories();
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
@@ -34,8 +34,6 @@ export default function CategoryPage() {
     setMaxPrice,
     isFilterOpen,
     setIsFilterOpen,
-    selectedCategories,
-    setSelectedCategories,
     selectedBrands,
     setSelectedBrands,
     selectedTypes,
@@ -67,9 +65,6 @@ export default function CategoryPage() {
       // Filtrar por rango de precio
       const withinPrice = product.price >= minPrice && product.price <= maxPrice;
 
-      // Filtrar por categorías seleccionadas
-      const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(getCategoryName(product.categoryID));
-
       // Filtrar por marcas seleccionadas
       const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(getBrandName(product.brandID));
 
@@ -79,7 +74,7 @@ export default function CategoryPage() {
       // Filtrar por tallas seleccionadas
       const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size);
 
-      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize;
+      return withinPrice && matchesBrand && matchesType && matchesSize;
     });
   };
 
@@ -120,8 +115,7 @@ export default function CategoryPage() {
             ) : (
               <CategoryFilter
                 categories={categories}
-                selectedCategories={selectedCategories}
-                setSelectedCategories={setSelectedCategories}
+                currentCategoryURL={categoryUrl} // Pasamos la categoría actual
               />
             )}
 
@@ -153,14 +147,12 @@ export default function CategoryPage() {
           <main className="w-full md:w-3/4 lg:w-9/12 xl:w-7/10 px-5 md:px-10 lg:px-10 sm:px-0">
               <ProductList
                 products={filteredProducts}
-                selectedCategories={selectedCategories}
                 selectedBrands={selectedBrands}
                 selectedTypes={selectedTypes}
                 selectedSizes={selectedSizes}
                 minPrice={minPrice}
                 maxPrice={maxPrice}
                 clearAllFilters={clearAllFilters}
-                setSelectedCategories={setSelectedCategories}
                 setSelectedBrands={setSelectedBrands}
                 setSelectedTypes={setSelectedTypes}
                 setSelectedSizes={setSelectedSizes}
@@ -188,9 +180,8 @@ export default function CategoryPage() {
                   <div>cargando...</div>
                 ) : (
                   <CategoryFilter
-                    categories={categories.filter(cat => cat.uniqueID === currentCategory?.uniqueID)}
-                    selectedCategories={selectedCategories}
-                    setSelectedCategories={setSelectedCategories}
+                    categories={categories}
+                    currentCategoryURL={categoryUrl} // Pasamos la categoría actual
                   />
                 )}
 

@@ -1,14 +1,14 @@
 // CategoryFilter.js
+// components/CategoryFilter.js
 'use client';
 
+import { useRouter } from 'next/navigation';
 
-export default function CategoryFilter({ categories, selectedCategories, setSelectedCategories }) {
-  const toggleCategory = (categoryName) => {
-    if (selectedCategories.includes(categoryName)) {
-      setSelectedCategories(selectedCategories.filter(c => c !== categoryName));
-    } else {
-      setSelectedCategories([...selectedCategories, categoryName]);
-    }
+export default function CategoryFilter({ categories }) {
+  const router = useRouter();
+
+  const handleCategorySelect = (categoryURL) => {
+    router.push(`/category/${categoryURL}`);
   };
 
   return (
@@ -20,10 +20,9 @@ export default function CategoryFilter({ categories, selectedCategories, setSele
             <input 
               type="checkbox" 
               id={category.uniqueID} 
-              name={category.name} 
-              className="form-checkbox h-4 w-4 text-blue-600"
-              checked={selectedCategories.includes(category.name)}
-              onChange={() => toggleCategory(category.name)}
+              name="category" 
+              className="form-radio h-4 w-4 text-blue-600"
+              onChange={() => handleCategorySelect(category.url)}
             />
             <label htmlFor={category.uniqueID} className="text-sm text-gray-700 cursor-pointer">{category.name}</label>
           </li>
@@ -32,3 +31,4 @@ export default function CategoryFilter({ categories, selectedCategories, setSele
     </div>
   );
 }
+
