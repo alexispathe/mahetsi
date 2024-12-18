@@ -3,9 +3,10 @@
 import { NextResponse } from 'next/server';
 import { firestore } from '../../../../../../../libs/firebaseAdmin';
 
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
-    const { categoryID } = params; // Este es el ID de categoría que viene de la URL dinámica
+    const {params} = context;
+    const { categoryID } = await params; // Este es el ID de categoría que viene de la URL dinámica
      // Construir la consulta base
      let query = firestore.collection('products');
 
@@ -28,6 +29,7 @@ export async function GET(request, { params }) {
          size: data.size,
          images: data.images || [],
          url: data.url || '',
+         subcategoryID: data.subcategoryID
        };
      });
  

@@ -7,6 +7,7 @@ import { IoOptions } from "react-icons/io5";
 import Header from '../../components/Header';
 import HeroSection from '../HeroSection';
 import CategoryFilter from '../CategoryFilter';
+import SubcategoryFilter from '../SubcategoryFilter'; // Asegúrate de la ruta correcta
 import PriceFilter from '../PriceFilter';
 import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
@@ -16,12 +17,13 @@ import { useCategories } from '../../../hooks/useCategories';
 import { useBrandsAndTypes } from '../../../hooks/useBrandsAndTypes';
 import { useProducts } from '../../../hooks/useProducts';
 import { useFilters } from '../../../hooks/useFilters';
+import { useSubcategories } from '../../../hooks/useSubcategories';
 
 export default function CategoryPage() {
   const params = useParams();
   const categoryUrl = params.categoryUrl;
 
-  // Utilizacion de  hooks personalizados
+  // Utilización de hooks personalizados
   const { isLoadingCategories, categories } = useCategories();
   const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
@@ -42,8 +44,13 @@ export default function CategoryPage() {
     setSelectedTypes,
     selectedSizes,
     setSelectedSizes,
+    selectedSubcategories, // Obtener subcategorías seleccionadas
+    setSelectedSubcategories, // Función para actualizar subcategorías seleccionadas
     clearAllFilters,
   } = useFilters();
+
+  // Obtener subcategorías usando el nuevo hook
+  const { isLoadingSubcategories, subcategories } = useSubcategories(currentCategory?.uniqueID);
 
   // Funciones auxiliares para obtener nombres
   const getCategoryName = (categoryID) => {
@@ -79,7 +86,10 @@ export default function CategoryPage() {
       // Filtrar por tallas seleccionadas
       const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size);
 
-      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize;
+      // Filtrar por subcategorías seleccionadas
+      const matchesSubcategory = selectedSubcategories.length === 0 || selectedSubcategories.includes(product.subcategoryID);
+
+      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize && matchesSubcategory;
     });
   };
 
@@ -115,23 +125,27 @@ export default function CategoryPage() {
         <div className="flex justify-center">
           {/* Barra lateral de filtros */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
-           
-              <CategoryFilter
-                categories={categories}
-                selectedCategories={selectedCategories}
-                setSelectedCategories={setSelectedCategories}
-              />
-              <BrandFilter
-                brands={brands}
-                types={types}
-                selectedBrands={selectedBrands}
-                setSelectedBrands={setSelectedBrands}
-                selectedTypes={selectedTypes}
-                setSelectedTypes={setSelectedTypes}
-                selectedSizes={selectedSizes}
-                setSelectedSizes={setSelectedSizes}
-              />
-
+            <CategoryFilter
+              categories={categories}
+              selectedCategories={selectedCategories}
+              setSelectedCategories={setSelectedCategories}
+            />
+            <SubcategoryFilter
+              subcategories={subcategories}
+              selectedSubcategories={selectedSubcategories}
+              setSelectedSubcategories={setSelectedSubcategories}
+              isLoadingSubcategories={isLoadingSubcategories}
+            />
+            <BrandFilter
+              brands={brands}
+              types={types}
+              selectedBrands={selectedBrands}
+              setSelectedBrands={setSelectedBrands}
+              selectedTypes={selectedTypes}
+              setSelectedTypes={setSelectedTypes}
+              selectedSizes={selectedSizes}
+              setSelectedSizes={setSelectedSizes}
+            />
             <PriceFilter
               minPrice={minPrice}
               maxPrice={maxPrice}
@@ -143,23 +157,26 @@ export default function CategoryPage() {
           </aside>
 
           <main className="w-full md:w-3/4 lg:w-9/12 xl:w-7/10 px-5 md:px-10 lg:px-10 sm:px-0">
-              <ProductList
-                products={filteredProducts}
-                selectedCategories={selectedCategories}
-                selectedBrands={selectedBrands}
-                selectedTypes={selectedTypes}
-                selectedSizes={selectedSizes}
-                minPrice={minPrice}
-                maxPrice={maxPrice}
-                clearAllFilters={clearAllFilters}
-                setSelectedCategories={setSelectedCategories}
-                setSelectedBrands={setSelectedBrands}
-                setSelectedTypes={setSelectedTypes}
-                setSelectedSizes={setSelectedSizes}
-                loading={isLoadingProducts}
-                brands={brands}
-                types={types}
-              />
+            <ProductList
+              products={filteredProducts}
+              selectedCategories={selectedCategories}
+              selectedBrands={selectedBrands}
+              selectedTypes={selectedTypes}
+              selectedSizes={selectedSizes}
+              selectedSubcategories={selectedSubcategories} // Pasar subcategorías seleccionadas
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              clearAllFilters={clearAllFilters}
+              setSelectedCategories={setSelectedCategories}
+              setSelectedBrands={setSelectedBrands}
+              setSelectedTypes={setSelectedTypes}
+              setSelectedSizes={setSelectedSizes}
+              setSelectedSubcategories={setSelectedSubcategories} // Pasar función para actualizar subcategorías
+              loading={isLoadingProducts}
+              brands={brands}
+              types={types}
+              subcategories={subcategories} // Añadir esta línea
+            />
           </main>
         </div>
 
@@ -183,6 +200,17 @@ export default function CategoryPage() {
                     categories={categories.filter(cat => cat.uniqueID === currentCategory?.uniqueID)}
                     selectedCategories={selectedCategories}
                     setSelectedCategories={setSelectedCategories}
+                  />
+                )}
+
+                {isLoadingSubcategories ? (
+                  <div className="mt-4">cargando subcategorías...</div>
+                ) : (
+                  <SubcategoryFilter
+                    subcategories={subcategories}
+                    selectedSubcategories={selectedSubcategories}
+                    setSelectedSubcategories={setSelectedSubcategories}
+                    isLoadingSubcategories={isLoadingSubcategories}
                   />
                 )}
 

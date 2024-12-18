@@ -1,9 +1,10 @@
+// components/ProductList.js
 'use client';
 import { useState, useMemo } from 'react';
 import { FaTimes } from 'react-icons/fa'; 
 import Link from 'next/link'; 
-import Pagination from './Pagination'; // Importa el componente
-import Image from 'next/image'; // Importa la etiqueta Image
+import Pagination from './Pagination';
+import Image from 'next/image';
 
 export default function ProductList({ 
   products, 
@@ -11,6 +12,8 @@ export default function ProductList({
   selectedBrands,
   selectedTypes,
   selectedSizes,
+  selectedSubcategories,
+  setSelectedSubcategories,
   minPrice,
   maxPrice,
   clearAllFilters,
@@ -18,12 +21,24 @@ export default function ProductList({
   setSelectedBrands,
   setSelectedTypes,
   setSelectedSizes,
-  loading // Nueva propiedad para indicar que estamos en estado de carga
+  loading,
+  brands,
+  types,
+  subcategories, // Nueva prop
 }) {
   const [sortOption, setSortOption] = useState('');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 10; // Puedes ajustar según tus necesidades
+  const productsPerPage = 10;
+
+  // Crear un mapa de subcategorías para fácil acceso
+  const subcategoryMap = useMemo(() => {
+    const map = {};
+    subcategories.forEach(sub => {
+      map[sub.uniqueID] = sub.name;
+    });
+    return map;
+  }, [subcategories]);
 
   // Ordenar productos según la opción seleccionada
   const sortedProducts = useMemo(() => {
@@ -47,6 +62,8 @@ export default function ProductList({
       setSelectedTypes(selectedTypes.filter(item => item !== value));
     } else if (type === 'Size') {
       setSelectedSizes(selectedSizes.filter(s => s !== value));
+    } else if (type === 'Subcategory') {
+      setSelectedSubcategories(selectedSubcategories.filter(item => item !== value));
     }
   };
 
@@ -56,12 +73,13 @@ export default function ProductList({
       ...selectedBrands.map(brand => ({ type: 'Brand', value: brand })),
       ...selectedTypes.map(type => ({ type: 'Type', value: type })),
       ...selectedSizes.map(size => ({ type: 'Size', value: size })),
+      ...selectedSubcategories.map(subcategory => ({ type: 'Subcategory', value: subcategory })),
     ];
     if (minPrice > 0 || maxPrice < 1000) {
       filters.push({ type: 'Price', value: `${minPrice} - ${maxPrice}` });
     }
     return filters;
-  }, [selectedCategories, selectedBrands, selectedTypes, selectedSizes, minPrice, maxPrice]);
+  }, [selectedCategories, selectedBrands, selectedTypes, selectedSizes, selectedSubcategories, minPrice, maxPrice]);
 
   // Calcular paginación
   const totalPages = useMemo(() => Math.ceil(sortedProducts.length / productsPerPage), [sortedProducts.length, productsPerPage]);
@@ -83,7 +101,12 @@ export default function ProductList({
           <span className="mr-2 text-xs text-gray-600">Filtrado por:</span>
           {activeFilters.map((filter, index) => (
             <span key={index} className="flex items-center bg-gray-200 px-2 py-1 rounded-md mr-2 mb-2">
-              <span className="text-xs">{filter.type}: {filter.value}</span>
+              <span className="text-xs">
+                {filter.type}: 
+                {filter.type === 'Subcategory' 
+                  ? ` ${subcategoryMap[filter.value] || 'Desconocida'}` 
+                  : ` ${filter.value}`}
+              </span>
               <button
                 onClick={() => removeFilter(filter.type, filter.value)}
                 className="ml-1 text-red-500 font-bold text-xs"
@@ -166,8 +189,10 @@ export default function ProductList({
                   />
                   <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
                   <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
-                  {/* Aquí deberías insertar el nombre de la marca y tipo si los tienes disponibles */}
-                  {/* Puedes pasarlos como props o procesar los datos previamente */}
+                  {/* Mostrar subcategoría si está disponible */}
+                  {product.subcategoryID && (
+                    <p className="text-xs text-gray-400">Subcategoría: {subcategoryMap[product.subcategoryID] || 'Desconocida'}</p>
+                  )}
                 </Link>
               </div>
             ))
