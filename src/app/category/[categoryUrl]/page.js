@@ -119,7 +119,7 @@ export default function CategoryPage() {
               <div>cargando...</div>
             ) : (
               <CategoryFilter
-                categories={categories.filter(cat => cat.uniqueID === currentCategory?.uniqueID)}
+                categories={categories}
                 selectedCategories={selectedCategories}
                 setSelectedCategories={setSelectedCategories}
               />
