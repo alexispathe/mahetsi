@@ -61,39 +61,8 @@ export default function Header({ textColor = 'text-white', position = "absolute"
   const handleCartClick = () => setCartOpen(true);
   const handleFavoritesClick = () => setFavoritesOpen(true); // Abrir favoritos
   const toggleMenu = () => setMenuOpen(!isMenuOpen);
-  const redirectProfile =()=>{
+  const redirectProfile = () => {
     window.location.href = '/profile/user';
-  }
-  if (isLoading) {
-    return (
-      <header
-        className={`${position} top-0 left-0 w-full z-50 bg-transparent transition-all duration-300`}
-      >
-        <div className="container mx-auto flex items-center justify-between py-4 px-6">
-          <div className="text-lg font-bold">
-            <Link href="/">
-              <span className={`${textColor} text-xl`}>Cargando...</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-    );
-  }
-
-  if (error) {
-    return (
-      <header
-        className={`${position} top-0 left-0 w-full z-50 bg-transparent transition-all duration-300`}
-      >
-        <div className="container mx-auto flex items-center justify-between py-4 px-6">
-          <div className="text-lg font-bold">
-            <Link href="/">
-              <span className={`${textColor} text-xl`}>Error: {error}</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-    );
   }
 
   return (
@@ -114,37 +83,46 @@ export default function Header({ textColor = 'text-white', position = "absolute"
 
         {/* Menú de Navegación para Pantallas Grandes */}
         <nav className="hidden md:flex space-x-6">
-          {categories.map((category) => {
-            const filteredSubcategories = subcategories[category.uniqueID] || [];
-            return (
-              <div key={category.uniqueID} className="group relative">
-                <Link
-                  href={`/category/${category.url}`}
-                  className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}
-                  aria-label={`Categoría ${category.name}`}
-                >
-                  {category.name}
-                </Link>
-                {filteredSubcategories.length > 0 && (
-                  <div className="absolute top-full left-0 hidden group-hover:block bg-white shadow-lg p-4">
-                    <ul>
-                      {filteredSubcategories.map((subcat) => (
-                        <li key={subcat.uniqueID}>
-                          <Link 
-                            href={`/category/${category.url}/${subcat.url}`} 
-                            className="py-1 hover:text-gray-700 block"
-                            aria-label={`Subcategoría ${subcat.name}`}
-                          >
-                            {subcat.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )
-          })}
+          {isLoading ? (
+            <div className="flex gap-6">
+              {/* Skeleton de categorías */}
+              <div className="w-24 h-8 bg-gray-300 animate-pulse rounded-md"></div>
+              <div className="w-24 h-8 bg-gray-300 animate-pulse rounded-md"></div>
+              <div className="w-24 h-8 bg-gray-300 animate-pulse rounded-md"></div>
+            </div>
+          ) : (
+            categories.map((category) => {
+              const filteredSubcategories = subcategories[category.uniqueID] || [];
+              return (
+                <div key={category.uniqueID} className="group relative">
+                  <Link
+                    href={`/category/${category.url}`}
+                    className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}
+                    aria-label={`Categoría ${category.name}`}
+                  >
+                    {category.name}
+                  </Link>
+                  {filteredSubcategories.length > 0 && (
+                    <div className="absolute top-full left-0 hidden group-hover:block bg-white shadow-lg p-4">
+                      <ul>
+                        {filteredSubcategories.map((subcat) => (
+                          <li key={subcat.uniqueID}>
+                            <Link 
+                              href={`/category/${category.url}/${subcat.url}`} 
+                              className="py-1 hover:text-gray-700 block"
+                              aria-label={`Subcategoría ${subcat.name}`}
+                            >
+                              {subcat.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          )}
           <Link href="/contacto" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
             Contacto
           </Link>
@@ -165,9 +143,9 @@ export default function Header({ textColor = 'text-white', position = "absolute"
           />
           {/* Condicional para Usuario */}
           {currentUser ? (
-              <FaUser
-                className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`   } onClick={redirectProfile}
-              />
+            <FaUser
+              className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`} onClick={redirectProfile}
+            />
           ) : (
             <Link href="/login" className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-gray-700`} aria-label="Ingresar">
               Ingresar
@@ -239,7 +217,6 @@ export default function Header({ textColor = 'text-white', position = "absolute"
 
       <SearchModal isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
-
       {/* Modal de Favoritos */}
       <FavoritesModal isOpen={isFavoritesOpen} onClose={() => setFavoritesOpen(false)} />
     </header>
