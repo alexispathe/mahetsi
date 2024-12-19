@@ -1,137 +1,120 @@
+// components/Category/[categoryURL]/[subcategoryURL]/page.js
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import {  FaTimes } from 'react-icons/fa';
-import {IoOptions} from 'react-icons/io5'
+import { FaTimes } from 'react-icons/fa';
+import { IoOptions } from "react-icons/io5";
+import Header from '../../../components/Header';
+import HeroSection from '../../HeroSection';
 import CategoryFilter from '../../CategoryFilter';
+import SubcategoryFilter from '../../SubcategoryFilter'; // Asegúrate de la ruta correcta
 import PriceFilter from '../../PriceFilter';
 import BrandFilter from '../../BrandFilter';
 import ProductList from '../../ProductList';
-import Header from '../../../components/Header';
-import HeroSection from '../../HeroSection';
 
-import { products, categories, brands, types, subcategories } from '../../data';
+// Hooks personalizados
+import { useCategories } from '../../../../hooks/useCategories';
+import { useBrandsAndTypes } from '../../../../hooks/useBrandsAndTypes';
+import { useProducts } from '../../../../hooks/useProductsBySubcategory';
+import { useFilters } from '../../../../hooks/useFilters';
+import { useSubcategories } from '../../../../hooks/useSubcategories';
+import { useSubcategoryByURL } from '../../../../hooks/useSubcategoryByURL'; // Importar el nuevo hook
 
-export default function SubcategoryPage() {
+export default function CategoryPage() {
   const params = useParams();
-  const { categoryUrl, subcategoryUrl } = params;
+  const categoryUrl = params.categoryUrl;
+  const subcategoryURL = params.subcategoryURL; // Obtener subcategoryURL de los params
 
-  // Hooks siempre al inicio
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(1000);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  // Utilización de hooks personalizados
+  const { isLoadingCategories, categories } = useCategories();
 
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedTypes, setSelectedTypes] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]);
+  // Si la categoría no existe, tomar la primera categoría disponible
+  const currentCategory = categories.find(cat => cat.url === categoryUrl) || categories[0];
 
-  const currentCategory = categories.find(cat => cat.url === categoryUrl);
-  const currentSubcategory = currentCategory
-    ? subcategories.find(sub => sub.url === subcategoryUrl && sub.categoryID === currentCategory.uniqueID)
-    : null;
+  const { brands, types } = useBrandsAndTypes(currentCategory);
+  
+  // Usar el nuevo hook para obtener subcategoryID
+  const { isLoadingSubcategory, subcategory, error: subcategoryError } = useSubcategoryByURL(currentCategory?.uniqueID, subcategoryURL);
 
-  // useEffect antes de cualquier return condicional
-  useEffect(() => {
-    if (isFilterOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
+  // Pasar el subcategoryID obtenido al hook de productos
+  const { isLoadingProducts, products } = useProducts(currentCategory, subcategory?.subcategoryID);
 
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isFilterOpen]);
+  const {
+    minPrice,
+    maxPrice,
+    setMinPrice,
+    setMaxPrice,
+    isFilterOpen,
+    setIsFilterOpen,
+    selectedCategories,
+    setSelectedCategories,
+    selectedBrands,
+    setSelectedBrands,
+    selectedTypes,
+    setSelectedTypes,
+    selectedSizes,
+    setSelectedSizes,
+    selectedSubcategories, // Obtener subcategorías seleccionadas
+    setSelectedSubcategories, // Función para actualizar subcategorías seleccionadas
+    clearAllFilters,
+  } = useFilters();
 
-  // Después de useEffect puedes hacer las condiciones
-  if (!currentCategory) {
-    return (
-      <div>
-        <Header />
-        <div className="container mx-auto p-6">
-          <h2 className="text-2xl font-bold">Categoría no encontrada</h2>
-        </div>
-      </div>
-    );
-  }
+  // Obtener subcategorías usando el hook existente
+  const { isLoadingSubcategories, subcategories } = useSubcategories(currentCategory?.uniqueID);
 
-  if (!currentSubcategory) {
-    return (
-      <div>
-        <Header />
-        <div className="container mx-auto p-6">
-          <h2 className="text-2xl font-bold">Subcategoría no encontrada</h2>
-        </div>
-      </div>
-    );
-  }
-
-  const categoryID = currentCategory.uniqueID;
-  const subcategoryID = currentSubcategory.uniqueID;
-
-  // Filtrados
-  const filteredProductsBySubcategory = products.filter(
-    p => p.categoryID === categoryID && p.subcategoryID === subcategoryID
-  );
-
-  const brandIDsInSubcategory = [...new Set(filteredProductsBySubcategory.map(p => p.brandID))];
-  const typeIDsInSubcategory = [...new Set(filteredProductsBySubcategory.map(p => p.typeID))];
-
-  const filteredBrands = brands.filter(b => b.categoryID === categoryID && brandIDsInSubcategory.includes(b.uniqueID));
-  const filteredTypes = types.filter(t => t.categoryID === categoryID && typeIDsInSubcategory.includes(t.uniqueID));
+  // Funciones auxiliares para obtener nombres
+  const getCategoryName = (categoryID) => {
+    const category = categories.find(cat => cat.uniqueID === categoryID);
+    return category ? category.name : '';
+  };
 
   const getBrandName = (brandID) => {
-    const brand = filteredBrands.find(b => b.uniqueID === brandID);
+    const brand = brands.find(b => b.uniqueID === brandID);
     return brand ? brand.name : '';
   };
 
   const getTypeName = (typeID) => {
-    const type = filteredTypes.find(t => t.uniqueID === typeID);
+    const type = types.find(t => t.uniqueID === typeID);
     return type ? type.name : '';
   };
 
+  // Función de filtrado en el cliente
   const filterProducts = () => {
-    return filteredProductsBySubcategory.filter(product => {
+    return products.filter(product => {
+      // Filtrar por rango de precio
       const withinPrice = product.price >= minPrice && product.price <= maxPrice;
 
-      const productCategory = categories.find(cat => cat.uniqueID === product.categoryID);
-      const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(productCategory?.name);
+      // Filtrar por categorías seleccionadas
+      const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(getCategoryName(product.categoryID));
 
-      const brandName = getBrandName(product.brandID);
-      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(brandName);
+      // Filtrar por marcas seleccionadas
+      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(getBrandName(product.brandID));
 
-      const typeName = getTypeName(product.typeID);
-      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(typeName);
+      // Filtrar por tipos seleccionados
+      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(getTypeName(product.typeID));
 
+      // Filtrar por tallas seleccionadas
       const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size);
 
-      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize;
+      // Filtrar por subcategorías seleccionadas
+      const matchesSubcategory = selectedSubcategories.length === 0 || selectedSubcategories.includes(product.subcategoryID);
+
+      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize && matchesSubcategory;
     });
   };
 
   const filteredProducts = filterProducts();
 
-  const clearAllFilters = () => {
-    setSelectedCategories([]);
-    setSelectedBrands([]);
-    setSelectedTypes([]);
-    setSelectedSizes([]);
-    setMinPrice(0);
-    setMaxPrice(1000);
-  };
-
   return (
-    <div>
+    <>
       <Header textColor={'text-white'} />
       <HeroSection />
       <div className="container mx-auto px-4 py-6">
         {/* Botón para abrir filtros en móviles */}
         <div className="flex justify-end mb-4 md:hidden">
-        <button
+          <button
             onClick={() => setIsFilterOpen(true)}
-            className="mx-auto w-[95%] bg-gray-200 flex items-center p-2 text-sm  uppercase text-black"
+            className="mx-auto w-[95%] bg-gray-200 flex items-center p-2 text-sm uppercase text-black"
           >
             <IoOptions className="w-4 h-4 mr-2 text-black" />
             <span className="text-left">Filtros</span>
@@ -139,27 +122,37 @@ export default function SubcategoryPage() {
         </div>
 
         <div className="flex justify-center">
-          {/* Filtro lateral en pantallas medianas y grandes */}
+          {/* Barra lateral de filtros */}
           <aside className="hidden md:block md:w-1/4 lg:w-1/5">
             <CategoryFilter
-              categories={categories.filter(cat => cat.uniqueID === categoryID)}
+              categories={categories}
               selectedCategories={selectedCategories}
               setSelectedCategories={setSelectedCategories}
+              catURL={categoryUrl}
             />
-            <PriceFilter
-              minPrice={minPrice}
-              maxPrice={maxPrice}
-              onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
+            <SubcategoryFilter
+              subcategories={subcategories}
+              selectedSubcategories={selectedSubcategories}
+              setSelectedSubcategories={setSelectedSubcategories}
+              isLoadingSubcategories={isLoadingSubcategories}
             />
             <BrandFilter
-              brands={filteredBrands}
-              types={filteredTypes}
+              brands={brands}
+              types={types}
               selectedBrands={selectedBrands}
               setSelectedBrands={setSelectedBrands}
               selectedTypes={selectedTypes}
               setSelectedTypes={setSelectedTypes}
               selectedSizes={selectedSizes}
               setSelectedSizes={setSelectedSizes}
+            />
+            <PriceFilter
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              onPriceChange={(min, max) => {
+                setMinPrice(min); 
+                setMaxPrice(max);
+              }}
             />
           </aside>
 
@@ -170,6 +163,7 @@ export default function SubcategoryPage() {
               selectedBrands={selectedBrands}
               selectedTypes={selectedTypes}
               selectedSizes={selectedSizes}
+              selectedSubcategories={selectedSubcategories} // Pasar subcategorías seleccionadas
               minPrice={minPrice}
               maxPrice={maxPrice}
               clearAllFilters={clearAllFilters}
@@ -177,6 +171,11 @@ export default function SubcategoryPage() {
               setSelectedBrands={setSelectedBrands}
               setSelectedTypes={setSelectedTypes}
               setSelectedSizes={setSelectedSizes}
+              setSelectedSubcategories={setSelectedSubcategories} // Pasar función para actualizar subcategorías
+              loading={isLoadingProducts}
+              brands={brands}
+              types={types}
+              subcategories={subcategories} // Añadir esta línea
             />
           </main>
         </div>
@@ -193,27 +192,33 @@ export default function SubcategoryPage() {
                 <FaTimes className="h-6 w-6 text-black" />
               </button>
 
-              {/* Aquí puedes poner un div adicional con overflow para asegurarte del scroll */}
               <div className="max-h-[80vh] overflow-y-auto">
                 <CategoryFilter
-                  categories={categories.filter(cat => cat.uniqueID === categoryID)}
+                  categories={categories.filter(cat => cat.uniqueID === currentCategory?.uniqueID)}
                   selectedCategories={selectedCategories}
                   setSelectedCategories={setSelectedCategories}
+                  catURL={categoryUrl}
                 />
-                <PriceFilter
-                  minPrice={minPrice}
-                  maxPrice={maxPrice}
-                  onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
+                <SubcategoryFilter
+                  subcategories={subcategories}
+                  selectedSubcategories={selectedSubcategories}
+                  setSelectedSubcategories={setSelectedSubcategories}
+                  isLoadingSubcategories={isLoadingSubcategories}
                 />
                 <BrandFilter
-                  brands={filteredBrands}
-                  types={filteredTypes}
+                  brands={brands}
+                  types={types}
                   selectedBrands={selectedBrands}
                   setSelectedBrands={setSelectedBrands}
                   selectedTypes={selectedTypes}
                   setSelectedTypes={setSelectedTypes}
                   selectedSizes={selectedSizes}
                   setSelectedSizes={setSelectedSizes}
+                />
+                <PriceFilter
+                  minPrice={minPrice}
+                  maxPrice={maxPrice}
+                  onPriceChange={(min, max) => { setMinPrice(min); setMaxPrice(max); }}
                 />
               </div>
 
@@ -226,8 +231,7 @@ export default function SubcategoryPage() {
             </div>
           </div>
         )}
-
       </div>
-    </div>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 // src/app/api/products/public/get/getProductsByCategory/route.js
-
+//Revisar si lo usamos
 import { NextResponse } from 'next/server';
 import { firestore } from '../../../../../../libs/firebaseAdmin'; // Asegúrate de que la ruta es correcta
 
