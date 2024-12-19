@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function CategoryFilter({ categories }) {
+export default function CategoryFilter({ categories, catURL }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +45,7 @@ export default function CategoryFilter({ categories }) {
                 type="checkbox" 
                 id={category.uniqueID} 
                 name="category" 
+                checked={catURL === category.url}
                 className="form-radio h-4 w-4 text-blue-600"
                 onChange={() => handleCategorySelect(category.url)}
               />

@@ -25,9 +25,11 @@ export default function CategoryPage() {
 
   // Utilización de hooks personalizados
   const { isLoadingCategories, categories } = useCategories();
-  const currentCategory = categories.find(cat => cat.url === categoryUrl);
 
-  const { isLoadingBrands, isLoadingTypes, brands, types } = useBrandsAndTypes(currentCategory);
+  // Si la categoría no existe, tomar la primera categoría disponible
+  const currentCategory = categories.find(cat => cat.url === categoryUrl) || categories[0];
+
+  const { brands, types } = useBrandsAndTypes(currentCategory);
   const { isLoadingProducts, products } = useProducts(currentCategory);
   const {
     minPrice,
@@ -95,17 +97,6 @@ export default function CategoryPage() {
 
   const filteredProducts = filterProducts();
 
-  if (!currentCategory && !isLoadingCategories) {
-    return (
-      <>
-        <Header />
-        <div className="container mx-auto p-6">
-          <h2 className="text-2xl font-bold">Categoría no encontrada</h2>
-        </div>
-      </>
-    );
-  }
-
   return (
     <>
       <Header textColor={'text-white'} />
@@ -129,6 +120,7 @@ export default function CategoryPage() {
               categories={categories}
               selectedCategories={selectedCategories}
               setSelectedCategories={setSelectedCategories}
+              catURL={categoryUrl}
             />
             <SubcategoryFilter
               subcategories={subcategories}
@@ -193,42 +185,28 @@ export default function CategoryPage() {
               </button>
 
               <div className="max-h-[80vh] overflow-y-auto">
-                {isLoadingCategories ? (
-                  <div>cargando...</div>
-                ) : (
-                  <CategoryFilter
-                    categories={categories.filter(cat => cat.uniqueID === currentCategory?.uniqueID)}
-                    selectedCategories={selectedCategories}
-                    setSelectedCategories={setSelectedCategories}
-                  />
-                )}
-
-                {isLoadingSubcategories ? (
-                  <div className="mt-4">cargando subcategorías...</div>
-                ) : (
-                  <SubcategoryFilter
-                    subcategories={subcategories}
-                    selectedSubcategories={selectedSubcategories}
-                    setSelectedSubcategories={setSelectedSubcategories}
-                    isLoadingSubcategories={isLoadingSubcategories}
-                  />
-                )}
-
-                {isLoadingBrands ? (
-                  <div className="mt-4">cargando...</div>
-                ) : (
-                  <BrandFilter
-                    brands={brands}
-                    types={types}
-                    selectedBrands={selectedBrands}
-                    setSelectedBrands={setSelectedBrands}
-                    selectedTypes={selectedTypes}
-                    setSelectedTypes={setSelectedTypes}
-                    selectedSizes={selectedSizes}
-                    setSelectedSizes={setSelectedSizes}
-                  />
-                )}
-
+                <CategoryFilter
+                  categories={categories.filter(cat => cat.uniqueID === currentCategory?.uniqueID)}
+                  selectedCategories={selectedCategories}
+                  setSelectedCategories={setSelectedCategories}
+                  catURL={categoryUrl}
+                />
+                <SubcategoryFilter
+                  subcategories={subcategories}
+                  selectedSubcategories={selectedSubcategories}
+                  setSelectedSubcategories={setSelectedSubcategories}
+                  isLoadingSubcategories={isLoadingSubcategories}
+                />
+                <BrandFilter
+                  brands={brands}
+                  types={types}
+                  selectedBrands={selectedBrands}
+                  setSelectedBrands={setSelectedBrands}
+                  selectedTypes={selectedTypes}
+                  setSelectedTypes={setSelectedTypes}
+                  selectedSizes={selectedSizes}
+                  setSelectedSizes={setSelectedSizes}
+                />
                 <PriceFilter
                   minPrice={minPrice}
                   maxPrice={maxPrice}
