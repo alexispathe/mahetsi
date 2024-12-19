@@ -222,40 +222,57 @@ export default function ProductDetail() {
     syncFavoritesOnLogin();
   }, [currentUser]);
 
+  // Skeleton Screen
   if (loading) {
     return (
-      <Header position="relative" textColor="text-black"/>
-      // Skeleton UI
+      <>
+        <Header position="relative" textColor="text-black" />
+        <div className="flex justify-center items-center my-10 px-4">
+          <div className="animate-pulse space-y-6 w-full max-w-6xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="flex flex-col gap-4">
+                <div className="w-32 h-32 bg-gray-300 rounded-md"></div>
+                <div className="w-32 h-32 bg-gray-300 rounded-md"></div>
+              </div>
+              <div className="space-y-4">
+                <div className="w-full h-8 bg-gray-300 rounded-md"></div>
+                <div className="w-3/4 h-6 bg-gray-300 rounded-md"></div>
+                <div className="w-1/2 h-6 bg-gray-300 rounded-md"></div>
+                <div className="w-full h-10 bg-gray-300 rounded-md"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
       <>
-       <Header position="relative" textColor="text-black"/>
-      <div className="flex justify-center items-center my-10 px-4">
-        <h2 className="text-2xl font-bold text-red-500">{error}</h2>
-      </div>
+        <Header position="relative" textColor="text-black" />
+        <div className="flex justify-center items-center my-10 px-4">
+          <h2 className="text-2xl font-bold text-red-500">{error}</h2>
+        </div>
       </>
-     
     );
   }
 
   if (!product) {
     return (
       <>
-      <Header position="relative" textColor="text-black"/>
-      <div className="flex justify-center items-center my-10 px-4">
-        <h2 className="text-2xl font-bold">Producto no encontrado</h2>
-      </div>
+        <Header position="relative" textColor="text-black" />
+        <div className="flex justify-center items-center my-10 px-4">
+          <h2 className="text-2xl font-bold">Producto no encontrado</h2>
+        </div>
       </>
-      
     );
   }
 
+  // Aquí iría el contenido del producto cuando esté cargado.
   return (
     <>
-      <Header position="relative" textColor="text-black"/>
+      <Header position="relative" textColor="text-black" />
       <div className="flex justify-center items-center my-10 px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-6xl">
           {/* Sección de Imágenes del Producto */}
