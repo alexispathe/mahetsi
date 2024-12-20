@@ -62,7 +62,7 @@ export const FavoritesProvider = ({ children }) => {
     setError(null);
     try {
       let ids = [];
-
+      console.log(currentUser)
       if (currentUser) {
         // Usuario autenticado: obtener favoritos desde la API
         const res = await fetch('/api/favorites/getItems', {

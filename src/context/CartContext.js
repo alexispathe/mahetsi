@@ -1,3 +1,5 @@
+// src/context/CartContext.jsx
+
 'use client';
 
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
@@ -8,7 +10,7 @@ import { auth } from '@/libs/firebaseClient'; // Importar Firebase Auth
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, authLoading } = useContext(AuthContext);
   const [cartItems, setCartItems] = useState([]); // [{ uniqueID, size, qty }, ...]
   const [products, setProducts] = useState([]);   // Detalles de productos
   const [loading, setLoading] = useState(false);
@@ -47,7 +49,7 @@ export const CartProvider = ({ children }) => {
     setError(null);
     try {
       let items = [];
-
+      console.log(currentUser)
       if (currentUser) {
         // Obtener ítems del carrito desde la API
         const res = await fetch('/api/cart/getItems', { method: 'GET', credentials: 'include' });
@@ -81,15 +83,6 @@ export const CartProvider = ({ children }) => {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Función para cerrar sesión en Firebase sin redirigir
-  const handleSignOut = async () => {
-    try {
-      await auth.signOut(); // Cerrar sesión de Firebase
-    } catch (err) {
-      console.error('Error al cerrar sesión:', err);
     }
   };
 
@@ -190,20 +183,22 @@ export const CartProvider = ({ children }) => {
 
   // Esperar a que se establezca la cookie antes de cargar el carrito si el usuario está logueado
   useEffect(() => {
-    if (currentUser) {
-      const interval = setInterval(() => {
-        if (document.cookie.includes('session=')) {
-          clearInterval(interval);
-          loadCart();
-        }
-      }, 100);
-      return () => clearInterval(interval);
-    } else {
-      // Si no hay usuario, se carga directamente
-      loadCart();
+    if (!authLoading) { // Solo proceder si la autenticación ha terminado
+      if (currentUser) {
+        const interval = setInterval(() => {
+          if (document.cookie.includes('session=')) {
+            clearInterval(interval);
+            loadCart();
+          }
+        }, 100);
+        return () => clearInterval(interval);
+      } else {
+        // Si no hay usuario, se carga directamente
+        loadCart();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }, [currentUser, authLoading]);
 
   const cartCount = useMemo(() => {
     return cartItems.reduce((acc, item) => acc + item.qty, 0);
