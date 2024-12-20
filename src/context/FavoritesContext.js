@@ -5,6 +5,7 @@
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { AuthContext } from './AuthContext';
 import { getLocalFavorites, addToLocalFavorites, removeFromLocalFavorites, clearLocalFavorites } from '@/app/utils/favoritesLocalStorage';
+import { auth } from '@/libs/firebaseClient'; // Importar Firebase Auth
 
 export const FavoritesContext = createContext();
 
@@ -73,10 +74,11 @@ export const FavoritesProvider = ({ children }) => {
 
         if (!res.ok) {
           if (res.status === 401) {
-            setError('Debes iniciar sesión para ver tus favoritos.');
+            setError('La sesión ha expirado, por favor inicia sesión nuevamente.');
             setFavoriteIDs([]);
             setFavoriteProducts([]);
             setLoading(false);
+            await handleSignOut(); // Cerrar sesión en Firebase sin redirigir
             return;
           }
           const data = await res.json();
@@ -106,6 +108,15 @@ export const FavoritesProvider = ({ children }) => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Función para cerrar sesión en Firebase sin redirigir
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut(); // Cerrar sesión de Firebase
+    } catch (err) {
+      console.error('Error al cerrar sesión:', err);
     }
   };
 

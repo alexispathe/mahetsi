@@ -8,7 +8,6 @@ import admin from 'firebase-admin';
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
-      // Tus credenciales de Firebase Admin
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
@@ -32,9 +31,12 @@ export async function POST(request) {
 
     // Verificar el token para obtener la información del usuario
     const decodedToken = await authAdmin.verifySessionCookie(sessionCookie, true);
-    const { uid, displayName, email } = decodedToken;
 
-    // Referencia al documento del usuario en Firestore
+    if (!decodedToken) {
+      return NextResponse.json({ error: 'Sesion expirada o no válida' }, { status: 401 });
+    }
+
+    const { uid, displayName, email } = decodedToken;
     const userRef = firestore.collection('users').doc(uid);
     const userDoc = await userRef.get();
 
@@ -46,16 +48,11 @@ export async function POST(request) {
         email: email || '',
         dateCreated: timestamp,
         dateModified: timestamp,
-        rolID: "gB4kyZZNT8HLbsyTBRGi", 
+        rolID: "gB4kyZZNT8HLbsyTBRGi",
         ownerId: uid,
       });
-      console.log(`Usuario ${uid} creado en Firestore.`);
     } else {
-      console.log(`Usuario ${uid} ya existe en Firestore.`);
-      // Actualizar el campo dateModified
-      await userRef.update({
-        dateModified: admin.firestore.FieldValue.serverTimestamp(),
-      });
+      await userRef.update({ dateModified: admin.firestore.FieldValue.serverTimestamp() });
     }
 
     // Sincronizar el carrito si se proporcionan ítems

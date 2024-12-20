@@ -7,7 +7,6 @@ import Header from '../components/Header';
 import OrderSummary from './OrderSummary';
 import CartItems from './CartItems';
 import { CartContext } from '@/context/CartContext'; // Importar CartContext
-import Link from 'next/link'; // Importar Link si es necesario en otros componentes
 
 export default function CartPage() {
   const { cartItems, products, loading, error, removeItemFromCart } = useContext(CartContext);

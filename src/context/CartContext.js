@@ -1,10 +1,9 @@
-// src/context/CartContext.js
-
 'use client';
 
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { AuthContext } from './AuthContext';
 import { getLocalCart, addToLocalCart, removeFromLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage';
+import { auth } from '@/libs/firebaseClient'; // Importar Firebase Auth
 
 export const CartContext = createContext();
 
@@ -55,10 +54,11 @@ export const CartProvider = ({ children }) => {
 
         if (!res.ok) {
           if (res.status === 401) {
-            setError('Debes iniciar sesión para ver el carrito.');
+            setError('La sesión ha expirado, por favor inicia sesión nuevamente.');
             setCartItems([]);
             setProducts([]);
             setLoading(false);
+            await handleSignOut(); // Cerrar sesión en Firebase sin redirigir
             return;
           }
           const data = await res.json();
@@ -92,10 +92,18 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Función para cerrar sesión en Firebase sin redirigir
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut(); // Cerrar sesión de Firebase
+    } catch (err) {
+      console.error('Error al cerrar sesión:', err);
+    }
+  };
+
   // Cargar el carrito cuando el componente se monta o el usuario cambia
   useEffect(() => {
     loadCart();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   // Método para agregar un producto al carrito
@@ -212,7 +220,6 @@ export const CartProvider = ({ children }) => {
     };
 
     synchronizeCart();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   // Cálculo de cartCount usando useMemo para optimización
