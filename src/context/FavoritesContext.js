@@ -73,14 +73,14 @@ export const FavoritesProvider = ({ children }) => {
         });
 
         if (!res.ok) {
-          if (res.status === 401) {
-            setError('La sesión ha expirado, por favor inicia sesión nuevamente.');
-            setFavoriteIDs([]);
-            setFavoriteProducts([]);
-            setLoading(false);
-            await handleSignOut(); // Cerrar sesión en Firebase sin redirigir
-            return;
-          }
+          // if (res.status === 401) {
+          //   setError('La sesión ha expirado, por favor inicia sesión nuevamente.');
+          //   setFavoriteIDs([]);
+          //   setFavoriteProducts([]);
+          //   setLoading(false);
+          //   await handleSignOut(); // Cerrar sesión en Firebase sin redirigir
+          //   return;
+          // }
           const data = await res.json();
           throw new Error(data.error || 'Error al obtener los favoritos.');
         }

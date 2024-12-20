@@ -50,17 +50,18 @@ export const CartProvider = ({ children }) => {
 
       if (currentUser) {
         // Obtener ítems del carrito desde la API
+        console.log(currentUser)
         const res = await fetch('/api/cart/getItems', { method: 'GET', credentials: 'include' });
 
         if (!res.ok) {
-          if (res.status === 401) {
-            setError('La sesión ha expirado, por favor inicia sesión nuevamente.');
-            setCartItems([]);
-            setProducts([]);
-            setLoading(false);
-            await handleSignOut(); // Cerrar sesión en Firebase sin redirigir
-            return;
-          }
+        //   if (res.status === 401) {
+        //     setError('La sesión ha expirado, por favor inicia sesión nuevamente.');
+        //     setCartItems([]);
+        //     setProducts([]);
+        //     setLoading(false);
+        //     await handleSignOut(); // Cerrar sesión en Firebase sin redirigir
+        //     return;
+        //   }
           const data = await res.json();
           throw new Error(data.error || 'Error al obtener el carrito');
         }
