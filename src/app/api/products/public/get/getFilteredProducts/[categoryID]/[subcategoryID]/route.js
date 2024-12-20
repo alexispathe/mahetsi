@@ -6,7 +6,7 @@ import { firestore } from '../../../../../../../../libs/firebaseAdmin';
 export async function GET(request, context) {
   try {
     const { params } = context;
-    const { categoryID, subcategoryID } = params; // Obtener ambos IDs de la URL
+    const { categoryID, subcategoryID } = await params; // Obtener ambos IDs de la URL
     console.log("ids para el proyecto", categoryID, subcategoryID)
 
     // Construir la consulta base

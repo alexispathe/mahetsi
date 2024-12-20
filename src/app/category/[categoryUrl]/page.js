@@ -24,7 +24,7 @@ export default function CategoryPage() {
   const categoryUrl = params.categoryUrl;
 
   // Utilización de hooks personalizados
-  const { isLoadingCategories, categories } = useCategories();
+  const {  categories } = useCategories();
 
   // Si la categoría no existe, tomar la primera categoría disponible
   const currentCategory = categories.find(cat => cat.url === categoryUrl) || categories[0];

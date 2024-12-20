@@ -1,7 +1,5 @@
-// src/app/api/categories/public/get/subcategoryByURL/[categoryId]/[subcategoryURL]/route.js
-
 import { NextResponse } from 'next/server';
-import { firestore } from '../../../../../../../../libs/firebaseAdmin'; // Asegúrate de que la ruta sea correcta
+import { firestore } from '../../../../../../../../libs/firebaseAdmin';
 
 export async function GET(request, context) {
   const { params } = context;
@@ -14,8 +12,8 @@ export async function GET(request, context) {
 
     if (!categoryDoc.exists) {
       return NextResponse.json(
-        { message: 'Categoría no encontrada.' },
-        { status: 404 }
+        { subcategory: [] },  // Devuelve un arreglo vacío si no se encuentra la categoría
+        { status: 200 }
       );
     }
 
@@ -28,8 +26,8 @@ export async function GET(request, context) {
 
     if (subcategoriesSnapshot.empty) {
       return NextResponse.json(
-        { message: 'Subcategoría no encontrada.' },
-        { status: 404 }
+        { subcategory: [] },  // Devuelve un arreglo vacío si no se encuentra la subcategoría
+        { status: 200 }
       );
     }
 
@@ -38,19 +36,21 @@ export async function GET(request, context) {
 
     return NextResponse.json(
       {
-        subcategory: {
-          uniqueID: subcategoryDoc.id,
-          subcategoryID: subcategoryDoc.id, // Asegurando consistencia
-          name: subcategoryData.name,
-          url: subcategoryData.url,
-        },
+        subcategory: [
+          {
+            uniqueID: subcategoryDoc.id,
+            subcategoryID: subcategoryDoc.id, // Asegurando consistencia
+            name: subcategoryData.name,
+            url: subcategoryData.url,
+          },
+        ],
       },
       { status: 200 }
     );
   } catch (error) {
     console.error('Error fetching subcategory by URL:', error);
     return NextResponse.json(
-      { message: 'Error interno del servidor.' },
+      { subcategory: [] },  // En caso de error, también devuelve un arreglo vacío
       { status: 500 }
     );
   }

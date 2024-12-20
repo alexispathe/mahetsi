@@ -26,7 +26,7 @@ export default function CategoryPage() {
   const subcategoryURL = params.subcategoryURL; // Obtener subcategoryURL de los params
 
   // Utilización de hooks personalizados
-  const { isLoadingCategories, categories } = useCategories();
+  const {categories } = useCategories();
 
   // Si la categoría no existe, tomar la primera categoría disponible
   const currentCategory = categories.find(cat => cat.url === categoryUrl) || categories[0];
@@ -34,7 +34,7 @@ export default function CategoryPage() {
   const { brands, types } = useBrandsAndTypes(currentCategory);
   
   // Usar el nuevo hook para obtener subcategoryID
-  const { isLoadingSubcategory, subcategory, error: subcategoryError } = useSubcategoryByURL(currentCategory?.uniqueID, subcategoryURL);
+  const {  subcategory,  } = useSubcategoryByURL(currentCategory?.uniqueID, subcategoryURL);
 
   // Pasar el subcategoryID obtenido al hook de productos
   const { isLoadingProducts, products } = useProducts(currentCategory, subcategory?.subcategoryID);
