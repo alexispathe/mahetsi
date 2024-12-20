@@ -56,58 +56,62 @@ export const FavoritesProvider = ({ children }) => {
     }
   };
 
-  // Función para cargar los favoritos
-  const loadFavorites = async () => {
-    setLoading(true);
-    setError(null);
+  // Función para cargar los favoritos para usuarios autenticados
+  const loadAuthenticatedFavorites = async () => {
     try {
-      let ids = [];
-      console.log(currentUser)
-      if (currentUser) {
-        // Usuario autenticado: obtener favoritos desde la API
-        const res = await fetch('/api/favorites/getItems', {
-          method: 'GET',
-          credentials: 'include', // Incluir credenciales para enviar cookies
-          headers: { 'Content-Type': 'application/json' },
-        });
+      const res = await fetch('/api/favorites/getItems', {
+        method: 'GET',
+        credentials: 'include', // Incluir credenciales para enviar cookies
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || 'Error al obtener los favoritos.');
-        }
-
+      if (!res.ok) {
         const data = await res.json();
-        ids = data.favorites; // array de uniqueID de los productos favoritos
+        throw new Error(data.error || 'Error al obtener los favoritos.');
+      }
 
-        // Sincronizar con localStorage si hay ítems
-        const localFavs = getLocalFavorites();
-        if (localFavs.length > 0) {
-          for (const id of localFavs) {
-            await addFavorite(id, false); 
-          }
-          clearLocalFavorites();
+      const data = await res.json();
+      const ids = data.favorites; // array de uniqueID de los productos favoritos
+
+      // Sincronizar con localStorage si hay ítems
+      const localFavs = getLocalFavorites();
+      if (localFavs.length > 0) {
+        for (const id of localFavs) {
+          await addFavorite(id, false); 
         }
-      } else {
-        // Usuario no autenticado: obtener favoritos desde localStorage
-        ids = getLocalFavorites();
+        clearLocalFavorites();
       }
 
       setFavoriteIDs(ids);
       await fetchFavoriteProducts(ids);
     } catch (err) {
+      console.error('Error al cargar favoritos autenticados:', err);
+      setError(err.message);
+    }
+  };
+
+  // Función para cargar los favoritos desde localStorage para usuarios no autenticados
+  const loadLocalFavorites = () => {
+    const ids = getLocalFavorites();
+    setFavoriteIDs(ids);
+    fetchFavoriteProducts(ids);
+  };
+
+  // Función principal para cargar los favoritos
+  const loadFavorites = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (currentUser && authLoading === false) {
+        await loadAuthenticatedFavorites();
+      } else {
+        loadLocalFavorites();
+      }
+    } catch (err) {
       console.error('Error al cargar favoritos:', err);
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Función para cerrar sesión en Firebase sin redirigir
-  const handleSignOut = async () => {
-    try {
-      await auth.signOut(); 
-    } catch (err) {
-      console.error('Error al cerrar sesión:', err);
     }
   };
 
@@ -185,11 +189,9 @@ export const FavoritesProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!authLoading && currentUser) {
-      loadFavorites();
-    }
+    loadFavorites()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }, [currentUser, authLoading]);
 
   const favoriteCount = useMemo(() => {
     return favoriteIDs.length;

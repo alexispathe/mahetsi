@@ -109,7 +109,7 @@ export async function POST(request) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Solo en producción la cookie será segura
       path: '/',
-      maxAge: 60 * 60 * 24, // 1 día en segundos
+      maxAge: 60 , // 1 día en segundos
       sameSite: 'strict',
     });
 

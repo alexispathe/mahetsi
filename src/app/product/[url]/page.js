@@ -1,17 +1,11 @@
-// src/app/product/[url]/page.js
 'use client';
 
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Header from "../../components/Header";
 import { AuthContext } from "@/context/AuthContext"; // Contexto de autenticación
 import { CartContext } from "@/context/CartContext"; // Contexto del carrito
-import { 
-  getLocalFavorites, 
-  addToLocalFavorites, 
-  removeFromLocalFavorites, 
-  clearLocalFavorites 
-} from "../../utils/favoritesLocalStorage"; // Importar utilidades de favoritos
+import { FavoritesContext } from "@/context/FavoritesContext"; // Contexto de favoritos
 import Image from 'next/image'; // Importamos la etiqueta Image
 
 export default function ProductDetail() {
@@ -19,7 +13,8 @@ export default function ProductDetail() {
   const productUrl = params.url;
 
   const { currentUser } = useContext(AuthContext);
-  const { addItemToCart } = useContext(CartContext); // Obtener el método del contexto
+  const { addItemToCart } = useContext(CartContext); 
+  const { addFavorite, removeFavorite, favoriteIDs } = useContext(FavoritesContext); 
 
   const [product, setProduct] = useState(null);
   const [brandName, setBrandName] = useState('');
@@ -29,9 +24,7 @@ export default function ProductDetail() {
   const [mainImage, setMainImage] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const modalRef = useRef(null);
-  const [isLiked, setIsLiked] = useState(false);
   const [selectedSize, setSelectedSize] = useState("Medium");
-  const [localFavorites, setLocalFavorites] = useState([]);
 
   const thumbnails = product ? product.images : [];
 
@@ -61,26 +54,6 @@ export default function ProductDetail() {
         setBrandName(data.brandName);
         setTypeName(data.typeName);
         setMainImage(data.product.images[0]);
-
-        // Manejo de Favoritos
-        if (currentUser) {
-          // Usuario autenticado: verificar si el producto es favorito en Firestore
-          const checkRes = await fetch(`/api/favorites/checkItem?uniqueID=${data.product.uniqueID}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
-          if (checkRes.ok) {
-            const checkData = await checkRes.json();
-            setIsLiked(checkData.isFavorite);
-          } else {
-            console.error("Error checking if product is favorite");
-          }
-        } else {
-          // Usuario no autenticado: verificar si el producto está en localStorage
-          const favorites = getLocalFavorites();
-          setLocalFavorites(favorites);
-          setIsLiked(favorites.includes(data.product.uniqueID));
-        }
 
       } catch (err) {
         console.error('Error al obtener el producto:', err);
@@ -135,56 +108,17 @@ export default function ProductDetail() {
 
   const handleToggleFavorite = async () => {
     if (!product) return;
-
-    if (currentUser) {
-      // Usuario autenticado: manejar favoritos en Firestore
-      try {
-        if (isLiked) {
-          // Remover favorito
-          const res = await fetch('/api/favorites/removeItem', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ uniqueID: product.uniqueID })
-          });
-          if (res.ok) {
-            setIsLiked(false);
-          } else {
-            const data = await res.json();
-            throw new Error(data.error || 'No se pudo remover el favorito.');
-          }
-        } else {
-          // Agregar favorito
-          const res = await fetch('/api/favorites/addItem', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ uniqueID: product.uniqueID })
-          });
-          if (res.ok) {
-            setIsLiked(true);
-          } else {
-            const data = await res.json();
-            throw new Error(data.error || 'No se pudo agregar el favorito.');
-          }
-        }
-      } catch (err) {
-        console.error('Error toggling favorite:', err);
-        alert(`Error al toggling favorito: ${err.message}`);
-      }
-    } else {
-      // Usuario no autenticado: manejar favoritos en localStorage
-      if (isLiked) {
-        // Remover favorito
-        removeFromLocalFavorites(product.uniqueID);
-        setLocalFavorites(prev => prev.filter(id => id !== product.uniqueID));
-        setIsLiked(false);
-        alert("Favorito removido (guardado localmente).");
+    try {
+      if (favoriteIDs.includes(product.uniqueID)) {
+        // Remover favorito desde el contexto
+        await removeFavorite(product.uniqueID);
       } else {
-        // Agregar favorito
-        addToLocalFavorites(product.uniqueID);
-        setLocalFavorites(prev => [...prev, product.uniqueID]);
-        setIsLiked(true);
-        alert("Favorito agregado (guardado localmente).");
+        // Agregar favorito desde el contexto
+        await addFavorite(product.uniqueID);
       }
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+      alert(`Error al toggling favorito: ${err.message}`);
     }
   };
 
@@ -192,37 +126,12 @@ export default function ProductDetail() {
     setSelectedSize(e.target.value);
   };
 
-  // Función para sincronizar favoritos al iniciar sesión
-  const syncFavoritesOnLogin = async () => {
-    if (currentUser && localFavorites.length > 0) {
-      try {
-        const res = await fetch('/api/favorites/syncFavorites', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ favorites: localFavorites }),
-        });
+  // Determinar si el producto es favorito mediante el contexto
+  const isLiked = useMemo(() => {
+    if (!product) return false;
+    return favoriteIDs.includes(product.uniqueID);
+  }, [favoriteIDs, product]);
 
-        if (res.ok) {
-          // Limpiar los favoritos locales después de sincronizar
-          clearLocalFavorites();
-          setLocalFavorites([]);
-          setIsLiked(true); // Asumimos que el producto actual es favorito
-          console.log('Favoritos sincronizados con Firestore.');
-        } else {
-          const data = await res.json();
-          console.error("Error sincronizando favoritos:", data.error);
-        }
-      } catch (error) {
-        console.error('Error sincronizando favoritos:', error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    syncFavoritesOnLogin();
-  }, [currentUser]);
-
-  // Skeleton Screen
   if (loading) {
     return (
       <>
@@ -269,7 +178,6 @@ export default function ProductDetail() {
     );
   }
 
-  // Aquí iría el contenido del producto cuando esté cargado.
   return (
     <>
       <Header position="relative" textColor="text-black" />
@@ -284,8 +192,8 @@ export default function ProductDetail() {
                   <Image
                     src={image}
                     alt={`Thumbnail ${index + 1}`}
-                    width={80} // Añadir ancho y altura
-                    height={80} // Añadir ancho y altura
+                    width={80}
+                    height={80}
                     className="cursor-pointer object-cover transition"
                     onClick={() => handleThumbnailClick(image)}
                   />
@@ -298,8 +206,8 @@ export default function ProductDetail() {
               <Image
                 src={mainImage}
                 alt="Producto principal"
-                width={500} // Añadir ancho y altura
-                height={500} // Añadir ancho y altura
+                width={500}
+                height={500}
                 className="w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105"
               />
             </div>
@@ -378,8 +286,8 @@ export default function ProductDetail() {
             <Image
               src={mainImage}
               alt="Producto principal expandido"
-              width={1000} // Añadir ancho y altura
-              height={1000} // Añadir ancho y altura
+              width={1000}
+              height={1000}
               className="max-w-full max-h-screen rounded-md object-contain cursor-pointer"
               onClick={() => setShowModal(false)}
             />

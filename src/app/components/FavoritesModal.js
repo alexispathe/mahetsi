@@ -18,11 +18,7 @@ export default function FavoritesModal({ isOpen, onClose }) {
     error,
     removeFavorite,
   } = useContext(FavoritesContext);
-
-  // Verificar que el contexto esté definido
-  if (!favoriteProducts && !loading && !error) {
-    console.error('FavoritesContext no está siendo proporcionado correctamente.');
-  }
+  console.log("favoritos", favoriteProducts);
 
   // Cerrar el modal al hacer clic fuera de él
   useEffect(() => {

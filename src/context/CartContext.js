@@ -5,7 +5,6 @@
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { AuthContext } from './AuthContext';
 import { getLocalCart, addToLocalCart, removeFromLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage';
-import { auth } from '@/libs/firebaseClient'; // Importar Firebase Auth
 
 export const CartContext = createContext();
 
@@ -43,41 +42,55 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Función para cargar el carrito
-  const loadCart = async () => {
-    setLoading(true);
-    setError(null);
+  // Función para cargar el carrito para usuarios autenticados
+  const loadAuthenticatedCart = async () => {
     try {
-      let items = [];
-      console.log(currentUser)
-      if (currentUser) {
-        // Obtener ítems del carrito desde la API
-        const res = await fetch('/api/cart/getItems', { method: 'GET', credentials: 'include' });
+      const res = await fetch('/api/cart/getItems', { method: 'GET', credentials: 'include' });
 
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || 'Error al obtener el carrito');
-        }
-
+      if (!res.ok) {
         const data = await res.json();
-        items = data.cartItems;
+        throw new Error(data.error || 'Error al obtener el carrito');
+      }
 
-        // Sincronizar con localStorage si hay ítems
-        const localCart = getLocalCart();
-        if (localCart.length > 0) {
-          for (const item of localCart) {
-            await addItemToCart(item, false); 
-          }
-          clearLocalCart();
+      const data = await res.json();
+      const items = data.cartItems;
+
+      // Sincronizar con localStorage si hay ítems
+      const localCart = getLocalCart();
+      if (localCart.length > 0) {
+        for (const item of localCart) {
+          await addItemToCart(item, false); 
         }
-      } else {
-        // Usuario no autenticado: obtener ítems desde localStorage
-        items = getLocalCart();
+        clearLocalCart();
       }
 
       setCartItems(items);
       const uniqueIDs = items.map(item => item.uniqueID);
       await fetchProductDetails(uniqueIDs);
+    } catch (err) {
+      console.error('Error al cargar el carrito autenticado:', err);
+      setError(err.message);
+    }
+  };
+
+  // Función para cargar el carrito para usuarios no autenticados
+  const loadLocalCart = () => {
+    const items = getLocalCart();
+    setCartItems(items);
+    const uniqueIDs = items.map(item => item.uniqueID);
+    fetchProductDetails(uniqueIDs);
+  };
+
+  // Función principal para cargar el carrito
+  const loadCart = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (currentUser && authLoading ==false) {
+        await loadAuthenticatedCart();
+      } else {
+        loadLocalCart();
+      }
     } catch (err) {
       console.error('Error al cargar el carrito:', err);
       setError(err.message);
@@ -182,8 +195,8 @@ export const CartProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!authLoading && currentUser) { // Solo proceder si la autenticación ha terminado
-    loadCart()
+    if (!authLoading) { 
+      loadCart();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, authLoading]);
