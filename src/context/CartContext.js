@@ -181,21 +181,9 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Esperar a que se establezca la cookie antes de cargar el carrito si el usuario está logueado
   useEffect(() => {
-    if (!authLoading) { // Solo proceder si la autenticación ha terminado
-      if (currentUser) {
-        const interval = setInterval(() => {
-          if (document.cookie.includes('session=')) {
-            clearInterval(interval);
-            loadCart();
-          }
-        }, 100);
-        return () => clearInterval(interval);
-      } else {
-        // Si no hay usuario, se carga directamente
-        loadCart();
-      }
+    if (!authLoading && currentUser) { // Solo proceder si la autenticación ha terminado
+    loadCart()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, authLoading]);

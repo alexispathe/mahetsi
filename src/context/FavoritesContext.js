@@ -9,7 +9,7 @@ import { auth } from '@/libs/firebaseClient'; // Importar Firebase Auth
 export const FavoritesContext = createContext();
 
 export const FavoritesProvider = ({ children }) => {
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, authLoading } = useContext(AuthContext);
   const [favoriteIDs, setFavoriteIDs] = useState([]); // Lista de uniqueIDs de favoritos
   const [favoriteProducts, setFavoriteProducts] = useState([]); // Detalles de productos favoritos
   const [loading, setLoading] = useState(false);
@@ -184,18 +184,8 @@ export const FavoritesProvider = ({ children }) => {
     }
   };
 
-  // Esperar a que se establezca la cookie antes de cargar los favoritos si hay usuario
   useEffect(() => {
-    if (currentUser) {
-      const interval = setInterval(() => {
-        if (document.cookie.includes('session=')) {
-          clearInterval(interval);
-          loadFavorites();
-        }
-      }, 100);
-      return () => clearInterval(interval);
-    } else {
-      // Si no hay usuario, se carga directamente
+    if (!authLoading && currentUser) {
       loadFavorites();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
