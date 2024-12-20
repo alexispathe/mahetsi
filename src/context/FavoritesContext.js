@@ -1,5 +1,4 @@
 // src/context/FavoritesContext.js
-
 'use client';
 
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
@@ -57,7 +56,7 @@ export const FavoritesProvider = ({ children }) => {
     }
   };
 
-  // Función para cargar los favoritos al iniciar o al cambiar el usuario
+  // Función para cargar los favoritos
   const loadFavorites = async () => {
     setLoading(true);
     setError(null);
@@ -73,14 +72,6 @@ export const FavoritesProvider = ({ children }) => {
         });
 
         if (!res.ok) {
-          // if (res.status === 401) {
-          //   setError('La sesión ha expirado, por favor inicia sesión nuevamente.');
-          //   setFavoriteIDs([]);
-          //   setFavoriteProducts([]);
-          //   setLoading(false);
-          //   await handleSignOut(); // Cerrar sesión en Firebase sin redirigir
-          //   return;
-          // }
           const data = await res.json();
           throw new Error(data.error || 'Error al obtener los favoritos.');
         }
@@ -92,7 +83,7 @@ export const FavoritesProvider = ({ children }) => {
         const localFavs = getLocalFavorites();
         if (localFavs.length > 0) {
           for (const id of localFavs) {
-            await addFavorite(id, false); // false indica que no se desea actualizar aquí
+            await addFavorite(id, false); 
           }
           clearLocalFavorites();
         }
@@ -114,7 +105,7 @@ export const FavoritesProvider = ({ children }) => {
   // Función para cerrar sesión en Firebase sin redirigir
   const handleSignOut = async () => {
     try {
-      await auth.signOut(); // Cerrar sesión de Firebase
+      await auth.signOut(); 
     } catch (err) {
       console.error('Error al cerrar sesión:', err);
     }
@@ -123,12 +114,11 @@ export const FavoritesProvider = ({ children }) => {
   // Método para agregar un producto a favoritos
   const addFavorite = async (uniqueID, update = true) => {
     if (currentUser) {
-      // Usuario autenticado: agregar favorito vía API
       try {
         const res = await fetch('/api/favorites/addItem', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', // Incluir credenciales para enviar cookies
+          credentials: 'include', 
           body: JSON.stringify({ uniqueID }),
         });
 
@@ -146,7 +136,6 @@ export const FavoritesProvider = ({ children }) => {
         setError(err.message);
       }
     } else {
-      // Usuario no autenticado: agregar favorito en localStorage
       addToLocalFavorites(uniqueID);
       setFavoriteIDs(prev => [...prev, uniqueID]);
       if (update) {
@@ -158,12 +147,11 @@ export const FavoritesProvider = ({ children }) => {
   // Método para eliminar un producto de favoritos
   const removeFavorite = async (uniqueID) => {
     if (currentUser) {
-      // Usuario autenticado: eliminar favorito vía API
       try {
         const res = await fetch('/api/favorites/removeItem', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', // Incluir credenciales para enviar cookies
+          credentials: 'include',
           body: JSON.stringify({ uniqueID }),
         });
 
@@ -179,7 +167,6 @@ export const FavoritesProvider = ({ children }) => {
         setError(err.message);
       }
     } else {
-      // Usuario no autenticado: eliminar favorito desde localStorage
       removeFromLocalFavorites(uniqueID);
       setFavoriteIDs(prev => prev.filter(id => id !== uniqueID));
       setFavoriteProducts(prev => prev.filter(product => product.uniqueID !== uniqueID));
@@ -189,7 +176,7 @@ export const FavoritesProvider = ({ children }) => {
   // Método para limpiar todos los favoritos (opcional)
   const clearFavorites = () => {
     if (currentUser) {
-      // Implementa la lógica para limpiar los favoritos en la base de datos si es necesario
+      // Implementar si se desea limpiar en Firestore
     } else {
       clearLocalFavorites();
       setFavoriteIDs([]);
@@ -197,13 +184,23 @@ export const FavoritesProvider = ({ children }) => {
     }
   };
 
-  // Cargar los favoritos al montar o al cambiar el usuario
+  // Esperar a que se establezca la cookie antes de cargar los favoritos si hay usuario
   useEffect(() => {
-    loadFavorites();
+    if (currentUser) {
+      const interval = setInterval(() => {
+        if (document.cookie.includes('session=')) {
+          clearInterval(interval);
+          loadFavorites();
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    } else {
+      // Si no hay usuario, se carga directamente
+      loadFavorites();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
-  // Cálculo de favoriteCount usando useMemo para optimización
   const favoriteCount = useMemo(() => {
     return favoriteIDs.length;
   }, [favoriteIDs]);

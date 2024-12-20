@@ -41,7 +41,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Función para cargar el carrito al iniciar o al cambiar el usuario
+  // Función para cargar el carrito
   const loadCart = async () => {
     setLoading(true);
     setError(null);
@@ -50,18 +50,9 @@ export const CartProvider = ({ children }) => {
 
       if (currentUser) {
         // Obtener ítems del carrito desde la API
-        console.log(currentUser)
         const res = await fetch('/api/cart/getItems', { method: 'GET', credentials: 'include' });
 
         if (!res.ok) {
-        //   if (res.status === 401) {
-        //     setError('La sesión ha expirado, por favor inicia sesión nuevamente.');
-        //     setCartItems([]);
-        //     setProducts([]);
-        //     setLoading(false);
-        //     await handleSignOut(); // Cerrar sesión en Firebase sin redirigir
-        //     return;
-        //   }
           const data = await res.json();
           throw new Error(data.error || 'Error al obtener el carrito');
         }
@@ -73,7 +64,7 @@ export const CartProvider = ({ children }) => {
         const localCart = getLocalCart();
         if (localCart.length > 0) {
           for (const item of localCart) {
-            await addItemToCart(item, false); // false indica que no se desea actualizar el conteo aquí
+            await addItemToCart(item, false); 
           }
           clearLocalCart();
         }
@@ -102,11 +93,6 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Cargar el carrito cuando el componente se monta o el usuario cambia
-  useEffect(() => {
-    loadCart();
-  }, [currentUser]);
-
   // Método para agregar un producto al carrito
   const addItemToCart = async (item, updateCount = true) => {
     if (currentUser) {
@@ -123,7 +109,6 @@ export const CartProvider = ({ children }) => {
           throw new Error(data.error || 'Error al agregar el producto al carrito.');
         }
 
-        // Actualizar el estado local
         setCartItems(prev => {
           const existingItem = prev.find(i => i.uniqueID === item.uniqueID && i.size === item.size);
           if (existingItem) {
@@ -136,7 +121,9 @@ export const CartProvider = ({ children }) => {
             return [...prev, item];
           }
         });
-        await fetchProductDetails([...cartItems.map(i => i.uniqueID), item.uniqueID]);
+        if (updateCount) {
+          await fetchProductDetails([...cartItems.map(i => i.uniqueID), item.uniqueID]);
+        }
       } catch (error) {
         console.error('Error al agregar al carrito:', error);
         setError(error.message);
@@ -157,7 +144,6 @@ export const CartProvider = ({ children }) => {
         }
       });
       if (updateCount) {
-        // Solo actualizar detalles de productos si es una acción directa del usuario
         await fetchProductDetails([...cartItems.map(i => i.uniqueID), item.uniqueID]);
       }
     }
@@ -166,7 +152,6 @@ export const CartProvider = ({ children }) => {
   // Método para eliminar un producto del carrito
   const removeItemFromCart = async (uniqueID, size) => {
     if (currentUser) {
-      // Eliminar del carrito en la base de datos vía API
       try {
         const res = await fetch('/api/cart/removeItem', {
           method: 'POST',
@@ -179,7 +164,6 @@ export const CartProvider = ({ children }) => {
           throw new Error(data.error || 'Error al eliminar el producto del carrito.');
         }
 
-        // Actualizar el estado local
         setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID && item.size === size)));
         setProducts(prev => prev.filter(product => product.uniqueID !== uniqueID));
       } catch (error) {
@@ -187,7 +171,6 @@ export const CartProvider = ({ children }) => {
         setError(error.message);
       }
     } else {
-      // Eliminar del carrito en el localStorage
       removeFromLocalCart(uniqueID, size);
       setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID && item.size === size)));
       setProducts(prev => prev.filter(product => product.uniqueID !== uniqueID));
@@ -197,7 +180,7 @@ export const CartProvider = ({ children }) => {
   // Método para limpiar el carrito (opcional)
   const clearCart = () => {
     if (currentUser) {
-      // Implementa la lógica para limpiar el carrito en la base de datos si es necesario
+      // Implementar si se desea limpiar en Firestore
     } else {
       clearLocalCart();
       setCartItems([]);
@@ -205,25 +188,23 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Sincronizar el carrito del localStorage al iniciar sesión
+  // Esperar a que se establezca la cookie antes de cargar el carrito si el usuario está logueado
   useEffect(() => {
-    const synchronizeCart = async () => {
-      if (currentUser) {
-        const localCart = getLocalCart();
-        if (localCart.length > 0) {
-          for (const item of localCart) {
-            await addItemToCart(item, false); // false para no actualizar el conteo aquí
-          }
-          clearLocalCart();
-          await loadCart(); // Recargar el carrito desde Firestore
+    if (currentUser) {
+      const interval = setInterval(() => {
+        if (document.cookie.includes('session=')) {
+          clearInterval(interval);
+          loadCart();
         }
-      }
-    };
-
-    synchronizeCart();
+      }, 100);
+      return () => clearInterval(interval);
+    } else {
+      // Si no hay usuario, se carga directamente
+      loadCart();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
-  // Cálculo de cartCount usando useMemo para optimización
   const cartCount = useMemo(() => {
     return cartItems.reduce((acc, item) => acc + item.qty, 0);
   }, [cartItems]);
@@ -238,8 +219,8 @@ export const CartProvider = ({ children }) => {
         addItemToCart,
         removeItemFromCart,
         clearCart,
-        loadCart, // Exponer si necesitas recargar manualmente
-        cartCount, // Exponer el conteo total de productos
+        loadCart, 
+        cartCount,
       }}
     >
       {children}

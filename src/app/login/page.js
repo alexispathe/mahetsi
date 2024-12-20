@@ -41,7 +41,7 @@ export default function LoginPage() {
           clearLocalCart();
           clearLocalFavorites();
           // Redirigir al perfil o a la página deseada
-          // window.location.href = "/profile/user";
+          window.location.href = "/profile/user";
         } else {
           const errorData = await res.json();
           console.error('Error al crear sesión:', errorData.error);
