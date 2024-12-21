@@ -9,7 +9,7 @@ export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true); // Nuevo estado para indicar si la autenticación está cargando
+  const [authLoading, setAuthLoading] = useState(true); 
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {

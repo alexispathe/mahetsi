@@ -4,7 +4,6 @@
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { AuthContext } from './AuthContext';
 import { getLocalFavorites, addToLocalFavorites, removeFromLocalFavorites, clearLocalFavorites } from '@/app/utils/favoritesLocalStorage';
-import { auth } from '@/libs/firebaseClient'; // Importar Firebase Auth
 
 export const FavoritesContext = createContext();
 

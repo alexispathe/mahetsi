@@ -195,9 +195,8 @@ export const CartProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!authLoading) { 
+    
       loadCart();
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, authLoading]);
 
