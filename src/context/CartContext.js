@@ -5,17 +5,17 @@
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import { AuthContext } from './AuthContext';
 import { getLocalCart, addToLocalCart, removeFromLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage';
+import { auth } from '@/libs/firebaseClient'; // Importar para usar auth.signOut()
 
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const { currentUser, authLoading } = useContext(AuthContext);
-  const [cartItems, setCartItems] = useState([]); // [{ uniqueID, size, qty }, ...]
-  const [products, setProducts] = useState([]);   // Detalles de productos
+  const [cartItems, setCartItems] = useState([]); 
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Función para obtener los detalles de los productos a partir de los uniqueIDs
   const fetchProductDetails = async (uniqueIDs) => {
     if (uniqueIDs.length === 0) {
       setProducts([]);
@@ -42,12 +42,24 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Función para cargar el carrito para usuarios autenticados
   const loadAuthenticatedCart = async () => {
     try {
       const res = await fetch('/api/cart/getItems', { method: 'GET', credentials: 'include' });
-
+      
+      // Si el servidor devuelve 401, significa que no hay sesión válida
       if (!res.ok) {
+        if (res.status === 401) {
+          // Sign out
+          await auth.signOut();
+          // Limpiar el cart del contexto
+          setCartItems([]);
+          setProducts([]);
+          // Cargar el carrito local ya que el user ya no está logueado
+          loadLocalCart();
+          return; 
+        }
+
+        // Si es otro error distinto a 401
         const data = await res.json();
         throw new Error(data.error || 'Error al obtener el carrito');
       }
@@ -73,7 +85,6 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Función para cargar el carrito para usuarios no autenticados
   const loadLocalCart = () => {
     const items = getLocalCart();
     setCartItems(items);
@@ -81,12 +92,11 @@ export const CartProvider = ({ children }) => {
     fetchProductDetails(uniqueIDs);
   };
 
-  // Función principal para cargar el carrito
   const loadCart = async () => {
     setLoading(true);
     setError(null);
     try {
-      if (currentUser && authLoading ==false) {
+      if (currentUser && authLoading === false) {
         await loadAuthenticatedCart();
       } else {
         loadLocalCart();
@@ -99,22 +109,34 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Método para agregar un producto al carrito
   const addItemToCart = async (item, updateCount = true) => {
     if (currentUser) {
-      // Agregar al carrito en la base de datos vía API
       try {
         const res = await fetch('/api/cart/addItem', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(item),
+          credentials: 'include'
         });
 
         if (!res.ok) {
+          if (res.status === 401) {
+            // Sesión expirada o inválida
+            await auth.signOut();
+            // Cambiar a carrito local
+            addToLocalCart(item);
+            setCartItems(prev => [...prev, item]);
+            if (updateCount) {
+              await fetchProductDetails([...cartItems.map(i => i.uniqueID), item.uniqueID]);
+            }
+            return;
+          }
+
           const data = await res.json();
           throw new Error(data.error || 'Error al agregar el producto al carrito.');
         }
 
+        // Si todo va bien (sesión todavía válida)
         setCartItems(prev => {
           const existingItem = prev.find(i => i.uniqueID === item.uniqueID && i.size === item.size);
           if (existingItem) {
@@ -127,15 +149,17 @@ export const CartProvider = ({ children }) => {
             return [...prev, item];
           }
         });
+        
         if (updateCount) {
           await fetchProductDetails([...cartItems.map(i => i.uniqueID), item.uniqueID]);
         }
+
       } catch (error) {
         console.error('Error al agregar al carrito:', error);
         setError(error.message);
       }
     } else {
-      // Agregar al carrito en el localStorage
+      // Usuario no autenticado, usar localStorage
       addToLocalCart(item);
       setCartItems(prev => {
         const existingItem = prev.find(i => i.uniqueID === item.uniqueID && i.size === item.size);
@@ -155,7 +179,6 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Método para eliminar un producto del carrito
   const removeItemFromCart = async (uniqueID, size) => {
     if (currentUser) {
       try {
@@ -163,9 +186,19 @@ export const CartProvider = ({ children }) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ uniqueID, size }),
+          credentials: 'include'
         });
 
         if (!res.ok) {
+          if (res.status === 401) {
+            // Sesión expirada
+            await auth.signOut();
+            removeFromLocalCart(uniqueID, size);
+            setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID && item.size === size)));
+            setProducts(prev => prev.filter(product => product.uniqueID !== uniqueID));
+            return;
+          }
+
           const data = await res.json();
           throw new Error(data.error || 'Error al eliminar el producto del carrito.');
         }
@@ -183,10 +216,9 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Método para limpiar el carrito (opcional)
   const clearCart = () => {
     if (currentUser) {
-      // Implementar si se desea limpiar en Firestore
+      // Si quisieras limpiar el carrito en Firestore puedes hacerlo aquí
     } else {
       clearLocalCart();
       setCartItems([]);
@@ -195,8 +227,9 @@ export const CartProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    
+    if (!authLoading) {
       loadCart();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, authLoading]);
 
