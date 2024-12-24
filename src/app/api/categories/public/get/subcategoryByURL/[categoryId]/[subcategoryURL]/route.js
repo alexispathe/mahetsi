@@ -1,3 +1,4 @@
+// src/app/api/categories/public/get/subcategoryByURL/[categoryId]/[subcategoryURL]/route.js
 import { NextResponse } from 'next/server';
 import { firestore } from '../../../../../../../../libs/firebaseAdmin';
 

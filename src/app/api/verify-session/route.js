@@ -45,3 +45,4 @@ export async function GET(request) {
     return NextResponse.json({ message: 'Error interno del servidor', error: error.message }, { status: 500 });
   }
 }
+

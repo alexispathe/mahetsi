@@ -1,7 +1,7 @@
 // src/app/api/shoppingCart/public/get/cartIds/route.js
-
+//Devuelve los productos guardados en el carrito de comrpas mediante los ids que se le pase
 import { NextResponse } from 'next/server';
-import { firestore } from '../../../../../../libs/firebaseAdmin'; // Ajusta la ruta según tu estructura
+import { firestore } from '../../../../../../libs/firebaseAdmin'; 
 
 export async function POST(request) {
   try {

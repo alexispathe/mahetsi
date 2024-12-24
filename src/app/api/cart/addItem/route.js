@@ -1,5 +1,5 @@
 // src/app/api/cart/addItem/route.js
-
+// Agrega los productos al carrito de compras dependidendo del id del usuario
 import { NextResponse } from 'next/server';
 import { authAdmin, firestore } from '@/libs/firebaseAdmin';
 import { cookies } from 'next/headers';
