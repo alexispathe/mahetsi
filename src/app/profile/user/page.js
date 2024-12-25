@@ -1,5 +1,3 @@
-// src/app/profile/user/page.js
-
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { authAdmin, getUserDocument, getRolePermissions } from '@/libs/firebaseAdmin';
@@ -82,4 +80,3 @@ export default async function ProfilePage() {
     </>
   );
 }
-  

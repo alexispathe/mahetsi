@@ -25,15 +25,15 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
     }
 
-    // Crear la sesión de usuario
-    const expiresInMilliseconds = 24 * 60 * 60 * 1000; // 1 día en ms
+    // Crear la sesión de usuario con una duración de 1 minuto
+    const expiresInMilliseconds = 5 * 60 * 1000; // 5 minutos en ms
     const sessionCookie = await authAdmin.createSessionCookie(idToken, { expiresIn: expiresInMilliseconds });
 
     // Verificar el token para obtener la información del usuario
     const decodedToken = await authAdmin.verifySessionCookie(sessionCookie, true);
 
     if (!decodedToken) {
-      return NextResponse.json({ error: 'Sesion expirada o no válida' }, { status: 401 });
+      return NextResponse.json({ error: 'Sesión expirada o no válida' }, { status: 401 });
     }
 
     const { uid, displayName, email } = decodedToken;
@@ -48,69 +48,35 @@ export async function POST(request) {
         email: email || '',
         dateCreated: timestamp,
         dateModified: timestamp,
-        rolID: "gB4kyZZNT8HLbsyTBRGi",
+        rolID: 'gB4kyZZNT8HLbsyTBRGi',
         ownerId: uid,
       });
     } else {
       await userRef.update({ dateModified: admin.firestore.FieldValue.serverTimestamp() });
     }
 
-    // Sincronizar el carrito si se proporcionan ítems
-    if (Array.isArray(items) && items.length > 0) {
+    // Sincronizar carrito y favoritos si se proporcionan
+    const syncItems = async (items, collectionName, uid) => {
       const batch = firestore.batch();
       items.forEach((item) => {
-        const { uniqueID, size, qty } = item;
-        if (!uniqueID || !size || !qty) return; // Omite ítems inválidos
-
-        const itemRef = firestore
-          .collection('carts')
-          .doc(uid)
-          .collection('items')
-          .doc(`${uniqueID}_${size}`);
-
-        batch.set(
-          itemRef,
-          {
-            uniqueID,
-            size,
-            qty,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          },
-          { merge: true } // Merge para actualizar si existe
-        );
+        const ref = firestore.collection(collectionName).doc(uid).collection('items').doc(item.uniqueID);
+        batch.set(ref, item, { merge: true });
       });
-
       await batch.commit();
-      console.log('Carrito sincronizado exitosamente.');
-    }
+    };
 
-    // Sincronizar los favoritos si se proporcionan
-    if (Array.isArray(favorites) && favorites.length > 0) {
-      const batch = firestore.batch();
-      favorites.forEach((uniqueID) => {
-        const favRef = firestore.collection('favorites').doc(uid).collection('items').doc(uniqueID);
-        batch.set(
-          favRef,
-          {
-            uniqueID,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          },
-          { merge: true }
-        );
-      });
+    if (Array.isArray(items) && items.length > 0) await syncItems(items, 'carts', uid);
+    if (Array.isArray(favorites) && favorites.length > 0) await syncItems(favorites, 'favorites', uid);
 
-      await batch.commit();
-      console.log('Favoritos sincronizados exitosamente.');
-    }
-
-    // Configurar la cookie de sesión
+    // Configurar la cookie de sesión con la nueva duración
     const response = NextResponse.json({ status: 'success' });
+    console.log('Cookie set:', response.cookies);
     response.cookies.set('session', sessionCookie, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Solo en producción la cookie será segura
+      secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: 60 * 60 , // 1 día en segundos
       sameSite: 'strict',
+      maxAge: 5 * 60, // 1 minuto en segundos
     });
 
     return response;

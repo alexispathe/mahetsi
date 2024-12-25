@@ -4,14 +4,24 @@
 
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
-import { useState} from 'react';
+import { useState,useEffect} from 'react';
 import Header from '../components/Header';
 import { getLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage'; // Importar utilidades del carrito
 import { getLocalFavorites, clearLocalFavorites } from '@/app/utils/favoritesLocalStorage'; // Importar utilidades de favoritos
-
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const checkAuth = async () => {
+      const user = auth.currentUser; // Verifica si hay un usuario autenticado
+      console.log(user)
   
+      if (user) {
+        router.push('/profile/user');
+      }
+    };
+  
+    checkAuth();
+  }, []);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
