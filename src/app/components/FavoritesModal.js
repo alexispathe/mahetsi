@@ -18,7 +18,7 @@ export default function FavoritesModal({ isOpen, onClose }) {
     error,
     removeFavorite,
   } = useContext(FavoritesContext);
-  console.log("favoritos", favoriteProducts);
+  // console.log("favoritos", favoriteProducts);
 
   // Cerrar el modal al hacer clic fuera de él
   useEffect(() => {

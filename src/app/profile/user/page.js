@@ -7,8 +7,12 @@ import AdminButton from './AdminButton';
 import Header from '@/app/components/Header';
 import LogoutButton from './LogoutButton'; 
 import Image from 'next/image';
+import { auth } from '@/libs/firebaseClient';
 
 export default async function ProfilePage() {
+    const user = auth.currentUser; // Verifica si hay un usuario autenticado
+    console.log("usuario de perfil ",user)
+
   const cookieStore = await cookies();
   const session = cookieStore.get('session')?.value;
 

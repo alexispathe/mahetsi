@@ -1,47 +1,70 @@
 // src/app/api/sessionLogin/route.js
 import { NextResponse } from 'next/server';
 import { authAdmin, firestore } from '@/libs/firebaseAdmin';
-import admin from 'firebase-admin';
+import { z } from 'zod';
 
-// Asegúrate de que Firebase Admin esté inicializado
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    }),
-  });
-}
+// Definir el esquema de validación
+const sessionLoginSchema = z.object({
+  idToken: z.string(),
+  items: z.array(z.object({
+    uniqueID: z.string(),
+  })).optional(),
+  favorites: z.array(z.object({
+    uniqueID: z.string(),
+  })).optional(),
+});
+
+// Función para sincronizar items
+const syncItems = async (firestore, uid, items, collectionName) => {
+  if (!Array.isArray(items) || items.length === 0) return;
+  
+  const batch = firestore.batch();
+  const collectionRef = firestore.collection(collectionName).doc(uid).collection('items');
+  
+  for (const item of items) {
+    if (item && item.uniqueID) {
+      const itemRef = collectionRef.doc(item.uniqueID);
+      batch.set(itemRef, item, { merge: true });
+    }
+  }
+  
+  await batch.commit();
+};
 
 export async function POST(request) {
   try {
-    // Extraer datos del cuerpo de la solicitud
+    // Validar y extraer datos del cuerpo de la solicitud
     const body = await request.json();
-    const { idToken, items = [], favorites = [] } = body;
+    const parsedBody = sessionLoginSchema.safeParse(body);
 
-    if (!idToken) {
-      return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
+    if (!parsedBody.success) {
+      return NextResponse.json({ 
+        error: 'Datos de entrada inválidos', 
+        details: parsedBody.error.errors 
+      }, { status: 400 });
     }
 
-    // Verificar el ID token primero
+    const { idToken, items = [], favorites = [] } = parsedBody.data;
+
+    // Verificar el ID token
     const decodedIdToken = await authAdmin.verifyIdToken(idToken);
     if (!decodedIdToken) {
-      return NextResponse.json({ error: 'Invalid ID token' }, { status: 401 });
+      return NextResponse.json({ error: 'Token de autenticación inválido' }, { status: 401 });
     }
 
-    // Crear la sesión de usuario
-    const expiresIn = 5 * 60 * 1000; // 5 minutos en milisegundos
+    const uid = decodedIdToken.uid;
+
+    // Crear la sesión de usuario con una expiración de 7 días
+    const expiresIn = 60 * 60 * 24 * 7 * 1000; // 7 días en milisegundos
     const sessionCookie = await authAdmin.createSessionCookie(idToken, { 
       expiresIn 
     });
 
-    // Verificar que la cookie de sesión se creó correctamente
     if (!sessionCookie) {
       throw new Error('Failed to create session cookie');
     }
 
-    const { uid, email, name: displayName } = decodedIdToken;
+    const { email, name: displayName } = decodedIdToken;
     
     // Actualizar o crear documento de usuario
     const userRef = firestore.collection('users').doc(uid);
@@ -64,43 +87,25 @@ export async function POST(request) {
       });
     }
 
-    // Función para sincronizar items (carrito o favoritos)
-    const syncItems = async (items, collectionName) => {
-      if (!Array.isArray(items) || items.length === 0) return;
-      
-      const batch = firestore.batch();
-      const collectionRef = firestore.collection(collectionName).doc(uid).collection('items');
-      
-      for (const item of items) {
-        if (item && item.uniqueID) {
-          const itemRef = collectionRef.doc(item.uniqueID);
-          batch.set(itemRef, item, { merge: true });
-        }
-      }
-      
-      await batch.commit();
-    };
-
     // Sincronizar carrito y favoritos
     await Promise.all([
-      syncItems(items, 'carts'),
-      syncItems(favorites, 'favorites')
+      syncItems(firestore, uid, items, 'carts'),
+      syncItems(firestore, uid, favorites, 'favorites')
     ]);
 
-    // Crear y configurar la respuesta
+    // Crear y configurar la respuesta sin incluir el sessionCookie en el cuerpo
     const response = NextResponse.json({ 
       status: 'success',
-      session: sessionCookie,
       uid: uid
     });
 
-    // Configurar la cookie de sesión
+    // Configurar la cookie de sesión con una expiración de 7 días
     response.cookies.set('session', sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       sameSite: 'strict',
-      maxAge: 5 * 60, // 5 minutos en segundos
+      maxAge: 60 * 60 * 24 * 7, // 7 días en segundos
     });
 
     return response;
@@ -122,6 +127,16 @@ export async function POST(request) {
         error: 'La sesión ha expirado' 
       }, { 
         status: 401 
+      });
+    }
+
+    // Manejo de validaciones de Zod
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ 
+        error: 'Datos de entrada inválidos',
+        details: error.errors
+      }, { 
+        status: 400 
       });
     }
 

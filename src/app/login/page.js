@@ -13,7 +13,7 @@ export default function LoginPage() {
   useEffect(() => {
     const checkAuth = async () => {
       const user = auth.currentUser; // Verifica si hay un usuario autenticado
-      console.log(user)
+      console.log("usuario del login ", user)
   
       if (user) {
         router.push('/profile/user');
