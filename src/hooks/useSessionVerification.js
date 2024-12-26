@@ -1,4 +1,6 @@
 // src/app/profile/admin/dashboard/hooks/useSessionVerification.js
+//Se encarga de verificar que la sesion exista y se tenga los permisos necesarios para renderizar contenido
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 

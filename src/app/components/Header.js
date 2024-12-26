@@ -1,5 +1,3 @@
-// src/components/Header.js
-
 'use client';
 
 import { useState, useEffect, useContext } from "react";
@@ -9,8 +7,8 @@ import SearchModal from "./SearchModal";
 import CartDrawer from "./CartDrawer";
 import FavoritesModal from "./FavoritesModal"; // Importar el nuevo modal
 import Link from 'next/link'; // Importar Link de next/link
-import { AuthContext } from "@/context/AuthContext"; // Asegúrate de tener tu contexto de autenticación
-import { CartContext } from "@/context/CartContext"; // Importar CartContext
+import { AuthContext } from "@/context/AuthContext"; // Contexto de autenticación
+import { CartContext } from "@/context/CartContext"; // Contexto del carrito
 
 export default function Header({ textColor = 'text-white', position = "absolute" }) { 
   const [isHovered, setIsHovered] = useState(false);
@@ -19,7 +17,7 @@ export default function Header({ textColor = 'text-white', position = "absolute"
   const [isMenuOpen, setMenuOpen] = useState(false);
   const [isFavoritesOpen, setFavoritesOpen] = useState(false); // Estado para favoritos
 
-  const { currentUser } = useContext(AuthContext); // Obtener el usuario actual
+  const { currentUser, authLoading } = useContext(AuthContext); // Obtener el usuario y estado de autenticación
   const { cartCount } = useContext(CartContext); // Obtener el conteo de productos del carrito
 
   const [categories, setCategories] = useState([]);
@@ -37,7 +35,7 @@ export default function Header({ textColor = 'text-white', position = "absolute"
         const data = await response.json();
         setCategories(data.categories);
 
-        // Opcional: Si necesitas tener un objeto de subcategorías por categoría
+        // Crear subcategorías
         const subcats = {};
         data.categories.forEach(category => {
           if (category.subcategories) {
@@ -45,7 +43,6 @@ export default function Header({ textColor = 'text-white', position = "absolute"
           }
         });
         setSubcategories(subcats);
-
         setIsLoading(false);
       } catch (err) {
         console.error(err);
@@ -85,7 +82,6 @@ export default function Header({ textColor = 'text-white', position = "absolute"
         <nav className="hidden md:flex space-x-6">
           {isLoading ? (
             <div className="flex gap-6">
-              {/* Skeleton de categorías */}
               <div className="w-24 h-8 bg-gray-300 animate-pulse rounded-md"></div>
               <div className="w-24 h-8 bg-gray-300 animate-pulse rounded-md"></div>
               <div className="w-24 h-8 bg-gray-300 animate-pulse rounded-md"></div>
@@ -120,7 +116,7 @@ export default function Header({ textColor = 'text-white', position = "absolute"
                     </div>
                   )}
                 </div>
-              )
+              );
             })
           )}
           <Link href="/contacto" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
@@ -135,16 +131,21 @@ export default function Header({ textColor = 'text-white', position = "absolute"
             onClick={handleSearchClick}
             aria-label="Buscar"
           />
-          {/* Icono de Favoritos */}
           <FaHeart
             className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
             onClick={handleFavoritesClick}
             aria-label="Favoritos"
           />
           {/* Condicional para Usuario */}
-          {currentUser ? (
+          {authLoading ? (
+            <span className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-gray-700`}>
+              Cargando...
+            </span>
+          ) : currentUser ? (
             <FaUser
-              className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`} onClick={redirectProfile}
+              className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
+              onClick={redirectProfile}
+              aria-label="Perfil de usuario"
             />
           ) : (
             <Link href="/login" className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-gray-700`} aria-label="Ingresar">
@@ -194,7 +195,7 @@ export default function Header({ textColor = 'text-white', position = "absolute"
                   </Link>
                   {filteredSubcategories.length > 0 && (
                     <ul className="pl-4 mt-2 space-y-2">
-                      {filteredSubcategories.map(subcat => (
+                      {filteredSubcategories.map((subcat) => (
                         <li key={subcat.uniqueID}>
                           <Link 
                             href={`/category/${category.url}/${subcat.url}`} 
@@ -208,7 +209,7 @@ export default function Header({ textColor = 'text-white', position = "absolute"
                     </ul>
                   )}
                 </li>
-              )
+              );
             })}
             <li><Link href="/contacto" className="cursor-pointer hover:text-gray-700">Contacto</Link></li>
           </ul>
@@ -217,7 +218,6 @@ export default function Header({ textColor = 'text-white', position = "absolute"
 
       <SearchModal isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
       <CartDrawer isOpen={isCartOpen} onClose={() => setCartOpen(false)} />
-      {/* Modal de Favoritos */}
       <FavoritesModal isOpen={isFavoritesOpen} onClose={() => setFavoritesOpen(false)} />
     </header>
   );

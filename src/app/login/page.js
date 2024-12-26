@@ -1,57 +1,52 @@
 // src/app/login/page.jsx
-
 'use client';
 
+import { useEffect, useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 import { auth, provider } from '@/libs/firebaseClient';
-import { useState,useEffect} from 'react';
+import { getLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage';
+import { getLocalFavorites, clearLocalFavorites } from '@/app/utils/favoritesLocalStorage';
 import Header from '../components/Header';
-import { getLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage'; // Importar utilidades del carrito
-import { getLocalFavorites, clearLocalFavorites } from '@/app/utils/favoritesLocalStorage'; // Importar utilidades de favoritos
+import useSessionCheck from '@/hooks/useSessionCheck';
+
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
+  const { loading, sessionActive } = useSessionCheck();
+  const [loginLoading, setLoginLoading] = useState(false);
+  const router = useRouter();
+
   useEffect(() => {
-    const checkAuth = async () => {
-      const user = auth.currentUser; // Verifica si hay un usuario autenticado
-      console.log("usuario del login ", user)
-  
-      if (user) {
-        router.push('/profile/user');
-      }
-    };
-  
-    checkAuth();
-  }, []);
+    if (sessionActive) {
+      router.push('/profile/user');
+    }
+  }, [sessionActive, router]);
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
+    setLoginLoading(true);
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
       if (user) {
         const idToken = await user.getIdToken();
-        const localCart = getLocalCart(); // Obtener carrito local
-        const localFavorites = getLocalFavorites(); // Obtener favoritos locales
+        const localCart = getLocalCart();
+        const localFavorites = getLocalFavorites();
 
-        // Enviar al API route para crear la cookie y gestionar Firestore
         const res = await fetch('/api/sessionLogin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', // Incluir credenciales para enviar cookies
-          body: JSON.stringify({ 
-            idToken, 
-            items: localCart, // Enviar carrito
-            favorites: localFavorites, // Enviar favoritos
+          credentials: 'include',
+          body: JSON.stringify({
+            idToken,
+            items: localCart,
+            favorites: localFavorites,
           }),
         });
 
         if (res.ok) {
-          // Limpiar el carrito y favoritos locales después de la sincronización
           clearLocalCart();
           clearLocalFavorites();
-          // Redirigir al perfil o a la página deseada
-          window.location.href = "/profile/user";
+          router.push('/profile/user');
         } else {
           const errorData = await res.json();
           console.error('Error al crear sesión:', errorData.error);
@@ -62,26 +57,34 @@ export default function LoginPage() {
       console.error('Error con el login:', error.message);
       alert(`Error con el login: ${error.message}`);
     } finally {
-      setLoading(false);
+      setLoginLoading(false);
     }
   };
 
   return (
     <>
-      <Header textColor='text-black' />
-      <div className="flex justify-center items-center min-h-screen bg-gray-100 py-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm">
-          <h1 className="text-2xl font-semibold text-center text-gray-700 mb-4">Iniciar Sesión</h1>
-          <p className="text-center text-gray-500 mb-6">Autenticación con Google</p>
-          <button
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className={`w-full py-2 px-4 rounded-lg text-white font-semibold bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 transition-all duration-200`}
-          >
-            {loading ? 'Cargando...' : 'Iniciar con Google'}
-          </button>
+      {loading ? (
+        <div className="flex justify-center items-center min-h-screen bg-gray-100">
+          <p className="text-gray-600">Verificando sesión...</p>
         </div>
-      </div>
+      ) : (
+        <>
+          <Header textColor="text-black" />
+          <div className="flex justify-center items-center min-h-screen bg-gray-100 py-4">
+            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm">
+              <h1 className="text-2xl font-semibold text-center text-gray-700 mb-4">Iniciar Sesión</h1>
+              <p className="text-center text-gray-500 mb-6">Autenticación con Google</p>
+              <button
+                onClick={handleGoogleLogin}
+                disabled={loginLoading}
+                className={`w-full py-2 px-4 rounded-lg text-white font-semibold bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 transition-all duration-200`}
+              >
+                {loginLoading ? 'Iniciando sesión...' : 'Iniciar con Google'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

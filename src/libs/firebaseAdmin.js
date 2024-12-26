@@ -20,7 +20,6 @@ if (!admin.apps.length) {
 
 const firestore = admin.firestore();
 const authAdmin = admin.auth();
-
 export { firestore, authAdmin };
 
 // Verificar Token de sesión (en server)

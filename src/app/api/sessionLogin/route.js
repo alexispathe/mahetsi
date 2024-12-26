@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { authAdmin, firestore } from '@/libs/firebaseAdmin';
 import { z } from 'zod';
-
+import admin from 'firebase-admin'
 // Definir el esquema de validación
 const sessionLoginSchema = z.object({
   idToken: z.string(),
