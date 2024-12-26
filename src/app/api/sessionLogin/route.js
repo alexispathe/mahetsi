@@ -8,9 +8,13 @@ const sessionLoginSchema = z.object({
   idToken: z.string(),
   items: z.array(z.object({
     uniqueID: z.string(),
+    qty: z.number(),
+    size: z.string()
   })).optional(),
   favorites: z.array(z.object({
     uniqueID: z.string(),
+    qty: z.number(),
+    size: z.string()
   })).optional(),
 });
 
