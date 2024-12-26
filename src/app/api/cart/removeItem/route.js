@@ -16,13 +16,13 @@ export async function POST(request) {
     const decodedClaims = await authAdmin.verifySessionCookie(sessionCookie, true);
     const uid = decodedClaims.uid;
 
-    const { uniqueID, size } = await request.json();
+    const { uniqueID, } = await request.json();
 
-    if (!uniqueID || !size) {
+    if (!uniqueID ) {
       return NextResponse.json({ error: 'uniqueID and size are required.' }, { status: 400 });
     }
 
-    const itemRef = firestore.collection('carts').doc(uid).collection('items').doc(`${uniqueID}_${size}`);
+    const itemRef = firestore.collection('carts').doc(uid).collection('items').doc(`${uniqueID}`);
     await itemRef.delete();
 
     return NextResponse.json({ status: 'success' }, { status: 200 });
