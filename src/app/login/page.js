@@ -1,25 +1,24 @@
 // src/app/login/page.jsx
 'use client';
-
-import { useEffect, useState } from 'react';
-import { signInWithPopup } from 'firebase/auth';
+import { useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
 import { getLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage';
 import { getLocalFavorites, clearLocalFavorites } from '@/app/utils/favoritesLocalStorage';
 import Header from '../components/Header';
-import useSessionCheck from '@/hooks/useSessionCheck';
+import { AuthContext } from '@/context/AuthContext';
 
 export default function LoginPage() {
-  const { loading, sessionActive } = useSessionCheck();
+  const { currentUser, authLoading } = useContext(AuthContext); // Usar el contexto
   const [loginLoading, setLoginLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    if (sessionActive) {
-      router.push('/profile/user');
+    if (!authLoading && currentUser) {
+      router.push('/profile/user'); // Redirige si ya está autenticado
     }
-  }, [sessionActive, router]);
+  }, [authLoading, currentUser, router]);
 
   const handleGoogleLogin = async () => {
     setLoginLoading(true);
@@ -63,7 +62,7 @@ export default function LoginPage() {
 
   return (
     <>
-      {loading ? (
+      {authLoading ? (
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
           <p className="text-gray-600">Verificando sesión...</p>
         </div>

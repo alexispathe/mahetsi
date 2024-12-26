@@ -1,40 +1,34 @@
 // src/hooks/useSessionCheck.js
 //Se encarga de verificar que la sesion exista para renderizar contenido
-'use client';
-import { createContext, useEffect, useState } from 'react';
-export const AuthContext = createContext();
-export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+import { useEffect, useState } from 'react';
+
+export default function useSessionCheck() {
+  const [loading, setLoading] = useState(true);
+  const [sessionActive, setSessionActive] = useState(false);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const checkSession = async () => {
       try {
-        const res = await fetch('/api/verify-session', {
+        const res = await fetch('/api/sessionCheck', {
           method: 'GET',
-          credentials: 'include', // Incluir las cookies
+          credentials: 'include',
         });
 
         if (res.ok) {
           const data = await res.json();
-          setCurrentUser(data.user || null); // Establecer los datos del usuario
-        } else {
-          setCurrentUser(null); // Si no está autenticado
+          if (data.sessionActive) {
+            setSessionActive(true);
+          }
         }
       } catch (error) {
-        console.error('Error al verificar la sesión:', error.message);
-        setCurrentUser(null); // En caso de error
+        console.error('Error verificando la sesión:', error.message);
       } finally {
-        setAuthLoading(false); // Finalizar la carga
+        setLoading(false);
       }
     };
 
-    fetchUserData();
+    checkSession();
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ currentUser, authLoading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return { loading, sessionActive };
 }
