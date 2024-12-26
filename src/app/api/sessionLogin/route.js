@@ -26,7 +26,7 @@ export async function POST(request) {
     }
 
     // Crear la sesión de usuario con una duración de 1 minuto
-    const expiresInMilliseconds = 5 * 60 * 1000; // 5 minutos en ms
+    const expiresInMilliseconds = 5 * 60 * 1000; // 1 minuto en ms
     const sessionCookie = await authAdmin.createSessionCookie(idToken, { expiresIn: expiresInMilliseconds });
 
     // Verificar el token para obtener la información del usuario
@@ -70,7 +70,6 @@ export async function POST(request) {
 
     // Configurar la cookie de sesión con la nueva duración
     const response = NextResponse.json({ status: 'success' });
-    console.log('Cookie set:', response.cookies);
     response.cookies.set('session', sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
