@@ -1,3 +1,4 @@
+// src/context/AuthContext.jsx
 'use client';
 
 import { createContext, useEffect, useState } from 'react';
@@ -9,11 +10,20 @@ export const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [sessionInitialized, setSessionInitialized] = useState(false); // Nuevo estado
 
   useEffect(() => {
+    const handleSessionReady = () => {
+      setSessionInitialized(true);
+    };
+
+    // Escuchar el evento personalizado cuando la cookie esté lista
+    window.addEventListener('sessionReady', handleSessionReady);
+
     const checkLocalSession = async () => {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user) {
+        if (user && sessionInitialized) {
+          // Solo verifica si la cookie está inicializada
           try {
             const res = await fetch('/api/verify-session', {
               method: 'GET',
@@ -24,7 +34,6 @@ export function AuthProvider({ children }) {
               const data = await res.json();
               setCurrentUser(data.user || null);
             } else if (res.status === 401) {
-              // Si la cookie expira o no es válida
               console.warn('Sesión expirada. Cerrando sesión...');
               await auth.signOut(); // Cierra sesión en Firebase
               setCurrentUser(null); // Limpia el estado del usuario
@@ -47,7 +56,11 @@ export function AuthProvider({ children }) {
     };
 
     checkLocalSession();
-  }, []);
+
+    return () => {
+      window.removeEventListener('sessionReady', handleSessionReady);
+    };
+  }, [sessionInitialized]); // Dependemos de `sessionInitialized`
 
   return (
     <AuthContext.Provider value={{ currentUser, authLoading }}>

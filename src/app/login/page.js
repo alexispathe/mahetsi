@@ -1,5 +1,6 @@
 // src/app/login/page.jsx
 'use client';
+
 import { useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
@@ -45,6 +46,10 @@ export default function LoginPage() {
         if (res.ok) {
           clearLocalCart();
           clearLocalFavorites();
+
+          // Emitir el evento de que la cookie está lista
+          window.dispatchEvent(new Event('sessionReady'));
+
           router.push('/profile/user');
         } else {
           const errorData = await res.json();
