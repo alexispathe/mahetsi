@@ -1,5 +1,4 @@
 // src/app/api/sessionLogin/route.js
-
 import { NextResponse } from 'next/server';
 import { authAdmin, firestore } from '@/libs/firebaseAdmin';
 import admin from 'firebase-admin';
@@ -8,41 +7,49 @@ import admin from 'firebase-admin';
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n'),
     }),
-    databaseURL: process.env.FIREBASE_DATABASE_URL,
   });
 }
 
 export async function POST(request) {
   try {
     // Extraer datos del cuerpo de la solicitud
-    const { idToken, items, favorites } = await request.json();
+    const body = await request.json();
+    const { idToken, items = [], favorites = [] } = body;
 
     if (!idToken) {
       return NextResponse.json({ error: 'No ID token provided' }, { status: 400 });
     }
 
-    // Crear la sesión de usuario con una duración de 1 minuto
-    const expiresInMilliseconds = 5 * 60 * 1000; // 1 minuto en ms
-    const sessionCookie = await authAdmin.createSessionCookie(idToken, { expiresIn: expiresInMilliseconds });
-
-    // Verificar el token para obtener la información del usuario
-    const decodedToken = await authAdmin.verifySessionCookie(sessionCookie, true);
-
-    if (!decodedToken) {
-      return NextResponse.json({ error: 'Sesión expirada o no válida' }, { status: 401 });
+    // Verificar el ID token primero
+    const decodedIdToken = await authAdmin.verifyIdToken(idToken);
+    if (!decodedIdToken) {
+      return NextResponse.json({ error: 'Invalid ID token' }, { status: 401 });
     }
 
-    const { uid, displayName, email } = decodedToken;
+    // Crear la sesión de usuario
+    const expiresIn = 5 * 60 * 1000; // 5 minutos en milisegundos
+    const sessionCookie = await authAdmin.createSessionCookie(idToken, { 
+      expiresIn 
+    });
+
+    // Verificar que la cookie de sesión se creó correctamente
+    if (!sessionCookie) {
+      throw new Error('Failed to create session cookie');
+    }
+
+    const { uid, email, name: displayName } = decodedIdToken;
+    
+    // Actualizar o crear documento de usuario
     const userRef = firestore.collection('users').doc(uid);
     const userDoc = await userRef.get();
 
-    // Si el documento no existe, crearlo
+    const timestamp = admin.firestore.FieldValue.serverTimestamp();
+    
     if (!userDoc.exists) {
-      const timestamp = admin.firestore.FieldValue.serverTimestamp();
       await userRef.set({
         name: displayName || '',
         email: email || '',
@@ -52,35 +59,78 @@ export async function POST(request) {
         ownerId: uid,
       });
     } else {
-      await userRef.update({ dateModified: admin.firestore.FieldValue.serverTimestamp() });
+      await userRef.update({ 
+        dateModified: timestamp 
+      });
     }
 
-    // Sincronizar carrito y favoritos si se proporcionan
-    const syncItems = async (items, collectionName, uid) => {
+    // Función para sincronizar items (carrito o favoritos)
+    const syncItems = async (items, collectionName) => {
+      if (!Array.isArray(items) || items.length === 0) return;
+      
       const batch = firestore.batch();
-      items.forEach((item) => {
-        const ref = firestore.collection(collectionName).doc(uid).collection('items').doc(item.uniqueID);
-        batch.set(ref, item, { merge: true });
-      });
+      const collectionRef = firestore.collection(collectionName).doc(uid).collection('items');
+      
+      for (const item of items) {
+        if (item && item.uniqueID) {
+          const itemRef = collectionRef.doc(item.uniqueID);
+          batch.set(itemRef, item, { merge: true });
+        }
+      }
+      
       await batch.commit();
     };
 
-    if (Array.isArray(items) && items.length > 0) await syncItems(items, 'carts', uid);
-    if (Array.isArray(favorites) && favorites.length > 0) await syncItems(favorites, 'favorites', uid);
+    // Sincronizar carrito y favoritos
+    await Promise.all([
+      syncItems(items, 'carts'),
+      syncItems(favorites, 'favorites')
+    ]);
 
-    // Configurar la cookie de sesión con la nueva duración
-    const response = NextResponse.json({ status: 'success' });
+    // Crear y configurar la respuesta
+    const response = NextResponse.json({ 
+      status: 'success',
+      session: sessionCookie,
+      uid: uid
+    });
+
+    // Configurar la cookie de sesión
     response.cookies.set('session', sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
       sameSite: 'strict',
-      maxAge: 5 * 60, // 1 minuto en segundos
+      maxAge: 5 * 60, // 5 minutos en segundos
     });
 
     return response;
+
   } catch (error) {
-    console.error('Error setting session cookie:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Error en sessionLogin:', error);
+    
+    // Manejo específico de errores
+    if (error.code === 'auth/invalid-id-token') {
+      return NextResponse.json({ 
+        error: 'Token de autenticación inválido' 
+      }, { 
+        status: 401 
+      });
+    }
+
+    if (error.code === 'auth/session-cookie-expired') {
+      return NextResponse.json({ 
+        error: 'La sesión ha expirado' 
+      }, { 
+        status: 401 
+      });
+    }
+
+    // Error general
+    return NextResponse.json({ 
+      error: 'Error interno del servidor',
+      details: error.message 
+    }, { 
+      status: 500 
+    });
   }
 }
