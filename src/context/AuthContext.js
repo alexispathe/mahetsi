@@ -11,38 +11,53 @@ export function AuthProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const res = await fetch('/api/verify-session', {
-          method: 'GET',
-          credentials: 'include', // Incluye cookies
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setCurrentUser(data.user || null); // Establecer los datos del usuario
-        } else {
-          setCurrentUser(null); // Si no está autenticado
-        }
-      } catch (error) {
-        console.error('Error verificando la sesión:', error.message);
-        setCurrentUser(null); // En caso de error
-      } finally {
-        setAuthLoading(false); // Finalizar la carga
-      }
+    const hasSessionCookie = () => {
+      // Verifica si la cookie 'session' existe
+      console.log("cookie", document.cookie)
+      return document.cookie.split(';').some((item) => item.trim().startsWith('session='));
     };
 
-    // Verificar sesión en el cliente
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        checkSession(); // Verifica si la cookie existe y es válida
+    const checkLocalSession = async () => {
+      // Solo ejecuta la verificación si existe la cookie
+      if (hasSessionCookie()) {
+        try {
+          const res = await fetch('/api/verify-session', {
+            method: 'GET',
+            credentials: 'include', // Incluye cookies
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            setCurrentUser(data.user || null);
+          } else if (res.status === 401) {
+            console.warn('Sesión expirada. Cerrando sesión...');
+            await auth.signOut(); // Cierra sesión en Firebase
+            setCurrentUser(null); // Limpia el estado del usuario
+          } else {
+            console.warn('Error desconocido con la sesión.');
+            setCurrentUser(null);
+          }
+        } catch (error) {
+          console.error('Error verificando la sesión:', error.message);
+          setCurrentUser(null);
+        }
       } else {
         setCurrentUser(null);
-        setAuthLoading(false);
+      }
+
+      setAuthLoading(false); // Finaliza la carga
+    };
+
+    // Escucha cambios en el estado de autenticación del cliente
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        setCurrentUser(null);
       }
     });
 
-    return () => unsubscribe(); // Limpieza del listener
+    checkLocalSession();
+
+    return () => unsubscribe(); // Limpia el listener
   }, []);
 
   return (

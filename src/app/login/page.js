@@ -42,7 +42,7 @@ export default function LoginPage() {
             favorites: localFavorites,
           }),
         });
-
+        console.log(res)
         if (res.ok) {
           clearLocalCart();
           clearLocalFavorites();
@@ -54,7 +54,6 @@ export default function LoginPage() {
         } else {
           const errorData = await res.json();
           console.error('Error al crear sesión:', errorData.error);
-          alert(`Error al crear sesión: ${errorData.error}`);
         }
       }
     } catch (error) {
