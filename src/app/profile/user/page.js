@@ -1,58 +1,45 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { authAdmin, getUserDocument, getRolePermissions } from '@/libs/firebaseAdmin';
-import { orders } from '../../category/data';
-import OrdersTable from './OrderTable';
-import AdminButton from './AdminButton';
+'use client';
+
+import { useContext, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { AuthContext } from '@/context/AuthContext';
 import Header from '@/app/components/Header';
 import LogoutButton from './LogoutButton'; 
 import Image from 'next/image';
-import { auth } from '@/libs/firebaseClient';
+import AdminButton from './AdminButton';
+import OrdersTable from './OrderTable';
+import { orders } from '../../category/data';
 
-export default async function ProfilePage() {
-    const user = auth.currentUser; // Verifica si hay un usuario autenticado
-    console.log("usuario de perfil ",user)
+export default function ProfilePage() {
+  const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
+  const router = useRouter();
 
-  const cookieStore = await cookies();
-  const session = cookieStore.get('session')?.value;
+  useEffect(() => {
+    // Redirige al login si no hay usuario autenticado una vez que se completa la carga
+    if (!authLoading && !sessionInitializing && !currentUser) {
+      router.push('/login');
+    }
+  }, [authLoading, sessionInitializing, currentUser, router]);
 
-  // Si no hay sesión, redirige antes de hacer nada más
-  if (!session) {
-    redirect('/login');
+  if (authLoading || sessionInitializing || !currentUser) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <p className="text-gray-600">Cargando...</p>
+      </div>
+    );
   }
 
-  // Verificamos la cookie de sesión sin try/catch,
-  // en caso de error, redirigimos de inmediato
-  const decodedClaims = await authAdmin.verifySessionCookie(session, true).catch(() => {
-    redirect('/login');
-  });
-
-  // Si por alguna razón decodedClaims no existe, redirige
-  if (!decodedClaims) {
-    redirect('/login');
-  }
-
-  const { email, name, picture, uid } = decodedClaims;
-
-  // Obtener el documento del usuario
-  const userData = await getUserDocument(uid);
-  const rolID = userData.rolID;
-
-  if (!rolID) {
-    redirect('/login');
-  }
-
-  // Obtener los permisos del rol
-  const permissions = await getRolePermissions(rolID);
+  const { email, name, picture, uid, permissions } = currentUser;
 
   // Verificar si el usuario tiene permisos 'create' o 'update'
-  const hasAdminAccess = permissions.includes('create') || permissions.includes('update');
+  const hasAdminAccess = permissions?.includes('create') || permissions?.includes('update');
 
+  // Filtrar las órdenes del usuario autenticado
   const userOrders = orders.filter(order => order.ownerId === uid);
 
   return (
     <>
-      <Header textColor='black' position={"relative"} />
+      <Header textColor="black" position="relative" />
       <div className="container mx-auto p-4">
         <div className="bg-white shadow-md rounded-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row items-center">

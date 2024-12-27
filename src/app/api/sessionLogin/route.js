@@ -68,8 +68,7 @@ export async function POST(request) {
       throw new Error('Failed to create session cookie');
     }
 
-    const { email, name: displayName } = decodedIdToken;
-    
+    const { email, name, picture } = decodedIdToken;
     // Actualizar o crear documento de usuario
     const userRef = firestore.collection('users').doc(uid);
     const userDoc = await userRef.get();
@@ -78,8 +77,9 @@ export async function POST(request) {
     
     if (!userDoc.exists) {
       await userRef.set({
-        name: displayName || '',
+        name: name || '',
         email: email || '',
+        picture: picture || '',
         dateCreated: timestamp,
         dateModified: timestamp,
         rolID: 'gB4kyZZNT8HLbsyTBRGi',
