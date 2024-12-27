@@ -1,59 +1,110 @@
 // src/app/profile/admin/dashboard/page.js
 'use client';
 
+import { useContext, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { AuthContext } from '@/context/AuthContext';
 import useFetchData from '@/hooks/useFetchData';
-import useSessionVerification from '@/hooks/useSessionVerification';
 import CollapsibleSection from './components/CollapsibleSection';
 import Header from '@/app/components/Header';
-const AdminDashboard = () => {
-  const { isVerified, loading: sessionLoading, error: sessionError } = useSessionVerification();
 
-  // Solo fetch data si la sesión está verificada
-  const shouldFetch = isVerified;
+const AdminDashboard = () => {
+  const { currentUser, authLoading } = useContext(AuthContext);
+  const router = useRouter();
+
+  // Redirigir si no está autenticado o no tiene permisos adecuados
+  useEffect(() => {
+    if (
+      !authLoading &&
+      (!currentUser ||
+        !currentUser.permissions?.includes('create') ||
+        !currentUser.permissions?.includes('update'))
+    ) {
+      router.push('/login'); // Redirige al login si no tiene permisos
+    }
+  }, [authLoading, currentUser, router]);
+
+  // Solo hacer fetch si el usuario está autenticado y tiene permisos
+  const shouldFetch =
+    currentUser?.permissions?.includes('create') &&
+    currentUser?.permissions?.includes('update');
 
   const {
     data: categories,
     loading: categoriesLoading,
     error: categoriesError,
-  } = useFetchData('/api/categories/private/get/list', 'categories');
+  } = useFetchData(
+    shouldFetch ? '/api/categories/private/get/list' : null,
+    'categories',
+    shouldFetch
+  );
 
   const {
     data: subcategories,
     loading: subcategoriesLoading,
     error: subcategoriesError,
-  } = useFetchData('/api/categories/private/subCategories/get/list', 'subcategories');
+  } = useFetchData(
+    shouldFetch ? '/api/categories/private/subCategories/get/list' : null,
+    'subcategories',
+    shouldFetch
+  );
 
   const {
     data: brands,
     loading: brandsLoading,
     error: brandsError,
-  } = useFetchData('/api/brands/private/get/list', 'brands');
+  } = useFetchData(
+    shouldFetch ? '/api/brands/private/get/list' : null,
+    'brands',
+    shouldFetch
+  );
 
   const {
     data: types,
     loading: typesLoading,
     error: typesError,
-  } = useFetchData('/api/types/private/get/list', 'types');
+  } = useFetchData(
+    shouldFetch ? '/api/types/private/get/list' : null,
+    'types',
+    shouldFetch
+  );
 
   const {
     data: products,
     loading: productsLoading,
     error: productsError,
-  } = useFetchData('/api/products/private/product/get/list', 'products');
+  } = useFetchData(
+    shouldFetch ? '/api/products/private/product/get/list' : null,
+    'products',
+    shouldFetch
+  );
 
-  const loading = sessionLoading ||
+  const loading =
+    authLoading ||
     categoriesLoading ||
     subcategoriesLoading ||
     brandsLoading ||
     typesLoading ||
     productsLoading;
 
-  const error = sessionError ||
+  const error =
     categoriesError ||
     subcategoriesError ||
     brandsError ||
     typesError ||
     productsError;
+
+  // Determinar si el usuario está autenticado y tiene permisos
+  const isAuthorized = !authLoading && shouldFetch;
+
+  if (authLoading || !isAuthorized) {
+    // Mientras se verifica la autenticación y permisos, muestra el spinner
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -66,7 +117,10 @@ const AdminDashboard = () => {
   if (error) {
     return (
       <div className="container mx-auto p-6">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+          role="alert"
+        >
           <strong className="font-bold">Error:</strong>
           <span className="block sm:inline"> {error}</span>
         </div>
@@ -76,8 +130,8 @@ const AdminDashboard = () => {
 
   return (
     <>
+      <Header textColor="black" position="relative" />
       <div className="container mx-auto p-6">
-
         <h1 className="text-4xl font-bold mb-8 text-center">Panel de Administración</h1>
 
         {/* Secciones Desplegables */}
@@ -120,7 +174,6 @@ const AdminDashboard = () => {
         </div>
       </div>
     </>
-
   );
 };
 

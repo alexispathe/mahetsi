@@ -21,6 +21,17 @@ export default function LoginPage() {
     }
   }, [authLoading, currentUser, router]);
 
+  const waitForCookie = async () => {
+    return new Promise((resolve) => {
+      const interval = setInterval(() => {
+        if (document.cookie.split(';').some((item) => item.trim().startsWith('session='))) {
+          clearInterval(interval);
+          resolve(true);
+        }
+      }, 100); // Verificar cada 100ms
+    });
+  };
+
   const handleGoogleLogin = async () => {
     setLoginLoading(true);
     try {
@@ -42,14 +53,15 @@ export default function LoginPage() {
             favorites: localFavorites,
           }),
         });
-        console.log(res)
+
         if (res.ok) {
           clearLocalCart();
           clearLocalFavorites();
 
-          // Emitir el evento de que la cookie está lista
-          window.dispatchEvent(new Event('sessionReady'));
+          // Esperar la creación de la cookie
+          await waitForCookie();
 
+          // Redirigir al perfil después de asegurar que la cookie existe
           router.push('/profile/user');
         } else {
           const errorData = await res.json();

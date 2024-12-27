@@ -1,7 +1,8 @@
 // src/app/profile/admin/dashboard/hooks/useFetchData.js
+//Hook para devolver las secciones para ser modificadas po run admin
 import { useState, useEffect } from 'react';
 
-const useFetchData = (endpoint, dataKey) => { // Añadimos 'dataKey' como parámetro
+const useFetchData = (endpoint, dataKey, shouldFetch = true) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,22 +21,31 @@ const useFetchData = (endpoint, dataKey) => { // Añadimos 'dataKey' como parám
       if (result[dataKey] && Array.isArray(result[dataKey])) {
         setData(result[dataKey]);
       } else {
-        throw new Error(`La clave '${dataKey}' no existe o no es un arreglo en la respuesta de la API.`);
+        throw new Error(
+          `La clave '${dataKey}' no existe o no es un arreglo en la respuesta de la API.`
+        );
       }
     } catch (err) {
       setError(err.message);
-      setData([]); // Aseguramos que 'data' siempre sea un arreglo
+      setData([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // Si no hay permisos o endpoint es null, no hacemos la petición
+    if (!shouldFetch || !endpoint) {
+      setLoading(false);
+      return;
+    }
+
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpoint, dataKey]);
+  }, [endpoint, dataKey, shouldFetch]);
 
   return { data, loading, error };
 };
 
 export default useFetchData;
+

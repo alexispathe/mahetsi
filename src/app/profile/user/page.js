@@ -4,7 +4,7 @@ import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
 import Header from '@/app/components/Header';
-import LogoutButton from './LogoutButton'; 
+import LogoutButton from './LogoutButton';
 import Image from 'next/image';
 import AdminButton from './AdminButton';
 import OrdersTable from './OrderTable';
@@ -23,13 +23,14 @@ export default function ProfilePage() {
 
   if (authLoading || sessionInitializing || !currentUser) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <p className="text-gray-600">Cargando...</p>
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
   }
 
   const { email, name, picture, uid, permissions } = currentUser;
+  console.log(currentUser)
 
   // Verificar si el usuario tiene permisos 'create' o 'update'
   const hasAdminAccess = permissions?.includes('create') || permissions?.includes('update');

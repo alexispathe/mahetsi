@@ -36,10 +36,12 @@ export async function GET(request) {
         message: 'Autenticado',
         user: {
           uid,
+          picture: userData.picture,
           email: userData.email,
           name: userData.name,
           rolID,
           permissions,
+
         }
       }, { status: 200 });
     } catch (verificationError) {
