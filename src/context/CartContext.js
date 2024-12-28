@@ -1,5 +1,4 @@
 // src/context/CartContext.jsx
-
 'use client';
 
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
@@ -125,7 +124,7 @@ export const CartProvider = ({ children }) => {
             await auth.signOut();
             // Cambiar a carrito local
             addToLocalCart(item);
-            setCartItems(prev => [...prev, item]);
+            setCartItems(prev => [...prev, { uniqueID: item.uniqueID, qty: item.qty }]);
             if (updateCount) {
               await fetchProductDetails([...cartItems.map(i => i.uniqueID), item.uniqueID]);
             }
@@ -140,13 +139,18 @@ export const CartProvider = ({ children }) => {
         setCartItems(prev => {
           const existingItem = prev.find(i => i.uniqueID === item.uniqueID );
           if (existingItem) {
+            const newQty = existingItem.qty + item.qty;
+            if (newQty <= 0) {
+              // Eliminar el item si la cantidad es 0 o menor
+              return prev.filter(i => i.uniqueID !== item.uniqueID);
+            }
             return prev.map(i =>
               i.uniqueID === item.uniqueID 
-                ? { ...i, qty: i.qty + item.qty }
+                ? { ...i, qty: newQty }
                 : i
             );
           } else {
-            return [...prev, item];
+            return [...prev, { uniqueID: item.uniqueID, qty: item.qty }];
           }
         });
         
@@ -164,13 +168,18 @@ export const CartProvider = ({ children }) => {
       setCartItems(prev => {
         const existingItem = prev.find(i => i.uniqueID === item.uniqueID);
         if (existingItem) {
+          const newQty = existingItem.qty + item.qty;
+          if (newQty <= 0) {
+            // Eliminar el item si la cantidad es 0 o menor
+            return prev.filter(i => i.uniqueID !== item.uniqueID);
+          }
           return prev.map(i =>
             i.uniqueID === item.uniqueID 
-              ? { ...i, qty: i.qty + item.qty }
+              ? { ...i, qty: newQty }
               : i
           );
         } else {
-          return [...prev, item];
+          return [...prev, { uniqueID: item.uniqueID, qty: item.qty }];
         }
       });
       if (updateCount) {

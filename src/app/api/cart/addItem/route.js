@@ -18,24 +18,33 @@ export async function POST(request) {
 
     const { uniqueID, qty = 1 } = await request.json();
     if (!uniqueID ) {
-      return NextResponse.json({ error: 'uniqueID  required.' }, { status: 400 });
+      return NextResponse.json({ error: 'uniqueID is required.' }, { status: 400 });
     }
 
     const itemRef = firestore.collection('carts').doc(uid).collection('items').doc(`${uniqueID}`);
     const itemDoc = await itemRef.get();
 
     if (itemDoc.exists) {
-      await itemRef.update({
-        qty: itemDoc.data().qty + qty,
-        updatedAt: new Date()
-      });
+      const newQty = itemDoc.data().qty + qty;
+      if (newQty > 0) {
+        await itemRef.update({
+          qty: newQty,
+          updatedAt: new Date()
+        });
+      } else {
+        // Si la nueva cantidad es 0 o menor, eliminar el item
+        await itemRef.delete();
+      }
     } else {
-      await itemRef.set({
-        uniqueID,
-        qty,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
+      if (qty > 0) {
+        await itemRef.set({
+          uniqueID,
+          qty,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+      // Si qty <= 0 y el item no existe, no hacemos nada
     }
 
     return NextResponse.json({ status: 'success' }, { status: 200 });

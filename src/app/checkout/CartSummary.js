@@ -1,13 +1,14 @@
 // src/components/CartSummary.js
 'use client';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import Link from 'next/link';
-import '../styles/cartSummary.css';
 import { CartContext } from '@/context/CartContext'; // Importar CartContext
 import Image from 'next/image'; // Importar la etiqueta Image
 
 export default function CartSummary() {
-  const { cartItems, products, loading, error, removeItemFromCart } = useContext(CartContext);
+  const { cartItems, products, loading, error, addItemToCart, removeItemFromCart } = useContext(CartContext);
+  const [isRemoving, setIsRemoving] = useState(null); // Estado para controlar la eliminación del producto
+  const [isUpdating, setIsUpdating] = useState(null); // Estado para controlar la actualización de cantidad
 
   // Combinar los detalles del producto con el carrito
   const detailedCartItems = cartItems.map(cartItem => {
@@ -27,8 +28,31 @@ export default function CartSummary() {
   const salesTax = 45.89; // Puedes ajustar esto según tu lógica
   const grandTotal = subtotal + shipping + salesTax;
 
+  const handleRemoveItem = async (uniqueID) => {
+    setIsRemoving(uniqueID); // Activamos el estado de "eliminando"
+    await removeItemFromCart(uniqueID); // Eliminamos el producto del carrito
+    setIsRemoving(null); // Desactivamos el estado de "eliminando"
+  };
+
+  const handleAddQuantity = async (item) => {
+    setIsUpdating(item.uniqueID); // Activamos el estado de "actualizando"
+    await addItemToCart({ uniqueID: item.uniqueID, qty: 1 }, false); // Pasar delta +1
+    setIsUpdating(null); // Desactivamos el estado de "actualizando"
+  };
+
+  const handleRemoveQuantity = async (item) => {
+    if (item.qty > 1) {
+      setIsUpdating(item.uniqueID); // Activamos el estado de "actualizando"
+      await addItemToCart({ uniqueID: item.uniqueID, qty: -1 }, false); // Pasar delta -1
+      setIsUpdating(null); // Desactivamos el estado de "actualizando"
+    } else {
+      // Si la cantidad es 1, eliminar el producto del carrito
+      handleRemoveItem(item.uniqueID);
+    }
+  };
+
   return (
-    <section className="cart-summary bg-white p-6 rounded-lg shadow-md w-full">
+    <section className="bg-white p-6 rounded-xl shadow-lg w-full text-[#1c1f28]">
       <h2 className="text-2xl font-bold mb-6">Tu carrito</h2>
 
       {loading ? (
@@ -75,6 +99,7 @@ export default function CartSummary() {
           <div className="mb-6">
             {detailedCartItems.map((item, index) => (
               <div key={index} className="flex justify-between items-center mb-4">
+                {/* Información del Producto */}
                 <div className="flex items-center">
                   {item.image ? (
                     <Image
@@ -89,17 +114,47 @@ export default function CartSummary() {
                   )}
                   <div>
                     <p className="font-semibold">{item.name}</p>
-                    {/* Eliminamos la línea de tamaño */}
                   </div>
                 </div>
+                {/* Controles de Cantidad y Eliminar */}
                 <div className="flex items-center space-x-4">
+                  {/* Precio */}
                   <p className="font-semibold">${(item.price * item.qty).toFixed(2)}</p>
-                  <p className="text-sm text-gray-500">{item.qty} @ ${item.price.toFixed(2)}</p>
+                  {/* Controles de Cantidad */}
+                  <div className="flex items-center space-x-2">
+                    {/* Botón para disminuir cantidad */}
+                    <button
+                      onClick={() => handleRemoveQuantity(item)} // Llamar a la función para reducir la cantidad
+                      className={`px-2 py-1 text-sm bg-transparent text-gray-700 hover:text-black transition-colors duration-200 ${
+                        item.qty === 1 ? 'cursor-not-allowed' : 'cursor-pointer'
+                      }`}
+                      disabled={item.qty === 1 || isUpdating === item.uniqueID} // Desactivar si qty es 1
+                      aria-label={`Disminuir cantidad de ${item.name}`}
+                    >
+                      -
+                    </button>
+                    {/* Cantidad */}
+                    <p className="text-sm text-gray-500">{item.qty}</p>
+                    {/* Botón para aumentar cantidad */}
+                    <button
+                      onClick={() => handleAddQuantity(item)} // Llamar a la función para aumentar la cantidad
+                      className={`px-2 py-1 text-sm bg-transparent text-gray-700 hover:text-black transition-colors duration-200 ${
+                        isUpdating === item.uniqueID ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                      }`}
+                      disabled={isUpdating === item.uniqueID} // Desactivar si se está actualizando
+                      aria-label={`Aumentar cantidad de ${item.name}`}
+                    >
+                      +
+                    </button>
+                  </div>
+                  {/* Botón de Eliminar */}
                   <button
-                    onClick={() => removeItemFromCart(item.uniqueID)} // Eliminamos `item.size` porque ya no es necesario
+                    onClick={() => handleRemoveItem(item.uniqueID)} // Llamamos a la función de eliminación
                     className="text-red-500 hover:text-red-700 text-sm"
+                    disabled={isRemoving === item.uniqueID}
+                    aria-label={`Eliminar ${item.name}`}
                   >
-                    Eliminar
+                    {isRemoving === item.uniqueID ? 'Eliminando...' : 'Eliminar'}
                   </button>
                 </div>
               </div>
@@ -140,9 +195,9 @@ export default function CartSummary() {
           </div>
 
           {/* Terms and conditions */}
-          <div className="mb-6">
-            <label className="text-sm flex items-center">
-              <input type="checkbox" className="mr-2" />
+          <div className="mb-6 flex items-center">
+            <input type="checkbox" className="mr-2" />
+            <label className="text-sm">
               Acepto los <a href="#" className="text-blue-400">términos y condiciones</a> de Alpines
             </label>
           </div>
