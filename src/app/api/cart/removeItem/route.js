@@ -16,7 +16,7 @@ export async function POST(request) {
     const decodedClaims = await authAdmin.verifySessionCookie(sessionCookie, true);
     const uid = decodedClaims.uid;
 
-    const { uniqueID, } = await request.json();
+    const { uniqueID} = await request.json();
 
     if (!uniqueID ) {
       return NextResponse.json({ error: 'uniqueID and size are required.' }, { status: 400 });

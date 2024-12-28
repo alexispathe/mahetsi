@@ -138,10 +138,10 @@ export const CartProvider = ({ children }) => {
 
         // Si todo va bien (sesión todavía válida)
         setCartItems(prev => {
-          const existingItem = prev.find(i => i.uniqueID === item.uniqueID && i.size === item.size);
+          const existingItem = prev.find(i => i.uniqueID === item.uniqueID );
           if (existingItem) {
             return prev.map(i =>
-              i.uniqueID === item.uniqueID && i.size === item.size
+              i.uniqueID === item.uniqueID 
                 ? { ...i, qty: i.qty + item.qty }
                 : i
             );
@@ -162,10 +162,10 @@ export const CartProvider = ({ children }) => {
       // Usuario no autenticado, usar localStorage
       addToLocalCart(item);
       setCartItems(prev => {
-        const existingItem = prev.find(i => i.uniqueID === item.uniqueID && i.size === item.size);
+        const existingItem = prev.find(i => i.uniqueID === item.uniqueID);
         if (existingItem) {
           return prev.map(i =>
-            i.uniqueID === item.uniqueID && i.size === item.size
+            i.uniqueID === item.uniqueID 
               ? { ...i, qty: i.qty + item.qty }
               : i
           );
@@ -179,13 +179,13 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const removeItemFromCart = async (uniqueID, size) => {
+  const removeItemFromCart = async (uniqueID) => {
     if (currentUser) {
       try {
         const res = await fetch('/api/cart/removeItem', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uniqueID, size }),
+          body: JSON.stringify({ uniqueID }),
           credentials: 'include'
         });
 
@@ -193,8 +193,8 @@ export const CartProvider = ({ children }) => {
           if (res.status === 401) {
             // Sesión expirada
             await auth.signOut();
-            removeFromLocalCart(uniqueID, size);
-            setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID && item.size === size)));
+            removeFromLocalCart(uniqueID);
+            setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID )));
             setProducts(prev => prev.filter(product => product.uniqueID !== uniqueID));
             return;
           }
@@ -203,15 +203,15 @@ export const CartProvider = ({ children }) => {
           throw new Error(data.error || 'Error al eliminar el producto del carrito.');
         }
 
-        setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID && item.size === size)));
+        setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID )));
         setProducts(prev => prev.filter(product => product.uniqueID !== uniqueID));
       } catch (error) {
         console.error('Error al eliminar del carrito:', error);
         setError(error.message);
       }
     } else {
-      removeFromLocalCart(uniqueID, size);
-      setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID && item.size === size)));
+      removeFromLocalCart(uniqueID);
+      setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID )));
       setProducts(prev => prev.filter(product => product.uniqueID !== uniqueID));
     }
   };

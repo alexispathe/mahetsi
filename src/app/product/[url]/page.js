@@ -24,7 +24,8 @@ export default function ProductDetail() {
   const [mainImage, setMainImage] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const modalRef = useRef(null);
-  const [selectedSize, setSelectedSize] = useState("Medium");
+  const [isAddingToCart, setIsAddingToCart] = useState(false); // Estado para controlar el botón de carrito
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false); // Estado para controlar el botón de favorito
 
   const thumbnails = product ? product.images : [];
 
@@ -97,17 +98,21 @@ export default function ProductDetail() {
   const handleAddToCartClick = async () => {
     if (!product) return;
 
+    setIsAddingToCart(true); // Activar el estado de "agregando"
     const cartItem = {
       uniqueID: product.uniqueID,
-      size: selectedSize,
-      qty: 1
+      qty: 1 // Ya no hay talla
     };
 
     await addItemToCart(cartItem);
+    setIsAddingToCart(false); // Desactivar el estado de "agregando" después de agregar el producto
   };
 
   const handleToggleFavorite = async () => {
     if (!product) return;
+
+    setIsTogglingFavorite(true); // Activar el estado de "agregando favorito"
+    
     try {
       if (favoriteIDs.includes(product.uniqueID)) {
         // Remover favorito desde el contexto
@@ -119,11 +124,9 @@ export default function ProductDetail() {
     } catch (err) {
       console.error('Error toggling favorite:', err);
       alert(`Error al toggling favorito: ${err.message}`);
+    } finally {
+      setIsTogglingFavorite(false); // Desactivar el estado de "agregando favorito" después de la acción
     }
-  };
-
-  const handleSizeChange = (e) => {
-    setSelectedSize(e.target.value);
   };
 
   // Determinar si el producto es favorito mediante el contexto
@@ -140,14 +143,24 @@ export default function ProductDetail() {
           <div className="animate-pulse space-y-6 w-full max-w-6xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="flex flex-col gap-4">
-                <div className="w-32 h-32 bg-gray-300 rounded-md"></div>
-                <div className="w-32 h-32 bg-gray-300 rounded-md"></div>
+                <div className="w-full h-96 bg-gray-300 rounded-md"></div>
+                <div className="flex space-x-2 mt-4">
+                  <div className="w-20 h-20 bg-gray-300 rounded-md"></div>
+                  <div className="w-20 h-20 bg-gray-300 rounded-md"></div>
+                  <div className="w-20 h-20 bg-gray-300 rounded-md"></div>
+                </div>
               </div>
               <div className="space-y-4">
-                <div className="w-full h-8 bg-gray-300 rounded-md"></div>
-                <div className="w-3/4 h-6 bg-gray-300 rounded-md"></div>
+                <div className="w-3/4 h-8 bg-gray-300 rounded-md"></div>
+                <div className="w-full h-6 bg-gray-300 rounded-md"></div>
                 <div className="w-1/2 h-6 bg-gray-300 rounded-md"></div>
                 <div className="w-full h-10 bg-gray-300 rounded-md"></div>
+                {/* Skeleton for Description */}
+                <div className="space-y-2">
+                  <div className="w-full h-4 bg-gray-300 rounded-md"></div>
+                  <div className="w-full h-4 bg-gray-300 rounded-md"></div>
+                  <div className="w-5/6 h-4 bg-gray-300 rounded-md"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -221,6 +234,11 @@ export default function ProductDetail() {
               <div className="text-yellow-500 text-lg">⭐⭐⭐⭐☆</div>
               <p className="text-sm text-gray-600">({product.numReviews} Reviews)</p>
             </div>
+            {/* Descripción del Producto */}
+            <div className="prose prose-sm text-gray-700">
+              <h2 className="text-xl font-semibold mt-4">Descripción</h2>
+              <p>{product.description}</p>
+            </div>
             <div className="flex items-baseline space-x-4">
               <p className="text-2xl text-red-600 font-semibold">${product.price.toFixed(2)}</p>
             </div>
@@ -228,39 +246,26 @@ export default function ProductDetail() {
               <div className="mb-4">
                 <p className="text-sm font-medium">CATEGORÍA: {typeName}</p>
               </div>
-              <div>
-                <label htmlFor="size-select" className="block text-sm font-medium">
-                  SIZE:
-                </label>
-                <select
-                  id="size-select"
-                  value={selectedSize}
-                  onChange={handleSizeChange}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                >
-                  <option value="Small">Small</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Large">Large</option>
-                </select>
-              </div>
             </div>
             <div className="flex space-x-4">
               <button
-                className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700"
+                className={`px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 ${isAddingToCart ? 'cursor-not-allowed opacity-50' : ''}`}
                 onClick={handleAddToCartClick}
+                disabled={isAddingToCart}
               >
-                Agregar al carrito
+                {isAddingToCart ? 'Agregando...' : 'Agregar al carrito'}
               </button>
               <button 
                 onClick={handleToggleFavorite}
-                className={`px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 
+                className={`px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 ${isTogglingFavorite ? 'cursor-not-allowed opacity-50' : ''} 
                   ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
+                disabled={isTogglingFavorite}
               >
-                {isLiked ? '❤ Favorito' : '♡ Favorito'}
+                {isTogglingFavorite ? 'Agregando...' : (isLiked ? '❤ Favorito' : '♡ Favorito')}
               </button>
             </div>
             <div className="text-sm text-gray-600">
-              📦 Free delivery over $99. Next day delivery $9.99
+              📦 Envío gratis en pedidos superiores a $99. Envío al día siguiente por $9.99
             </div>
           </div>
         </div>

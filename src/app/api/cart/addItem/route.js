@@ -16,12 +16,12 @@ export async function POST(request) {
     const decodedClaims = await authAdmin.verifySessionCookie(sessionCookie, true);
     const uid = decodedClaims.uid;
 
-    const { uniqueID, size, qty = 1 } = await request.json();
-    if (!uniqueID || !size) {
-      return NextResponse.json({ error: 'uniqueID and size are required.' }, { status: 400 });
+    const { uniqueID, qty = 1 } = await request.json();
+    if (!uniqueID ) {
+      return NextResponse.json({ error: 'uniqueID  required.' }, { status: 400 });
     }
 
-    const itemRef = firestore.collection('carts').doc(uid).collection('items').doc(`${uniqueID}_${size}`);
+    const itemRef = firestore.collection('carts').doc(uid).collection('items').doc(`${uniqueID}`);
     const itemDoc = await itemRef.get();
 
     if (itemDoc.exists) {
@@ -32,7 +32,6 @@ export async function POST(request) {
     } else {
       await itemRef.set({
         uniqueID,
-        size,
         qty,
         createdAt: new Date(),
         updatedAt: new Date()

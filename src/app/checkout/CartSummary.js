@@ -89,14 +89,14 @@ export default function CartSummary() {
                   )}
                   <div>
                     <p className="font-semibold">{item.name}</p>
-                    <p className="text-sm text-gray-500">Size: {item.size}</p>
+                    {/* Eliminamos la línea de tamaño */}
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <p className="font-semibold">${(item.price * item.qty).toFixed(2)}</p>
                   <p className="text-sm text-gray-500">{item.qty} @ ${item.price.toFixed(2)}</p>
                   <button
-                    onClick={() => removeItemFromCart(item.uniqueID, item.size)}
+                    onClick={() => removeItemFromCart(item.uniqueID)} // Eliminamos `item.size` porque ya no es necesario
                     className="text-red-500 hover:text-red-700 text-sm"
                   >
                     Eliminar

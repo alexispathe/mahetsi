@@ -122,7 +122,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                       <Link href={`/product/${item.url}`}>
                         <p className="font-semibold text-gray-800 hover:underline">{item.name}</p>
                       </Link>
-                      <p className="text-sm text-gray-600">Tamaño: {item.size}</p>
+                      {/* Eliminamos la línea de tamaño */}
                       <p className="text-sm text-gray-600">Cantidad: {item.qty}</p>
                     </div>
                   </div>
@@ -130,7 +130,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                     <span className="font-semibold text-lg text-gray-800">${(item.price * item.qty).toFixed(2)}</span>
                     <button 
                       className="text-red-500 mt-2 hover:text-red-700"
-                      onClick={() => removeItemFromCart(item.uniqueID, item.size)}
+                      onClick={() => removeItemFromCart(item.uniqueID)} // Eliminamos `item.size` porque ya no es necesario
                     >
                       Eliminar
                     </button>

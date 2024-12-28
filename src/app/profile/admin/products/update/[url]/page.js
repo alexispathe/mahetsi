@@ -3,13 +3,13 @@
 
 import { useContext, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { AuthContext } from '@/context/AuthContext'; // <-- Importa tu AuthContext
+import { AuthContext } from '@/context/AuthContext'; 
 
 const UpdateProduct = () => {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
   const params = useParams();
-  const { url } = params; // Captura el parámetro 'url' de la ruta
+  const { url } = params; 
 
   const [productData, setProductData] = useState({
     name: '',
@@ -30,7 +30,7 @@ const UpdateProduct = () => {
 
   // Estados de error, envío y carga
   const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false); // Para deshabilitar el botón y mostrar "Cargando..."
+  const [isSubmitting, setIsSubmitting] = useState(false); // Para deshabilitar el boton y mostrar "Cargando..."
   const [loading, setLoading] = useState(true);
 
   // Verificamos si el usuario tiene el permiso 'update'
