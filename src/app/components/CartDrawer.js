@@ -1,7 +1,8 @@
 // src/components/CartDrawer.js
+// src/components/CartDrawer.js
 'use client';
 
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { CartContext } from "@/context/CartContext"; // Importar el contexto del carrito
 import Image from "next/image"; // Importar la etiqueta Image
@@ -10,6 +11,24 @@ export default function CartDrawer({ isOpen, onClose }) {
   const { cartItems, products, loading, error, removeItemFromCart, addItemToCart } = useContext(CartContext);
   const [isRemoving, setIsRemoving] = useState(null); // Estado para controlar la eliminación del producto
   const [isUpdating, setIsUpdating] = useState(null); // Estado para controlar la actualización de cantidad
+  const drawerRef = useRef(null); // Referencia para el contenedor del CartDrawer
+
+  // Cerrar el CartDrawer cuando se hace clic fuera de él
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (event) => {
+      if (drawerRef.current && !drawerRef.current.contains(event.target)) {
+        onClose(); // Cerrar el drawer si se hace clic fuera
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // Limpiar el listener cuando el componente se desmonta o se cierra el CartDrawer
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -58,7 +77,10 @@ export default function CartDrawer({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end z-50">
-      <div className="relative bg-white w-full sm:w-3/4 md:w-2/3 lg:w-1/3 p-6 overflow-y-auto rounded-xl shadow-lg text-[#1c1f28]">
+      <div
+        ref={drawerRef} // Asignar la referencia al contenedor del CartDrawer
+        className="relative bg-white w-full sm:w-3/4 md:w-2/3 lg:w-1/3 p-6 overflow-y-auto rounded-xl shadow-lg text-[#1c1f28]"
+      >
         <button 
           onClick={onClose} 
           className="absolute top-4 right-4 text-2xl text-gray-600 hover:text-gray-800 transition-colors duration-300"
