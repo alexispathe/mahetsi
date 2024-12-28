@@ -2,70 +2,63 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AuthContext } from '@/context/AuthContext';
+import useFetchData from '@/hooks/useFetchData';
 
 const CreateBrand = () => {
+  const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
+
   const [brandData, setBrandData] = useState({
     name: '',
     description: '',
     categoryID: '',
   });
-  const [categories, setCategories] = useState([]);
   const [error, setError] = useState('');
-  const [hasPermission, setHasPermission] = useState(false);
-  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
+  const [isSubmitting, setIsSubmitting] = useState(false); // Estado para controlar el botón
+
+  const hasPermission = currentUser?.permissions?.includes('create');
+
+  const {
+    data: categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useFetchData(
+    hasPermission ? '/api/categories/private/get/list' : null,
+    'categories',
+    hasPermission
+  );
+
+  const loading = authLoading || sessionInitializing || categoriesLoading;
+  const fetchError = categoriesError;
 
   useEffect(() => {
-    const checkAuthAndPermissions = async () => {
-      try {
-        const response = await fetch('/api/verify-session', {
-          method: 'GET',
-          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
-        });
-        const data = await response.json();
-
-        if (response.ok && data.message === 'Autenticado') {
-          if (data.user.permissions.includes('create')) {
-            setHasPermission(true);
-            fetchCategories(); // Cargar categorías si tiene permiso
-          } else {
-            router.push('/not-found'); // Redirige si no tiene permiso
-          }
-        } else {
-          router.push('/login'); // Redirige si no está autenticado
-        }
-      } catch (err) {
-        console.error('Error al verificar la autenticación:', err);
-        setError('Error al verificar la autenticación.');
+    if (!authLoading && !sessionInitializing) {
+      if (!currentUser) {
         router.push('/login');
-      } finally {
-        setLoading(false);
+      } else if (!hasPermission) {
+        router.push('/not-found');
       }
-    };
-
-    checkAuthAndPermissions();
-  }, [router]);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/categories/private/get/list', {
-        method: 'GET',
-        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data.categories);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al cargar las categorías.');
-      }
-    } catch (error) {
-      setError('Error al cargar las categorías.');
     }
-  };
+  }, [authLoading, currentUser, router, sessionInitializing, hasPermission]);
+
+  if (authLoading || sessionInitializing || (!currentUser && !authLoading)) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
+        <p className="text-red-500 mb-2">Error: {fetchError}</p>
+      </div>
+    );
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -86,19 +79,20 @@ const CreateBrand = () => {
       return;
     }
 
+    setIsSubmitting(true); // Deshabilitar el botón al iniciar el envío
+
     try {
       const response = await fetch('/api/brands/private/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // No es necesario incluir el header Authorization
         },
         body: JSON.stringify({
           name: brandData.name,
           description: brandData.description,
           categoryID: brandData.categoryID,
         }),
-        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -108,27 +102,13 @@ const CreateBrand = () => {
 
       const responseData = await response.json();
       alert(`Marca creada correctamente. URL: ${responseData.url}`);
-      router.push('/profile/admin/dashboard'); // Redirige al perfil después de la creación
+      router.push('/profile/admin/dashboard');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsSubmitting(false); // Reactivar el botón después del envío
     }
   };
-
-  if (loading) {
-    return (
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        <p>Cargando...</p>
-      </div>
-    );
-  }
-
-  if (!hasPermission) {
-    return (
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para crear marcas.</p>}
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
@@ -175,9 +155,12 @@ const CreateBrand = () => {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          className={`w-full text-white py-2 rounded ${
+            isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+          }`}
+          disabled={isSubmitting} // Deshabilitar el botón mientras se envía
         >
-          Crear Marca
+          {isSubmitting ? 'Creando...' : 'Crear Marca'}
         </button>
       </form>
     </div>

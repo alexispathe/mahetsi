@@ -1,49 +1,32 @@
 // src/app/profile/admin/categories/create/page.js
-
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AuthContext } from '@/context/AuthContext';
 
 const CreateCategory = () => {
+  const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
+
   const [categoryData, setCategoryData] = useState({
     name: '',
     description: '',
   });
   const [error, setError] = useState('');
-  const [hasPermission, setHasPermission] = useState(false);
-  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
+  const [isSubmitting, setIsSubmitting] = useState(false); // Estado para el botón
+
+  const hasPermission = currentUser?.permissions?.includes('create');
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/verify-session', {
-          method: 'GET',
-          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
-        });
-        const data = await response.json();
-
-        if (response.ok && data.message === 'Autenticado') {
-          if (data.user.permissions.includes('create')) {
-            setHasPermission(true);
-          } else {
-            router.push('/not-found'); // Redirige si no tiene permiso
-          }
-        } else {
-          router.push('/login'); // Redirige si no está autenticado
-        }
-      } catch (err) {
-        console.error('Error al verificar la autenticación:', err);
-        setError('Error al verificar la autenticación.');
+    if (!authLoading && !sessionInitializing) {
+      if (!currentUser) {
         router.push('/login');
-      } finally {
-        setLoading(false);
+      } else if (!hasPermission) {
+        router.push('/not-found');
       }
-    };
-
-    checkAuth();
-  }, [router]);
+    }
+  }, [authLoading, currentUser, router, sessionInitializing, hasPermission]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,18 +42,19 @@ const CreateCategory = () => {
       return;
     }
 
+    setIsSubmitting(true); // Deshabilitar el botón
+
     try {
       const response = await fetch('/api/categories/private/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // No es necesario incluir el header Authorization
         },
         body: JSON.stringify({
           name: categoryData.name,
           description: categoryData.description,
         }),
-        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -80,24 +64,26 @@ const CreateCategory = () => {
 
       const responseData = await response.json();
       alert(`Categoría creada correctamente. URL: ${responseData.url}`);
-      router.push('/profile/admin/dashboard'); // Redirige al perfil después de la creación
+      router.push('/profile/admin/dashboard');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsSubmitting(false); // Reactivar el botón
     }
   };
 
-  if (loading) {
+  if (authLoading || sessionInitializing) {
     return (
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        <p>Cargando...</p>
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
   }
 
-  if (!hasPermission) {
+  if (error && !hasPermission) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para crear categorías.</p>}
+        <p className="text-red-500 mb-2">{error || 'No tienes permisos para crear categorías.'}</p>
       </div>
     );
   }
@@ -130,9 +116,12 @@ const CreateCategory = () => {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          className={`w-full text-white py-2 rounded ${
+            isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+          }`}
+          disabled={isSubmitting}
         >
-          Crear Categoría
+          {isSubmitting ? 'Creando...' : 'Crear Categoría'}
         </button>
       </form>
     </div>

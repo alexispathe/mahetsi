@@ -1,11 +1,16 @@
 // src/app/profile/admin/products/create/page.js
+// src/app/profile/admin/products/create/page.js
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AuthContext } from '@/context/AuthContext'; // <-- Importa tu AuthContext
 
 const CreateProduct = () => {
+  const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
+
+  // Estado del formulario
   const [productData, setProductData] = useState({
     name: '',
     description: '',
@@ -17,50 +22,40 @@ const CreateProduct = () => {
     typeID: '',
     images: [''],
   });
+
+  // Catálogos
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [types, setTypes] = useState([]);
+
+  // Estados de error y envío
   const [error, setError] = useState('');
-  const [hasPermission, setHasPermission] = useState(false);
-  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
+  const [isSubmitting, setIsSubmitting] = useState(false); // Para manejar el botón y mostrar "Cargando..."
 
+  // Verificamos si tiene permiso de 'create'
+  const hasPermission = currentUser?.permissions?.includes('create');
+
+  // Efecto para verificar autenticación/permiso y cargar categorías
   useEffect(() => {
-    const verifySession = async () => {
-      try {
-        const response = await fetch('/api/verify-session', {
-          method: 'GET',
-          credentials: 'include', // Incluye las cookies en la solicitud
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user.permissions.includes('create')) {
-            setHasPermission(true);
-            await loadCategories();
-          } else {
-            router.push('/not-found'); // Redirige si no tiene permiso
-          }
-        } else {
-          router.push('/login'); // Redirige si no está autenticado
-        }
-      } catch (err) {
-        console.error('Error al verificar la sesión:', err);
-        setError('Error al verificar la sesión.');
-        router.push('/login');
-      } finally {
-        setLoading(false);
+    if (!authLoading && !sessionInitializing) {
+      if (!currentUser) {
+        router.push('/login'); // Redirige si no está autenticado
+      } else if (!hasPermission) {
+        router.push('/not-found'); // Redirige si no tiene permiso
+      } else {
+        loadCategories(); // Cargamos las categorías si está todo OK
       }
-    };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, sessionInitializing, currentUser, hasPermission]);
 
-    verifySession();
-  }, [router]);
-
+  // Carga de categorías
   const loadCategories = async () => {
     try {
       const response = await fetch('/api/categories/private/get/list', {
         method: 'GET',
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include', // Incluye las cookies
       });
 
       if (!response.ok) {
@@ -76,11 +71,12 @@ const CreateProduct = () => {
     }
   };
 
+  // Carga de subcategorías
   const loadSubcategories = async (categoryID) => {
     try {
       const response = await fetch(`/api/categories/private/subCategories/get/list/${categoryID}`, {
         method: 'GET',
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -96,11 +92,12 @@ const CreateProduct = () => {
     }
   };
 
+  // Carga de marcas
   const loadBrands = async (categoryID) => {
     try {
       const response = await fetch(`/api/brands/private/get/byCategory/${categoryID}`, {
         method: 'GET',
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -116,11 +113,12 @@ const CreateProduct = () => {
     }
   };
 
+  // Carga de tipos
   const loadTypes = async (categoryID) => {
     try {
       const response = await fetch(`/api/types/private/get/byCategory/${categoryID}`, {
         method: 'GET',
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -136,13 +134,20 @@ const CreateProduct = () => {
     }
   };
 
+  // Manejo de cambios en el formulario
   const handleChange = (e, index = null) => {
     const { name, value } = e.target;
+
+    // Manejo de imágenes
     if (name === 'images') {
       const images = [...productData.images];
       images[index] = value;
       setProductData({ ...productData, images });
-    } else if (name === 'categoryID') {
+      return;
+    }
+
+    // Si cambia la categoría, reseteamos subcategoría, marca y tipo
+    if (name === 'categoryID') {
       setProductData({
         ...productData,
         categoryID: value,
@@ -150,6 +155,7 @@ const CreateProduct = () => {
         brandID: '',
         typeID: '',
       });
+
       if (value) {
         loadSubcategories(value);
         loadBrands(value);
@@ -159,21 +165,29 @@ const CreateProduct = () => {
         setBrands([]);
         setTypes([]);
       }
-    } else {
-      setProductData({ ...productData, [name]: value });
+      return;
     }
+
+    // Para el resto de campos
+    setProductData({ ...productData, [name]: value });
   };
 
+  // Agregar campo de imagen
   const addImageField = () => {
-    setProductData({ ...productData, images: [...productData.images, ''] });
+    setProductData((prev) => ({
+      ...prev,
+      images: [...prev.images, ''],
+    }));
   };
 
+  // Eliminar campo de imagen
   const removeImageField = (index) => {
     const images = [...productData.images];
     images.splice(index, 1);
     setProductData({ ...productData, images });
   };
 
+  // Enviar formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -217,6 +231,9 @@ const CreateProduct = () => {
     // Filtrar imágenes vacías
     const images = productData.images.filter((img) => img.trim() !== '');
 
+    // Deshabilitamos el botón y mostramos "Cargando..."
+    setIsSubmitting(true);
+
     try {
       const response = await fetch('/api/products/private/product/create', {
         method: 'POST',
@@ -234,7 +251,7 @@ const CreateProduct = () => {
           typeID: productData.typeID,
           images: images,
         }),
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -248,13 +265,21 @@ const CreateProduct = () => {
     } catch (err) {
       console.error('Error al crear el producto:', err);
       setError(err.message);
+    } finally {
+      setIsSubmitting(false); // Volvemos a habilitar el botón
     }
   };
 
-  if (loading) {
+  /**
+   * 1. MIENTRAS authLoading O sessionInitializing -> Spinner full screen
+   * 2. Si no tiene permisos -> Mensaje
+   * 3. Si todo OK -> Render formulario
+   */
+
+  if (authLoading || sessionInitializing) {
     return (
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        <p>Cargando...</p>
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
   }
@@ -262,7 +287,11 @@ const CreateProduct = () => {
   if (!hasPermission) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para crear productos.</p>}
+        {error ? (
+          <p className="text-red-500 mb-2">{error}</p>
+        ) : (
+          <p>No tienes permisos para crear productos.</p>
+        )}
       </div>
     );
   }
@@ -359,7 +388,6 @@ const CreateProduct = () => {
             >
               <option value="">Selecciona una subcategoría</option>
               {subcategories.map((subcategory) => (
-                
                 <option key={subcategory.subCategoryID} value={subcategory.subCategoryID}>
                   {subcategory.name}
                 </option>
@@ -447,9 +475,12 @@ const CreateProduct = () => {
         {/* Botón de Envío */}
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          className={`w-full text-white py-2 rounded ${
+            isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+          }`}
+          disabled={isSubmitting}
         >
-          Crear Producto
+          {isSubmitting ? 'Cargando...' : 'Crear Producto'}
         </button>
       </form>
     </div>
@@ -457,3 +488,4 @@ const CreateProduct = () => {
 };
 
 export default CreateProduct;
+

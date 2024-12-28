@@ -1,92 +1,85 @@
 // src/app/profile/admin/roles/create/page.js
-
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { AuthContext } from '@/context/AuthContext'; // <-- Importa tu AuthContext
 
 export default function CreateRole() {
+  const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
+
+  // Datos del formulario
   const [formData, setFormData] = useState({
     name: '',
     permissions: '',
     description: '',
   });
+
+  // Estados para manejo de errores, éxito, carga de envío
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false); // Para manejar el estado de carga
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Estado para controlar si el usuario está autenticado
-  const [permissions, setPermissions] = useState([]); // Opcional: Permisos del usuario
+  const [isSubmitting, setIsSubmitting] = useState(false); // Desactivar botón y mostrar "Creando..."
 
-  // Verificar autenticación usando la API
+  // Verifica si el usuario tiene permiso (ej. 'create')
+  const hasPermission = currentUser?.permissions?.includes('create');
+
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/verify-session', {
-          method: 'GET',
-          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
-        });
-        const data = await response.json();
-
-        if (response.ok && data.message === 'Autenticado') {
-          setIsAuthenticated(true); // Si la respuesta es positiva, autenticamos al usuario
-          setPermissions(data.user.permissions); // Opcional: Guardar permisos en el estado
-        } else {
-          router.push('/login'); // Redirigimos al login si no está autenticado
-        }
-      } catch (error) {
-        console.error('Error al verificar la autenticación:', error);
+    if (!authLoading && !sessionInitializing) {
+      // Si no está logueado => login
+      if (!currentUser) {
         router.push('/login');
       }
-    };
+      // Si no tiene el permiso => not-found
+      else if (!hasPermission) {
+        router.push('/not-found');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, authLoading, sessionInitializing]);
 
-    checkAuth();
-  }, [router]);
-
+  // Manejo de cambios en formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
+  // Manejo de envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    setLoading(true); // Activar el estado de carga
 
     // Validación básica
     if (!formData.name.trim()) {
       setError('El nombre del rol es obligatorio.');
-      setLoading(false); // Desactivar carga si hay error
       return;
     }
 
-    // Procesar permisos (separados por comas)
+    // Procesar permisos (si están separados por comas)
     const permissionsArray = formData.permissions
-      ? formData.permissions.split(',').map(p => p.trim())
+      ? formData.permissions.split(',').map((p) => p.trim())
       : [];
 
+    // Construimos el payload
     const payload = {
       name: formData.name.trim(),
       permissions: permissionsArray,
       description: formData.description.trim(),
     };
 
-    try {
-      if (!isAuthenticated) {
-        setError('Usuario no autenticado.');
-        setLoading(false);
-        return;
-      }
+    // Deshabilitamos el botón
+    setIsSubmitting(true);
 
+    try {
+      // Llamada a la API para crear el rol
       const response = await fetch('/api/roles/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // **No es necesario incluir el header Authorization**
         },
         body: JSON.stringify(payload),
-        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -99,15 +92,39 @@ export default function CreateRole() {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false); // Desactivar carga al finalizar
+      setIsSubmitting(false);
     }
   };
 
+  // (1) Mientras se verifica la sesión => Spinner
+  if (authLoading || sessionInitializing) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // (2) Si no tiene permisos
+  if (currentUser && !hasPermission) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
+        {error ? (
+          <p className="text-red-500 mb-2">{error}</p>
+        ) : (
+          <p>No tienes permisos para crear roles.</p>
+        )}
+      </div>
+    );
+  }
+
+  // (3) Formulario cuando todo está OK
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
       <h2 className="text-2xl mb-4">Crear Nuevo Rol</h2>
       {error && <p className="text-red-500 mb-2">{error}</p>}
       {success && <p className="text-green-500 mb-2">{success}</p>}
+
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block mb-1">Nombre del Rol</label>
@@ -120,6 +137,7 @@ export default function CreateRole() {
             required
           />
         </div>
+
         <div className="mb-4">
           <label className="block mb-1">Permisos (separados por comas)</label>
           <input
@@ -131,6 +149,7 @@ export default function CreateRole() {
             placeholder="e.g., leer, escribir, eliminar"
           />
         </div>
+
         <div className="mb-4">
           <label className="block mb-1">Descripción</label>
           <textarea
@@ -141,12 +160,15 @@ export default function CreateRole() {
             placeholder="Descripción del rol (opcional)"
           />
         </div>
+
         <button
           type="submit"
-          className={`w-full ${loading ? 'bg-gray-500' : 'bg-green-500'} text-white py-2 rounded hover:bg-green-600`}
-          disabled={loading}
+          disabled={isSubmitting}
+          className={`w-full text-white py-2 rounded ${
+            isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
+          }`}
         >
-          {loading ? 'Creando...' : 'Crear Rol'}
+          {isSubmitting ? 'Creando...' : 'Crear Rol'}
         </button>
       </form>
     </div>

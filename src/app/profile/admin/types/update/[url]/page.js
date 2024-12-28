@@ -1,14 +1,15 @@
 // src/app/profile/admin/types/update/[url]/page.js
-
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { AuthContext } from '@/context/AuthContext';
 
 const UpdateType = () => {
+  const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
   const params = useParams();
-  const { url } = params; // Captura el parámetro 'url' de la ruta
+  const { url } = params;  // Asegúrate de que el parámetro 'url' esté disponible
 
   const [typeData, setTypeData] = useState({
     name: '',
@@ -17,52 +18,55 @@ const UpdateType = () => {
   });
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState('');
-  const [hasPermission, setHasPermission] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Estado para el botón
   const [loading, setLoading] = useState(true); // Para manejar el estado de carga
 
+  const hasPermission = currentUser?.permissions?.includes('update');
+
   useEffect(() => {
-    if (!url) {
-      setError('No se proporcionó una URL de tipo válida.');
-      setLoading(false);
-      return;
-    }
-
-    const checkAuthAndPermissions = async () => {
-      try {
-        const response = await fetch('/api/verify-session', {
-          method: 'GET',
-          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
-        });
-        const data = await response.json();
-
-        if (response.ok && data.message === 'Autenticado') {
-          if (data.user.permissions.includes('update')) {
-            setHasPermission(true);
-            fetchCategories(); // Cargar categorías si tiene permiso
-            loadTypeData(url); // Cargar datos del tipo si tiene permiso
-          } else {
-            router.push('/not-found'); // Redirige si no tiene permiso
-          }
-        } else {
-          router.push('/login'); // Redirige si no está autenticado
-        }
-      } catch (err) {
-        console.error('Error al verificar la autenticación:', err);
-        setError('Error al verificar la autenticación.');
+    if (!authLoading && !sessionInitializing) {
+      if (!currentUser) {
         router.push('/login');
-      } finally {
+      } else if (!hasPermission) {
+        router.push('/not-found');
+      } else if (url) {
+        loadTypeData(url); // Cargar datos del tipo
+      } else {
+        setError('No se proporcionó un ID de tipo válido.');
         setLoading(false);
       }
-    };
+    }
+  }, [authLoading, currentUser, router, sessionInitializing, hasPermission, url]);
 
-    checkAuthAndPermissions();
-  }, [router, url]);
+  const loadTypeData = async (url) => {
+    try {
+      const response = await fetch(`/api/types/private/get/type/${url}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al cargar el tipo.');
+      }
+
+      const data = await response.json();
+      setTypeData({
+        name: data.name,
+        description: data.description || '',
+        categoryID: data.categoryID || '',
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false); // Terminar carga del tipo
+    }
+  };
 
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories/private/get/list', {
         method: 'GET',
-        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -74,29 +78,6 @@ const UpdateType = () => {
       }
     } catch (error) {
       setError('Error al cargar las categorías.');
-    }
-  };
-
-  const loadTypeData = async (url) => {
-    try {
-      const response = await fetch(`/api/types/private/get/type/${url}`, {
-        method: 'GET',
-        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al cargar el tipo.');
-      }
-
-      const data = await response.json();
-      setTypeData({
-        name: data.name,
-        description: data.description || '',
-        categoryID: data.categoryID || '',
-      });
-    } catch (err) {
-      setError(err.message);
     }
   };
 
@@ -119,19 +100,20 @@ const UpdateType = () => {
       return;
     }
 
+    setIsSubmitting(true); // Deshabilitar el botón
+
     try {
       const response = await fetch(`/api/types/private/update/${url}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          // No es necesario incluir el header Authorization
         },
         body: JSON.stringify({
           name: typeData.name,
           description: typeData.description,
           categoryID: typeData.categoryID,
         }),
-        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -139,17 +121,19 @@ const UpdateType = () => {
         throw new Error(errorData.message || 'Error al actualizar el tipo.');
       }
 
-      alert("Tipo actualizado correctamente");
-      router.push('/profile/admin/dashboard'); // Redirige al perfil después de la actualización
+      alert('Tipo actualizado correctamente');
+      router.push('/profile/admin/dashboard');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsSubmitting(false); // Reactivar el botón
     }
   };
 
-  if (loading) {
+  if (loading || authLoading || sessionInitializing) {
     return (
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        <p>Cargando...</p>
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
   }

@@ -1,10 +1,12 @@
 // src/app/profile/admin/products/update/[url]/page.js
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { AuthContext } from '@/context/AuthContext'; // <-- Importa tu AuthContext
 
 const UpdateProduct = () => {
+  const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
   const params = useParams();
   const { url } = params; // Captura el parámetro 'url' de la ruta
@@ -20,57 +22,53 @@ const UpdateProduct = () => {
     typeID: '',
     images: [''],
   });
+
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [types, setTypes] = useState([]);
+
+  // Estados de error, envío y carga
   const [error, setError] = useState('');
-  const [hasPermission, setHasPermission] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Para deshabilitar el botón y mostrar "Cargando..."
   const [loading, setLoading] = useState(true);
 
+  // Verificamos si el usuario tiene el permiso 'update'
+  const hasPermission = currentUser?.permissions?.includes('update');
+
   useEffect(() => {
+    // Si no hay 'url' o no es un string, marcamos error
     if (!url || typeof url !== 'string') {
       setError('URL de producto inválida.');
       setLoading(false);
       return;
     }
 
-    const verifySession = async () => {
-      try {
-        const response = await fetch('/api/verify-session', {
-          method: 'GET',
-          credentials: 'include', // Incluye las cookies en la solicitud
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user.permissions.includes('update')) {
-            setHasPermission(true);
-            await loadCategories();
-            await loadProductData(url);
-          } else {
-            router.push('/not-found'); // Redirige si no tiene permiso
-          }
-        } else {
-          router.push('/login'); // Redirige si no está autenticado
-        }
-      } catch (err) {
-        console.error('Error al verificar la sesión:', err);
-        setError('Error al verificar la sesión.');
+    // Una vez listo el contexto (authLoading/sessionInitializing = false)
+    if (!authLoading && !sessionInitializing) {
+      // Si NO hay usuario -> login
+      if (!currentUser) {
         router.push('/login');
-      } finally {
-        setLoading(false);
       }
-    };
+      // Si NO tiene permiso -> not-found
+      else if (!hasPermission) {
+        router.push('/not-found');
+      } 
+      // Caso contrario, cargamos data
+      else {
+        loadCategories();
+        loadProductData(url);
+      }
+      setLoading(false);
+    }
+  }, [url, router, currentUser, authLoading, sessionInitializing, hasPermission]);
 
-    verifySession();
-  }, [router, url]);
-
+  // Cargar todas las categorías
   const loadCategories = async () => {
     try {
       const response = await fetch('/api/categories/private/get/list', {
         method: 'GET',
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -86,11 +84,12 @@ const UpdateProduct = () => {
     }
   };
 
+  // Cargar subcategorías
   const loadSubcategories = async (categoryID) => {
     try {
       const response = await fetch(`/api/categories/private/subCategories/get/list/${categoryID}`, {
         method: 'GET',
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -106,11 +105,12 @@ const UpdateProduct = () => {
     }
   };
 
+  // Cargar marcas
   const loadBrands = async (categoryID) => {
     try {
       const response = await fetch(`/api/brands/private/get/byCategory/${categoryID}`, {
         method: 'GET',
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -126,11 +126,12 @@ const UpdateProduct = () => {
     }
   };
 
+  // Cargar tipos
   const loadTypes = async (categoryID) => {
     try {
       const response = await fetch(`/api/types/private/get/byCategory/${categoryID}`, {
         method: 'GET',
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -146,11 +147,12 @@ const UpdateProduct = () => {
     }
   };
 
+  // Cargar datos del producto
   const loadProductData = async (productUrl) => {
     try {
       const response = await fetch(`/api/products/private/product/get/${productUrl}`, {
         method: 'GET',
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -171,22 +173,29 @@ const UpdateProduct = () => {
         images: data.images.length > 0 ? data.images : [''],
       });
 
-      // Cargar las subcategorías, marcas y tipos basados en la categoría del producto
+      // Cargar también subcategorías, marcas y tipos de esa categoría
       await loadSubcategories(data.categoryID);
       await loadBrands(data.categoryID);
       await loadTypes(data.categoryID);
     } catch (err) {
+      console.error('Error al cargar el producto:', err);
       setError(err.message);
     }
   };
 
+  // Manejo de cambios en el formulario
   const handleChange = (e, index = null) => {
     const { name, value } = e.target;
+
     if (name === 'images') {
       const images = [...productData.images];
       images[index] = value;
       setProductData({ ...productData, images });
-    } else if (name === 'categoryID') {
+      return;
+    }
+
+    if (name === 'categoryID') {
+      // Si el usuario cambia la categoría, reseteamos subcategoría, marca y tipo
       setProductData({
         ...productData,
         categoryID: value,
@@ -194,6 +203,7 @@ const UpdateProduct = () => {
         brandID: '',
         typeID: '',
       });
+
       if (value) {
         loadSubcategories(value);
         loadBrands(value);
@@ -203,21 +213,25 @@ const UpdateProduct = () => {
         setBrands([]);
         setTypes([]);
       }
-    } else {
-      setProductData({ ...productData, [name]: value });
+      return;
     }
+
+    setProductData({ ...productData, [name]: value });
   };
 
+  // Agregar campo de imagen
   const addImageField = () => {
     setProductData({ ...productData, images: [...productData.images, ''] });
   };
 
+  // Eliminar campo de imagen
   const removeImageField = (index) => {
     const images = [...productData.images];
     images.splice(index, 1);
     setProductData({ ...productData, images });
   };
 
+  // Manejo de envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -261,6 +275,9 @@ const UpdateProduct = () => {
     // Filtrar imágenes vacías
     const images = productData.images.filter((img) => img.trim() !== '');
 
+    // Deshabilitamos el botón y mostramos "Cargando..."
+    setIsSubmitting(true);
+
     try {
       const response = await fetch(`/api/products/private/product/update/${url}`, {
         method: 'PUT',
@@ -278,7 +295,7 @@ const UpdateProduct = () => {
           typeID: productData.typeID,
           images: images,
         }),
-        credentials: 'include', // Incluye las cookies en la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -288,25 +305,48 @@ const UpdateProduct = () => {
 
       const responseData = await response.json();
       alert(`Producto actualizado correctamente. URL: ${responseData.url}`);
-      router.push('/profile/admin/dashboard'); // Redirige al dashboard o a la página deseada
+      router.push('/profile/admin/dashboard'); // Redirige a donde quieras
     } catch (err) {
       console.error('Error al actualizar el producto:', err);
       setError(err.message);
+    } finally {
+      setIsSubmitting(false); // Reactivamos el botón
     }
   };
 
-  if (loading) {
+  /**
+   * 1. Si authLoading o sessionInitializing => mostrar spinner
+   * 2. Si no tiene permisos => Mensaje
+   * 3. Si todo está OK => Renderizar formulario
+   */
+
+  // (1) Spinner de carga mientras se obtiene la sesión
+  if (authLoading || sessionInitializing) {
     return (
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>Cargando...</p>}
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
   }
 
+  // (2) Si no tiene permiso
   if (!hasPermission) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para actualizar productos.</p>}
+        {error ? (
+          <p className="text-red-500 mb-2">{error}</p>
+        ) : (
+          <p>No tienes permisos para actualizar productos.</p>
+        )}
+      </div>
+    );
+  }
+
+  // (3) Si todo OK
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
+        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>Cargando...</p>}
       </div>
     );
   }
@@ -490,9 +530,12 @@ const UpdateProduct = () => {
         {/* Botón de Envío */}
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          disabled={isSubmitting}
+          className={`w-full text-white py-2 rounded ${
+            isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+          }`}
         >
-          Actualizar Producto
+          {isSubmitting ? 'Cargando...' : 'Actualizar Producto'}
         </button>
       </form>
     </div>
@@ -500,3 +543,4 @@ const UpdateProduct = () => {
 };
 
 export default UpdateProduct;
+

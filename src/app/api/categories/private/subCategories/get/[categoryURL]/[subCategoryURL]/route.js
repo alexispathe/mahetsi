@@ -9,7 +9,7 @@ export async function GET(request, { params }) { // Asegúrate de que la funció
 
   try {
     // Obtener las cookies de la solicitud
-    const cookieStore = cookies(); // Si Next.js requiere await, usa: const cookieStore = await cookies();
+    const cookieStore = await  cookies(); // Si Next.js requiere await, usa: const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
 
     if (!sessionCookie) {

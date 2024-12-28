@@ -1,10 +1,12 @@
 // src/app/categories/subCategories/update/[categoryURL]/[subCategoryURL]/page.js
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { AuthContext } from '@/context/AuthContext'; // Importando el AuthContext
 
 const UpdateSubcategory = () => {
+  const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext); // Usando el contexto
   const router = useRouter();
   const params = useParams();
   const { categoryURL, subCategoryURL } = params;
@@ -12,49 +14,26 @@ const UpdateSubcategory = () => {
   const [subcategoryData, setSubcategoryData] = useState({
     name: '',
     description: '',
+    categoryID: '',
   });
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState('');
-  const [hasPermission, setHasPermission] = useState(false);
-  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
+  const [isSubmitting, setIsSubmitting] = useState(false); // Estado para el botón
+
+  const hasPermission = currentUser?.permissions?.includes('update'); // Comprobamos si el usuario tiene el permiso de actualización
 
   useEffect(() => {
-    if (!categoryURL || !subCategoryURL) {
-      setError('Parámetros de URL faltantes.');
-      setLoading(false);
-      return;
-    }
-
-    const checkAuthAndPermissions = async () => {
-      try {
-        const response = await fetch('/api/verify-session', {
-          method: 'GET',
-          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
-        });
-        const data = await response.json();
-
-        if (response.ok && data.message === 'Autenticado') {
-          if (data.user.permissions.includes('update')) {
-            setHasPermission(true);
-            await loadCategories(); // Cargar categorías si tiene permiso
-            await loadSubcategoryData(categoryURL, subCategoryURL); // Cargar datos de la subcategoría
-          } else {
-            router.push('/not-found'); // Redirige si no tiene permiso
-          }
-        } else {
-          router.push('/login'); // Redirige si no está autenticado
-        }
-      } catch (err) {
-        console.error('Error al verificar la autenticación:', err);
-        setError('Error al verificar la autenticación.');
-        router.push('/login');
-      } finally {
-        setLoading(false);
+    if (!authLoading && !sessionInitializing) {
+      if (!currentUser) {
+        router.push('/login'); // Redirige si no está autenticado
+      } else if (!hasPermission) {
+        router.push('/not-found'); // Redirige si no tiene el permiso
+      } else {
+        loadCategories(); // Cargar categorías si tiene permiso
+        loadSubcategoryData(categoryURL, subCategoryURL); // Cargar la subcategoría si tiene permiso
       }
-    };
-
-    checkAuthAndPermissions();
-  }, [router, categoryURL, subCategoryURL]);
+    }
+  }, [authLoading, currentUser, router, sessionInitializing, hasPermission, categoryURL, subCategoryURL]);
 
   const loadCategories = async () => {
     try {
@@ -87,6 +66,7 @@ const UpdateSubcategory = () => {
         setSubcategoryData({
           name: data.name,
           description: data.description || '',
+          categoryID: data.categoryID, // Asegúrate de incluir la categoría asociada
         });
       } else {
         const errorData = await response.json();
@@ -112,6 +92,13 @@ const UpdateSubcategory = () => {
       return;
     }
 
+    if (!subcategoryData.categoryID) {
+      setError('Por favor, selecciona una categoría.');
+      return;
+    }
+
+    setIsSubmitting(true); // Deshabilitar el botón y poner "Cargando..."
+
     try {
       const response = await fetch(`/api/categories/private/subCategories/update/${categoryURL}/${subCategoryURL}`, {
         method: 'PUT',
@@ -132,13 +119,15 @@ const UpdateSubcategory = () => {
     } catch (err) {
       console.error('Error al actualizar la subcategoría:', err);
       setError(err.message || 'Error al actualizar la subcategoría.');
+    } finally {
+      setIsSubmitting(false); // Reactivar el botón
     }
   };
 
-  if (loading) {
+  if (authLoading || sessionInitializing) {
     return (
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        <p>Cargando...</p>
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div> {/* Círculo de carga */}
       </div>
     );
   }
@@ -177,11 +166,31 @@ const UpdateSubcategory = () => {
             placeholder="Descripción de la subcategoría (opcional)"
           />
         </div>
+        <div className="mb-4">
+          <label className="block mb-1">Categoría</label>
+          <select
+            name="categoryID"
+            value={subcategoryData.categoryID}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded"
+            required
+          >
+            <option value="">Selecciona una categoría</option>
+            {categories.map((category) => (
+              <option key={category.uniqueID} value={category.uniqueID}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          className={`w-full text-white py-2 rounded ${
+            isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+          }`}
+          disabled={isSubmitting}
         >
-          Actualizar Subcategoría
+          {isSubmitting ? 'Cargando...' : 'Actualizar Subcategoría'}
         </button>
       </form>
     </div>

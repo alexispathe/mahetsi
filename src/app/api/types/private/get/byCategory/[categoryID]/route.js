@@ -9,7 +9,7 @@ export async function GET(request, { params }) {
 
   try {
     // Obtener las cookies de la solicitud
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
 
     if (!sessionCookie) {

@@ -1,68 +1,49 @@
 // src/app/profile/admin/categories/update/[url]/page.js
 
-"use client"; 
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { AuthContext } from '@/context/AuthContext';
 
 const UpdateCategory = () => {
+  const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
   const params = useParams();
-  const { url } = params;  
-  // Asegúrate de que el parámetro se llame 'url'
+  const { url } = params;
 
   const [categoryData, setCategoryData] = useState({
     name: '',
     description: '',
   });
   const [error, setError] = useState('');
-  const [hasPermission, setHasPermission] = useState(false);
-  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
+  const [isSubmitting, setIsSubmitting] = useState(false); // Estado para el botón
+  const [categoryLoading, setCategoryLoading] = useState(true); // Estado de carga para la categoría
+
+  const hasPermission = currentUser?.permissions?.includes('update');
 
   useEffect(() => {
-    if (!url) {
-      setError('No se proporcionó un ID de categoría válido.');
-      setLoading(false);
-      return;
-    }
-
-    const checkAuthAndPermissions = async () => {
-      try {
-        const response = await fetch('/api/verify-session', {
-          method: 'GET',
-          credentials: 'include', // Asegura que las cookies se envíen con la solicitud
-        });
-        const data = await response.json();
-
-        if (response.ok && data.message === 'Autenticado') {
-          if (data.user.permissions.includes('update')) {
-            setHasPermission(true);
-            loadCategoryData(url); // Cargar datos de la categoría si tiene permiso
-          } else {
-            router.push('/not-found'); // Redirige si no tiene permiso
-          }
-        } else {
-          router.push('/login'); // Redirige si no está autenticado
-        }
-      } catch (err) {
-        console.error('Error al verificar la autenticación:', err);
-        setError('Error al verificar la autenticación.');
+    if (!authLoading && !sessionInitializing) {
+      if (!currentUser) {
         router.push('/login');
-      } finally {
-        setLoading(false);
+      } else if (!hasPermission) {
+        router.push('/not-found');
+      } else if (url) {
+        loadCategoryData(url); // Cargar datos de la categoría
+      } else {
+        setError('No se proporcionó un ID de categoría válido.');
+        setCategoryLoading(false);
       }
-    };
-
-    checkAuthAndPermissions();
-  }, [router, url]);
+    }
+  }, [authLoading, currentUser, router, sessionInitializing, hasPermission, url]);
 
   const loadCategoryData = async (url) => {
     try {
       const response = await fetch(`/api/categories/private/get/category/${url}`, {
         method: 'GET',
-        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+        credentials: 'include',
       });
-      console.log(response)
+
       if (!response.ok) {
         throw new Error('Error al cargar la categoría.');
       }
@@ -74,6 +55,8 @@ const UpdateCategory = () => {
       });
     } catch (err) {
       setError(err.message);
+    } finally {
+      setCategoryLoading(false); // Terminar carga de la categoría
     }
   };
 
@@ -91,18 +74,19 @@ const UpdateCategory = () => {
       return;
     }
 
+    setIsSubmitting(true); // Deshabilitar el botón
+
     try {
       const response = await fetch(`/api/categories/private/update/${url}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          // No es necesario incluir el header Authorization
         },
         body: JSON.stringify({
           name: categoryData.name,
           description: categoryData.description,
         }),
-        credentials: 'include', // Asegura que las cookies se envíen con la solicitud
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -110,25 +94,29 @@ const UpdateCategory = () => {
         throw new Error(errorData.message || 'Error al actualizar la categoría.');
       }
 
-      alert("Categoría actualizada correctamente");
-      router.push('/profile/admin/dashboard'); // Redirige al perfil después de la actualización
+      alert('Categoría actualizada correctamente');
+      router.push('/profile/admin/dashboard');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsSubmitting(false); // Reactivar el botón
     }
   };
 
+  const loading = authLoading || sessionInitializing || categoryLoading;
+
   if (loading) {
     return (
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        <p>Cargando...</p>
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
   }
 
-  if (!hasPermission) {
+  if (error && !hasPermission) {
     return (
       <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? <p className="text-red-500 mb-2">{error}</p> : <p>No tienes permisos para actualizar categorías.</p>}
+        <p className="text-red-500 mb-2">{error || 'No tienes permisos para actualizar categorías.'}</p>
       </div>
     );
   }
@@ -161,9 +149,12 @@ const UpdateCategory = () => {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          className={`w-full text-white py-2 rounded ${
+            isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+          }`}
+          disabled={isSubmitting}
         >
-          Actualizar Categoría
+          {isSubmitting ? 'Actualizando...' : 'Actualizar Categoría'}
         </button>
       </form>
     </div>
