@@ -1,3 +1,5 @@
+// src/components/ProductDetail.js
+
 'use client';
 
 import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
@@ -28,6 +30,11 @@ export default function ProductDetail() {
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false); // Estado para controlar el botón de favorito
 
   const thumbnails = product ? product.images : [];
+
+  // Estados para controlar las animaciones
+  const [visible, setVisible] = useState(showModal);
+  const [animation, setAnimation] = useState('');
+  const [clickedImage, setClickedImage] = useState(null); // Estado para la animación de selección
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -70,6 +77,7 @@ export default function ProductDetail() {
   }, [productUrl, currentUser]);
 
   const handleThumbnailClick = (image) => {
+    setClickedImage(image); // Iniciar animación de selección
     setMainImage(image);
   };
 
@@ -77,10 +85,14 @@ export default function ProductDetail() {
     setShowModal(true);
   };
 
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (modalRef.current && !modalRef.current.contains(e.target)) {
-        setShowModal(false);
+        closeModal();
       }
     };
 
@@ -94,6 +106,36 @@ export default function ProductDetail() {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [showModal]);
+
+  // Manejar la animación de apertura y cierre del modal
+  useEffect(() => {
+    if (showModal) {
+      setVisible(true);
+      setAnimation('animate-fadeInZoom');
+    } else if (visible) {
+      setAnimation('animate-fadeOutZoom');
+      // Esperar a que termine la animación antes de ocultar el modal
+      const timer = setTimeout(() => {
+        setVisible(false);
+      }, 1000); // 1000ms = 1 segundo
+
+      return () => clearTimeout(timer);
+    }
+  }, [showModal, visible]);
+
+  // Resetear clickedImage después de la animación de selección
+  useEffect(() => {
+    if (clickedImage) {
+      const timer = setTimeout(() => {
+        setClickedImage(null);
+      }, 300); // 300ms coincide con la duración de 'zoomSelected'
+
+      return () => clearTimeout(timer);
+    }
+  }, [clickedImage]);
+
+  // Determinar si estamos en proceso de fade-out
+  const isFadingOut = animation === 'animate-fadeOutZoom';
 
   const handleAddToCartClick = async () => {
     if (!product) return;
@@ -201,7 +243,10 @@ export default function ProductDetail() {
             {/* Thumbnails */}
             <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto max-h-96 lg:max-h-full gap-2">
               {thumbnails.map((image, index) => (
-                <div key={index} className={`w-20 h-20 rounded-md border-2 ${mainImage === image ? 'border-gray-800' : 'border-transparent'}`}>
+                <div
+                  key={index}
+                  className={`w-20 h-20 rounded-md border-2 ${mainImage === image ? 'border-gray-800' : 'border-transparent'} ${clickedImage === image ? 'animate-zoomSelected' : ''}`}
+                >
                   <Image
                     src={image}
                     alt={`Thumbnail ${index + 1}`}
@@ -221,7 +266,7 @@ export default function ProductDetail() {
                 alt="Producto principal"
                 width={500}
                 height={500}
-                className="w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105"
+                className={`w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105 ${clickedImage === mainImage ? 'animate-zoomSelected' : ''}`}
               />
             </div>
           </div>
@@ -272,22 +317,12 @@ export default function ProductDetail() {
       </div>
 
       {/* Modal de Imagen Expandida */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div
-            className="relative"
-            ref={modalRef}
-          >
-            <button
-              className="absolute top-2 right-2 text-white text-3xl font-bold z-10"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowModal(false);
-              }}
-              aria-label="Cerrar modal"
-            >
-              ✖
-            </button>
+      {visible && (
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 ${animation} ${isFadingOut ? 'pointer-events-none' : 'pointer-events-auto'}`}
+          onClick={closeModal} // Cierra el modal al hacer click en el fondo
+        >
+          <div className="relative flex justify-center">
             <Image
               src={mainImage}
               alt="Producto principal expandido"
@@ -296,9 +331,17 @@ export default function ProductDetail() {
               className="max-w-full max-h-screen rounded-md object-contain cursor-pointer"
               onClick={() => setShowModal(false)}
             />
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-white text-4xl font-bold hover:text-pink-500 transition-colors duration-300"
+              aria-label="Cerrar zoom"
+            >
+              &times;
+            </button>
           </div>
         </div>
       )}
+
     </>
   );
 }

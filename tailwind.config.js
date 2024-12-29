@@ -39,7 +39,7 @@ module.exports = {
           '0%': { opacity: '1', transform: 'translateX(0)' },
           '100%': { opacity: '0', transform: 'translateX(100%)' },
         },
-        // Nuevas animaciones para el modal de zoom
+        // Animaciones para el modal de zoom
         fadeInZoom: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
@@ -47,6 +47,12 @@ module.exports = {
         fadeOutZoom: {
           '0%': { opacity: '1' },
           '100%': { opacity: '0' },
+        },
+        // Nueva animación para la selección de imagen
+        zoomSelected: {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.05)', opacity: '0.8' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },
       animation: {
@@ -56,9 +62,10 @@ module.exports = {
         fadeOut: 'fadeOut 0.5s forwards',
         fadeInSlideIn: 'fadeInSlideIn 1s forwards',
         fadeOutSlideOut: 'fadeOutSlideOut 1s forwards',
-        // Nuevas animaciones para el modal de zoom
-        fadeInZoom: 'fadeInZoom 1s forwards', // Actualizado a 1s
-        fadeOutZoom: 'fadeOutZoom 1s forwards', // Actualizado a 1s
+        fadeInZoom: 'fadeInZoom 1s forwards',
+        fadeOutZoom: 'fadeOutZoom 1s forwards',
+        // Nueva animación para la selección de imagen
+        zoomSelected: 'zoomSelected 0.3s ease-in-out forwards',
       },
     },
   },
