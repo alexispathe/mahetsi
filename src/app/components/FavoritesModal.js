@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useEffect, useRef, useContext } from 'react';
+import { useEffect, useRef, useContext, useState } from 'react';
 import Link from 'next/link';
 import { FavoritesContext } from '@/context/FavoritesContext'; // Asegúrate de que la ruta sea correcta
 import { FaTimes } from 'react-icons/fa'; // Icono para cerrar
@@ -10,7 +10,7 @@ import Image from 'next/image'; // Para optimizar imágenes
 
 export default function FavoritesModal({ isOpen, onClose }) {
   const modalRef = useRef(null);
-
+  
   // Consumir el contexto de favoritos
   const {
     favoriteProducts,
@@ -19,6 +19,26 @@ export default function FavoritesModal({ isOpen, onClose }) {
     removeFavorite,
   } = useContext(FavoritesContext);
   // console.log("favoritos", favoriteProducts);
+
+  // Estados para controlar la visibilidad y animación
+  const [visible, setVisible] = useState(isOpen);
+  const [animation, setAnimation] = useState('');
+
+  // Manejar la animación de apertura y cierre
+  useEffect(() => {
+    if (isOpen) {
+      setVisible(true);
+      setAnimation('animate-fadeInSlideIn');
+    } else if (visible) {
+      setAnimation('animate-fadeOutSlideOut');
+      // Esperar a que termine la animación antes de ocultar el modal
+      const timer = setTimeout(() => {
+        setVisible(false);
+      }, 1000); // 1000ms = 1 segundo
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, visible]);
 
   // Cerrar el modal al hacer clic fuera de él
   useEffect(() => {
@@ -30,8 +50,6 @@ export default function FavoritesModal({ isOpen, onClose }) {
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
@@ -39,13 +57,13 @@ export default function FavoritesModal({ isOpen, onClose }) {
     };
   }, [isOpen, onClose]);
 
-  // No renderizar nada si el modal no está abierto
-  if (!isOpen) return null;
+  // No renderizar nada si el modal no está visible
+  if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 ${animation}`}>
       <div
-        className="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6 relative favorites-modal"
+        className="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6 relative favorites-modal overflow-y-auto max-h-full"
         ref={modalRef}
       >
         {/* Botón para cerrar el modal */}

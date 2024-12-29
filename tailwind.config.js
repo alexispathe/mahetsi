@@ -31,12 +31,22 @@ module.exports = {
           '0%': { opacity: '1' },
           '100%': { opacity: '0' },
         },
+        fadeInSlideIn: {
+          '0%': { opacity: '0', transform: 'translateX(-100%)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        fadeOutSlideOut: {
+          '0%': { opacity: '1', transform: 'translateX(0)' },
+          '100%': { opacity: '0', transform: 'translateX(100%)' },
+        },
       },
       animation: {
         slideIn: 'slideIn 1500ms forwards',
         slideOut: 'slideOut 1500ms forwards',
         fadeIn: 'fadeIn 0.5s forwards',
         fadeOut: 'fadeOut 0.5s forwards',
+        fadeInSlideIn: 'fadeInSlideIn 1s forwards',
+        fadeOutSlideOut: 'fadeOutSlideOut 1s forwards',
       },
     },
   },
