@@ -1,4 +1,5 @@
 // src/app/profile/admin/dashboard/components/CollapsibleSection.js
+// src/app/profile/admin/dashboard/components/CollapsibleSection.js
 'use client';
 
 import { useState } from 'react';
@@ -15,9 +16,24 @@ const CollapsibleSection = ({
 }) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false); // Estado para habilitar/deshabilitar el botón
 
   const toggleCollapse = () => {
     setIsOpen(prev => !prev);
+  };
+
+  const handleCreateClick = () => {
+    setIsButtonDisabled(true); // Deshabilitar el botón al primer clic
+    router.push(`${createPath}`);
+  };
+
+  const handleUpdateClick = (item) => {
+    setIsButtonDisabled(true); // Deshabilitar el botón al primer clic
+    if (title === 'Subcategorías') {
+      router.push(`${updatePath}/${item.categoryUrl}/${item[itemKey]}`);
+    } else {
+      router.push(`${updatePath}/${item[itemKey]}`);
+    }
   };
 
   return (
@@ -40,8 +56,9 @@ const CollapsibleSection = ({
         <div className="p-4 bg-white">
           <div className="mb-4">
             <button
-              onClick={() => router.push(`${createPath}`)}
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200"
+              onClick={handleCreateClick}
+              disabled={isButtonDisabled} // Deshabilitar el botón después del primer clic
+              className={`bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors duration-200 ${isButtonDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               Crear {title.slice(0, -1)}
             </button>
@@ -53,16 +70,14 @@ const CollapsibleSection = ({
               {items.map(item => (
                 <li key={item[itemKey]} className="flex justify-between items-center">
                   <span className="text-gray-700">{item[itemName]}</span>
-                
                   <button
-                    onClick={() => {
-                      if (title == 'Subcategorías') {
-                        router.push(`${updatePath}/${item.categoryUrl}/${item[itemKey]}`);
-                      } else {
-                        router.push(`${updatePath}/${item[itemKey]}`);
-                      }
-                    }}
-                    className={`${color} text-white px-3 py-1 rounded hover:opacity-90 transition-colors duration-200`}
+                    onClick={() => handleUpdateClick(item)} // Llamar a la función de actualización
+                    disabled={isButtonDisabled} // Deshabilitar el botón después del primer clic
+                    className={`${
+                      color
+                    } text-white px-3 py-1 rounded hover:bg-opacity-90 transition-colors duration-200 ${
+                      isButtonDisabled ? 'cursor-not-allowed opacity-50' : ''
+                    }`}
                   >
                     Actualizar
                   </button>
