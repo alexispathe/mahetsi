@@ -1,4 +1,7 @@
+// src/components/InstagramSection.js
+
 'use client';
+
 import { FaInstagram, FaWhatsapp, FaTruck, FaSyncAlt } from 'react-icons/fa'; // Importando los iconos necesarios
 import { useState, useEffect } from 'react'; // Para manejar el estado del modal de imagen
 import Image from 'next/image'; // Importar la etiqueta Image de Next.js
@@ -7,6 +10,10 @@ export default function InstagramSection() {
   const [isZoomed, setIsZoomed] = useState(false); // Controla la visibilidad del modal
   const [currentImage, setCurrentImage] = useState(''); // Almacena la URL de la imagen seleccionada
   const [loading, setLoading] = useState(true); // Estado de carga para simular la carga de imágenes
+
+  // Estados para controlar la animación
+  const [visible, setVisible] = useState(isZoomed);
+  const [animation, setAnimation] = useState('');
 
   // Función para abrir el modal con la imagen seleccionada
   const handleZoom = (imageUrl) => {
@@ -17,17 +24,37 @@ export default function InstagramSection() {
   // Función para cerrar el modal
   const closeZoom = () => {
     setIsZoomed(false);
-    setCurrentImage('');
+    // La lógica para desmontar el modal se maneja en el efecto
   };
 
   // Simulación de carga (puedes cambiar el tiempo según sea necesario)
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false); // Cambiar el estado a false después de 1.5 segundos (simulando carga)
-    }, 1500);
+    }, 1000);
 
     return () => clearTimeout(timer); // Limpiar el temporizador
   }, []);
+
+  // Manejar la animación de apertura y cierre
+  useEffect(() => {
+    if (isZoomed) {
+      setVisible(true);
+      setAnimation('animate-fadeInZoom');
+    } else if (visible) {
+      setAnimation('animate-fadeOutZoom');
+      // Esperar a que termine la animación antes de ocultar el modal
+      const timer = setTimeout(() => {
+        setVisible(false);
+        setCurrentImage('');
+      }, 5000); // 1000ms = 1 segundo
+
+      return () => clearTimeout(timer);
+    }
+  }, [isZoomed, visible]);
+
+  // Determinar si estamos en proceso de fade-out
+  const isFadingOut = animation === 'animate-fadeOutZoom';
 
   return (
     <section className="w-full bg-gray-900 py-20">
@@ -53,7 +80,7 @@ export default function InstagramSection() {
 
           {/* Lado derecho con las imágenes pequeñas */}
           <div className="lg:w-3/5 w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {[ 
+            {[
               'https://mahetsipage.web.app/assets/images/products/img-6.jpeg',
               'https://mahetsipage.web.app/assets/images/products/img-1.jpeg',
               'https://mahetsipage.web.app/assets/images/products/img-2.jpeg',
@@ -115,9 +142,11 @@ export default function InstagramSection() {
       </div>
 
       {/* Modal para la imagen ampliada */}
-      {isZoomed && (
+      {visible && (
         <div
-          className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-75 flex items-center justify-center z-50"
+          className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-75 flex items-center justify-center z-50 ${animation} ${
+            isFadingOut ? 'pointer-events-none' : 'pointer-events-auto'
+          }`}
           onClick={closeZoom} // Cierra el modal al hacer click en el fondo
         >
           <div className="relative flex justify-center">
@@ -132,6 +161,7 @@ export default function InstagramSection() {
             <button
               onClick={closeZoom}
               className="absolute top-4 right-4 text-white text-4xl font-bold hover:text-pink-500 transition-colors duration-300"
+              aria-label="Cerrar zoom"
             >
               &times;
             </button>
