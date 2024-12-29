@@ -1,4 +1,5 @@
-'use client'
+// src/components/SearchModal.js
+'use client';
 
 import { useEffect, useState } from "react";
 import Link from 'next/link';
@@ -8,6 +9,23 @@ export default function SearchModal({ isOpen, onClose }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [visible, setVisible] = useState(isOpen); // Controla la visibilidad del modal
+  const [animation, setAnimation] = useState(''); // Controla la animación actual
+
+  useEffect(() => {
+    if (isOpen) {
+      setVisible(true);
+      setAnimation('animate-fadeIn');
+    } else if (visible) {
+      setAnimation('animate-fadeOut');
+      // Espera a que termine la animación antes de ocultar el modal
+      const timer = setTimeout(() => {
+        setVisible(false);
+      }, 1000); // 1000ms = 1 segundo
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, visible]);
 
   useEffect(() => {
     let abort = false;
@@ -56,14 +74,15 @@ export default function SearchModal({ isOpen, onClose }) {
     }
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${animation}`}>
       <div className="search-modal bg-white w-full max-w-3xl p-6 rounded-lg shadow-xl relative flex flex-col max-h-screen">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-lg text-gray-600 hover:text-gray-900"
+          aria-label="Cerrar búsqueda"
         >
           ❌
         </button>
@@ -76,11 +95,12 @@ export default function SearchModal({ isOpen, onClose }) {
           className="w-full p-3 border border-gray-300 rounded-lg mb-4"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Campo de búsqueda"
         />
         
         {searchQuery && (
           <div className="text-sm mb-4">
-            <span>{filtered.length} resultado(s) para {searchQuery}</span>
+            <span>{filtered.length} resultado(s) para "{searchQuery}"</span>
           </div>
         )}
 

@@ -11,6 +11,33 @@ module.exports = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      transitionDuration: {
+        '2000': '2000ms',
+      },
+      keyframes: {
+        slideIn: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        slideOut: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        fadeOut: {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
+      },
+      animation: {
+        slideIn: 'slideIn 1500ms forwards',
+        slideOut: 'slideOut 1500ms forwards',
+        fadeIn: 'fadeIn 0.5s forwards',
+        fadeOut: 'fadeOut 0.5s forwards',
+      },
     },
   },
   plugins: [],

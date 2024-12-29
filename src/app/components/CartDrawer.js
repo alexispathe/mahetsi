@@ -1,5 +1,4 @@
 // src/components/CartDrawer.js
-// src/components/CartDrawer.js
 'use client';
 
 import { useContext, useState, useEffect, useRef } from "react";
@@ -11,11 +10,28 @@ export default function CartDrawer({ isOpen, onClose }) {
   const { cartItems, products, loading, error, removeItemFromCart, addItemToCart } = useContext(CartContext);
   const [isRemoving, setIsRemoving] = useState(null); // Estado para controlar la eliminación del producto
   const [isUpdating, setIsUpdating] = useState(null); // Estado para controlar la actualización de cantidad
+  const [visible, setVisible] = useState(isOpen); // Controla la visibilidad del Drawer
+  const [animation, setAnimation] = useState(''); // Controla la animación actual
   const drawerRef = useRef(null); // Referencia para el contenedor del CartDrawer
+
+  useEffect(() => {
+    if (isOpen) {
+      setVisible(true);
+      setAnimation('animate-slideIn');
+    } else if (visible) {
+      setAnimation('animate-slideOut');
+      // Espera a que termine la animación antes de ocultar el drawer
+      const timer = setTimeout(() => {
+        setVisible(false);
+      }, 2000); // 2000ms = 2 segundos
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, visible]);
 
   // Cerrar el CartDrawer cuando se hace clic fuera de él
   useEffect(() => {
-    if (!isOpen) return;
+    if (!visible) return;
     const handleClickOutside = (event) => {
       if (drawerRef.current && !drawerRef.current.contains(event.target)) {
         onClose(); // Cerrar el drawer si se hace clic fuera
@@ -28,9 +44,9 @@ export default function CartDrawer({ isOpen, onClose }) {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, onClose]);
+  }, [visible, onClose]);
 
-  if (!isOpen) return null;
+  if (!visible) return null;
 
   // Combinar los detalles del producto con el carrito
   const detailedCartItems = cartItems.map(cartItem => {
@@ -76,10 +92,10 @@ export default function CartDrawer({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end z-50">
+    <div className={`fixed inset-0 bg-black bg-opacity-50 flex justify-end z-50 transition-opacity duration-2000 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
       <div
         ref={drawerRef} // Asignar la referencia al contenedor del CartDrawer
-        className="relative bg-white w-full sm:w-3/4 md:w-2/3 lg:w-1/3 p-6 overflow-y-auto rounded-xl shadow-lg text-[#1c1f28]"
+        className={`relative bg-white w-full sm:w-3/4 md:w-2/3 lg:w-1/3 p-6 overflow-y-auto rounded-xl shadow-lg text-[#1c1f28] ${animation}`}
       >
         <button 
           onClick={onClose} 
