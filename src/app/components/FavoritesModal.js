@@ -61,7 +61,7 @@ export default function FavoritesModal({ isOpen, onClose }) {
   if (!visible) return null;
 
   return (
-    <div className={`fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4 ${animation}`}>
+    <div className={`fixed inset-0   flex justify-center items-center z-50 p-4 ${animation}`}>
       <div
         className="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6 relative favorites-modal overflow-y-auto max-h-full"
         ref={modalRef}

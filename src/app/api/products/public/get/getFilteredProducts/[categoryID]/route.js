@@ -29,7 +29,9 @@ export async function GET(request, context) {
          size: data.size,
          images: data.images || [],
          url: data.url || '',
-         subcategoryID: data.subcategoryID
+         subcategoryID: data.subcategoryID,
+         averageRating: data.averageRating,
+         numReviews: data.numReviews
        };
      });
  

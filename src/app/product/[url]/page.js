@@ -9,6 +9,7 @@ import { AuthContext } from "@/context/AuthContext"; // Contexto de autenticaci�
 import { CartContext } from "@/context/CartContext"; // Contexto del carrito
 import { FavoritesContext } from "@/context/FavoritesContext"; // Contexto de favoritos
 import Image from 'next/image'; // Importamos la etiqueta Image
+import { FaStar, FaRegStar, FaHeart, FaRegHeart, FaTimes, FaBox } from 'react-icons/fa'; // Importar iconos de react-icons
 
 export default function ProductDetail() {
   const params = useParams();
@@ -276,7 +277,14 @@ export default function ProductDetail() {
             <p className="text-gray-500 text-sm">HOME / {brandName.toUpperCase()} / {typeName.toUpperCase()}</p>
             <h1 className="text-3xl font-bold">{product.name}</h1>
             <div className="flex items-center space-x-2">
-              <div className="text-yellow-500 text-lg">⭐⭐⭐⭐☆</div>
+              {/* Reemplazo de estrellas con react-icons */}
+              <div className="flex text-yellow-500 text-lg">
+                {/* Suponiendo que el producto tiene una propiedad 'rating' */}
+                {/* Puedes ajustar esto según la estructura de tus datos */}
+                {[1, 2, 3, 4, 5].map((star) => (
+                  star <= product.rating ? <FaStar key={star} /> : <FaRegStar key={star} />
+                ))}
+              </div>
               <p className="text-sm text-gray-600">({product.numReviews} Reviews)</p>
             </div>
             {/* Descripción del Producto */}
@@ -302,15 +310,23 @@ export default function ProductDetail() {
               </button>
               <button 
                 onClick={handleToggleFavorite}
-                className={`px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 ${isTogglingFavorite ? 'cursor-not-allowed opacity-50' : ''} 
+                className={`flex items-center px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 ${isTogglingFavorite ? 'cursor-not-allowed opacity-50' : ''} 
                   ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
                 disabled={isTogglingFavorite}
               >
-                {isTogglingFavorite ? 'Agregando...' : (isLiked ? '❤ Favorito' : '♡ Favorito')}
+                {isTogglingFavorite ? (
+                  'Procesando...'
+                ) : (
+                  <>
+                    {isLiked ? <FaHeart className="mr-2" /> : <FaRegHeart className="mr-2" />}
+                    {isLiked ? 'Favorito' : 'Favorito'}
+                  </>
+                )}
               </button>
             </div>
-            <div className="text-sm text-gray-600">
-              📦 Envío gratis en pedidos superiores a $99. Envío al día siguiente por $9.99
+            <div className="text-sm text-gray-600 flex items-center">
+              <FaBox className="mr-1" />
+              Envío gratis en pedidos superiores a $99. Envío al día siguiente por $9.99
             </div>
           </div>
         </div>
@@ -322,7 +338,7 @@ export default function ProductDetail() {
           className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 ${animation} ${isFadingOut ? 'pointer-events-none' : 'pointer-events-auto'}`}
           onClick={closeModal} // Cierra el modal al hacer click en el fondo
         >
-          <div className="relative flex justify-center">
+          <div className="relative flex justify-center" ref={modalRef}>
             <Image
               src={mainImage}
               alt="Producto principal expandido"
@@ -336,7 +352,7 @@ export default function ProductDetail() {
               className="absolute top-4 right-4 text-white text-4xl font-bold hover:text-pink-500 transition-colors duration-300"
               aria-label="Cerrar zoom"
             >
-              &times;
+              <FaTimes />
             </button>
           </div>
         </div>

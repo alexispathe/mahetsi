@@ -1,10 +1,14 @@
 // components/ProductList.js
 'use client';
-import { useState, useMemo } from 'react';
-import { FaTimes } from 'react-icons/fa'; 
+
+import { useState, useMemo, useContext } from 'react';
+import { FaTimes, FaShoppingCart, FaHeart, FaRegHeart, FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa'; 
 import Link from 'next/link'; 
 import Pagination from './Pagination';
 import Image from 'next/image';
+import { AuthContext } from '@/context/AuthContext'; // Asegúrate de que las rutas sean correctas
+import { CartContext } from '@/context/CartContext';
+import { FavoritesContext } from '@/context/FavoritesContext';
 
 export default function ProductList({ 
   products, 
@@ -30,6 +34,15 @@ export default function ProductList({
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 10;
+
+  // Contextos
+  const { currentUser } = useContext(AuthContext);
+  const { addItemToCart } = useContext(CartContext); 
+  const { addFavorite, removeFavorite, favoriteIDs } = useContext(FavoritesContext); 
+
+  // Estados para controlar botones por producto
+  const [cartLoading, setCartLoading] = useState({});
+  const [favoriteLoading, setFavoriteLoading] = useState({});
 
   // Crear un mapa de subcategorías para fácil acceso
   const subcategoryMap = useMemo(() => {
@@ -92,6 +105,75 @@ export default function ProductList({
     setIsSortOpen(false);
   };
 
+  // Funciones para agregar al carrito
+  const handleAddToCart = async (productUniqueID) => {
+    if (!currentUser) {
+      alert('Por favor, inicia sesión para agregar productos al carrito.');
+      return;
+    }
+
+    setCartLoading(prev => ({ ...prev, [productUniqueID]: true }));
+    const cartItem = {
+      uniqueID: productUniqueID,
+      qty: 1 // Puedes ajustar la cantidad según sea necesario
+    };
+
+    try {
+      await addItemToCart(cartItem);
+      // Puedes mostrar una notificación de éxito aquí
+    } catch (error) {
+      console.error('Error al agregar al carrito:', error);
+      alert('Hubo un problema al agregar el producto al carrito.');
+    } finally {
+      setCartLoading(prev => ({ ...prev, [productUniqueID]: false }));
+    }
+  };
+
+  // Funciones para alternar favorito
+  const handleToggleFavorite = async (productUniqueID) => {
+    if (!currentUser) {
+      alert('Por favor, inicia sesión para gestionar tus favoritos.');
+      return;
+    }
+
+    setFavoriteLoading(prev => ({ ...prev, [productUniqueID]: true }));
+    
+    try {
+      if (favoriteIDs.includes(productUniqueID)) {
+        await removeFavorite(productUniqueID);
+      } else {
+        await addFavorite(productUniqueID);
+      }
+    } catch (error) {
+      console.error('Error al alternar favorito:', error);
+      alert('Hubo un problema al actualizar tus favoritos.');
+    } finally {
+      setFavoriteLoading(prev => ({ ...prev, [productUniqueID]: false }));
+    }
+  };
+
+  // Renderizar estrellas basado en averageRating
+  const renderStars = (averageRating) => {
+    const stars = [];
+    const fullStars = Math.floor(averageRating);
+    const hasHalfStar = averageRating - fullStars >= 0.5;
+
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<FaStar key={`full-${i}`} className="text-yellow-500" />);
+    }
+
+    if (hasHalfStar) {
+      stars.push(<FaStarHalfAlt key="half" className="text-yellow-500" />);
+    }
+
+    const emptyStars = 5 - stars.length;
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(<FaRegStar key={`empty-${i}`} className="text-yellow-500" />);
+    }
+
+    return stars;
+  };
+
   return (
     <div>
       {/* Header de Filtro y Orden */}
@@ -137,7 +219,7 @@ export default function ProductList({
             </svg>
           </button>
           {isSortOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md">
+            <div className="absolute right-0 mt-2 w-40 bg-white shadow-md rounded-md z-10">
               <button
                 onClick={() => handleSort('price: hi low')}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-xs"
@@ -178,7 +260,8 @@ export default function ProductList({
         ) : (
           currentProducts.length > 0 ? (
             currentProducts.map((product) => (
-              <div key={product.uniqueID} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+              <div key={product.uniqueID} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 relative">
+                {/* Imagen, Reseñas y Título dentro del Link */}
                 <Link href={`/product/${product.url}`} className="block">
                   <Image 
                     src={product.images[0]} 
@@ -187,13 +270,47 @@ export default function ProductList({
                     height={500} 
                     className="w-full h-48 object-cover mb-4 rounded-md"
                   />
+                  {/* Estrellas y Reseñas */}
+                  <div className="flex justify-center mt-2 ">
+                    <div className="flex ">{renderStars(product.averageRating)}</div>
+                    <span className="text-xs text-gray-600 ml-2">({product.numReviews})</span>
+                  </div>
                   <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
-                  <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
-                  {/* Mostrar subcategoría si está disponible */}
-                  {product.subcategoryID && (
-                    <p className="text-xs text-gray-400">Subcategoría: {subcategoryMap[product.subcategoryID] || 'Desconocida'}</p>
-                  )}
                 </Link>
+                {/* Precio y Botones Fuera del Link */}
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
+                  <div className="flex space-x-2">
+                    {/* Agregar a Favoritos */}
+                    <button 
+                      onClick={() => handleToggleFavorite(product.uniqueID)}
+                      className="text-red-500 hover:text-red-700 transition-colors duration-300"
+                      aria-label={favoriteIDs.includes(product.uniqueID) ? 'Eliminar de favoritos' : 'Agregar a favoritos'}
+                      disabled={favoriteLoading[product.uniqueID]}
+                    >
+                      {favoriteLoading[product.uniqueID] ? (
+                        <FaHeart className="h-5 w-5 animate-pulse" />
+                      ) : (
+                        favoriteIDs.includes(product.uniqueID) ? 
+                          <FaHeart className="h-5 w-5" /> : 
+                          <FaRegHeart className="h-5 w-5" />
+                      )}
+                    </button>
+                    {/* Agregar al Carrito */}
+                    <button 
+                      onClick={() => handleAddToCart(product.uniqueID)}
+                      className="text-gray-800 hover:text-gray-600 transition-colors duration-300"
+                      aria-label="Agregar al carrito"
+                      disabled={cartLoading[product.uniqueID]}
+                    >
+                      {cartLoading[product.uniqueID] ? (
+                        <FaShoppingCart className="h-5 w-5 animate-pulse" />
+                      ) : (
+                        <FaShoppingCart className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             ))
           ) : (
