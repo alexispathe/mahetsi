@@ -1,4 +1,4 @@
-// src/components/TermsModal.js
+// src/app/checkout/TermsModal.js
 import React from 'react';
 
 const TermsModal = ({ isOpen, onClose }) => {
