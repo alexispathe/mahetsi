@@ -107,11 +107,6 @@ export default function ProductList({
 
   // Funciones para agregar al carrito
   const handleAddToCart = async (productUniqueID) => {
-    if (!currentUser) {
-      alert('Por favor, inicia sesión para agregar productos al carrito.');
-      return;
-    }
-
     setCartLoading(prev => ({ ...prev, [productUniqueID]: true }));
     const cartItem = {
       uniqueID: productUniqueID,
@@ -131,13 +126,8 @@ export default function ProductList({
 
   // Funciones para alternar favorito
   const handleToggleFavorite = async (productUniqueID) => {
-    if (!currentUser) {
-      alert('Por favor, inicia sesión para gestionar tus favoritos.');
-      return;
-    }
-
     setFavoriteLoading(prev => ({ ...prev, [productUniqueID]: true }));
-    
+
     try {
       if (favoriteIDs.includes(productUniqueID)) {
         await removeFavorite(productUniqueID);
