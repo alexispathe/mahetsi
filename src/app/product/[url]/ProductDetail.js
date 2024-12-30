@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
-import Image from 'next/image'; 
-import { AuthContext } from "@/context/AuthContext"; 
-import { CartContext } from "@/context/CartContext"; 
+import Image from 'next/image';
+import { AuthContext } from "@/context/AuthContext";
+import { CartContext } from "@/context/CartContext";
 import { FavoritesContext } from "@/context/FavoritesContext";
-import { FaStar, FaRegStar, FaHeart, FaRegHeart, FaTimes, FaBox } from 'react-icons/fa';
-import ToastNotification from './ToastNotification'; // la ruta puede variar
+import { FaStar, FaRegStar, FaHeart, FaRegHeart, FaTimes, FaBox, FaShoppingCart } from 'react-icons/fa';
+import ToastNotification from '../../ui/ToastNotification'; // la ruta puede variar
 export default function ProductDetail({ productUrl }) {
   const { currentUser } = useContext(AuthContext);
-  const { addItemToCart } = useContext(CartContext); 
-  const { addFavorite, removeFavorite, favoriteIDs } = useContext(FavoritesContext); 
+  const { addItemToCart } = useContext(CartContext);
+  const { addFavorite, removeFavorite, favoriteIDs } = useContext(FavoritesContext);
 
   const [product, setProduct] = useState(null);
   const [brandName, setBrandName] = useState('');
@@ -142,8 +142,8 @@ export default function ProductDetail({ productUrl }) {
 
     await addItemToCart(cartItem);
     setIsAddingToCart(false);
-        // Mostramos la notificación
-        setShowToast(true);
+    // Mostramos la notificación
+    setShowToast(true);
   };
 
   // Callback para cerrar la notificación manualmente
@@ -233,9 +233,8 @@ export default function ProductDetail({ productUrl }) {
             {thumbnails.map((image, index) => (
               <div
                 key={index}
-                className={`w-20 h-20 rounded-md border-2 ${
-                  mainImage === image ? 'border-gray-800' : 'border-transparent'
-                } ${clickedImage === image ? 'animate-zoomSelected' : ''}`}
+                className={`w-20 h-20 rounded-md border-2 ${mainImage === image ? 'border-gray-800' : 'border-transparent'
+                  } ${clickedImage === image ? 'animate-zoomSelected' : ''}`}
               >
                 <Image
                   src={image}
@@ -259,9 +258,8 @@ export default function ProductDetail({ productUrl }) {
               alt="Producto principal"
               width={500}
               height={500}
-              className={`w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105 ${
-                clickedImage === mainImage ? 'animate-zoomSelected' : ''
-              }`}
+              className={`w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105 ${clickedImage === mainImage ? 'animate-zoomSelected' : ''
+                }`}
             />
           </div>
         </div>
@@ -314,23 +312,13 @@ export default function ProductDetail({ productUrl }) {
           {/* Botones de acción */}
           <div className="flex space-x-4">
             <button
-              className={`px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 ${
-                isAddingToCart ? 'cursor-not-allowed opacity-50' : ''
-              }`}
-              onClick={handleAddToCartClick}
-              disabled={isAddingToCart}
-            >
-              {isAddingToCart ? 'Agregando...' : 'Agregar al carrito'}
-            </button>
-            <button
               onClick={handleToggleFavorite}
-              className={`flex items-center px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 ${
-                isTogglingFavorite ? 'cursor-not-allowed opacity-50' : ''
-              } ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
+              className={`flex items-center px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 ${isTogglingFavorite ? 'cursor-not-allowed opacity-50' : ''
+                } ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
               disabled={isTogglingFavorite}
             >
               {isTogglingFavorite ? (
-                'Procesando...'
+                'Guardando...'
               ) : (
                 <>
                   {isLiked ? (
@@ -339,6 +327,20 @@ export default function ProductDetail({ productUrl }) {
                     <FaRegHeart className="mr-2" />
                   )}
                   Favorito
+                </>
+              )}
+            </button>
+            <button
+              className={`px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 ${isAddingToCart ? 'cursor-not-allowed opacity-50' : ''
+                } flex items-center`} // Asegura que los elementos estén en la misma fila
+              onClick={handleAddToCartClick}
+              disabled={isAddingToCart}
+            >
+              {isAddingToCart ? (
+                'Agregando...'
+              ) : (
+                <>
+                  <FaShoppingCart className="mr-2" /> Agregar al carrito
                 </>
               )}
             </button>
@@ -355,9 +357,8 @@ export default function ProductDetail({ productUrl }) {
       {/* Modal de Imagen Expandida */}
       {visible && (
         <div
-          className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 ${animation} ${
-            isFadingOut ? 'pointer-events-none' : 'pointer-events-auto'
-          }`}
+          className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 ${animation} ${isFadingOut ? 'pointer-events-none' : 'pointer-events-auto'
+            }`}
           onClick={closeModal}
         >
           <div className="relative flex justify-center" ref={modalRef}>
@@ -379,12 +380,12 @@ export default function ProductDetail({ productUrl }) {
           </div>
         </div>
       )}
-       <ToastNotification
+      <ToastNotification
         show={showToast}
         onClose={handleCloseToast}
         productName={product?.name}
         productPrice={product?.price}
-        productImage={product?.images[0]} 
+        productImage={product?.images[0]}
       />
     </div>
   );

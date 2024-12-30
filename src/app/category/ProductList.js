@@ -1,4 +1,4 @@
-//src/app/category/ProductList.js
+// src/app/category/ProductList.js
 'use client';
 
 import { useState, useMemo, useContext } from 'react';
@@ -6,10 +6,12 @@ import { FaTimes, FaShoppingCart, FaHeart, FaRegHeart, FaStar, FaStarHalfAlt, Fa
 import Link from 'next/link'; 
 import Pagination from './Pagination';
 import Image from 'next/image';
-import { AuthContext } from '@/context/AuthContext'; // Asegúrate de que las rutas sean correctas
+import { AuthContext } from '@/context/AuthContext'; 
 import { CartContext } from '@/context/CartContext';
 import { FavoritesContext } from '@/context/FavoritesContext';
 
+// Importamos la notificación
+import ToastNotification from '../ui/ToastNotification';
 export default function ProductList({ 
   products, 
   selectedCategories,
@@ -28,8 +30,9 @@ export default function ProductList({
   loading,
   brands,
   types,
-  subcategories, // Nueva prop
+  subcategories,
 }) {
+  // Estados generales
   const [sortOption, setSortOption] = useState('');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,11 +43,19 @@ export default function ProductList({
   const { addItemToCart } = useContext(CartContext); 
   const { addFavorite, removeFavorite, favoriteIDs } = useContext(FavoritesContext); 
 
-  // Estados para controlar botones por producto
+  // Estados para botones de carga
   const [cartLoading, setCartLoading] = useState({});
   const [favoriteLoading, setFavoriteLoading] = useState({});
 
-  // Crear un mapa de subcategorías para fácil acceso
+  // -- ESTADOS PARA LA NOTIFICACIÓN --
+  const [showToast, setShowToast] = useState(false);
+  const [toastData, setToastData] = useState({
+    name: '',
+    price: 0,
+    image: '',
+  });
+
+  // Crear mapa de subcategorías
   const subcategoryMap = useMemo(() => {
     const map = {};
     subcategories.forEach(sub => {
@@ -53,7 +64,7 @@ export default function ProductList({
     return map;
   }, [subcategories]);
 
-  // Ordenar productos según la opción seleccionada
+  // Ordenar productos
   const sortedProducts = useMemo(() => {
     let sorted = [...products];
     if (sortOption === 'price: hi low') {
@@ -94,7 +105,7 @@ export default function ProductList({
     return filters;
   }, [selectedCategories, selectedBrands, selectedTypes, selectedSizes, selectedSubcategories, minPrice, maxPrice]);
 
-  // Calcular paginación
+  // Paginación
   const totalPages = useMemo(() => Math.ceil(sortedProducts.length / productsPerPage), [sortedProducts.length, productsPerPage]);
   const startIndex = (currentPage - 1) * productsPerPage;
   const endIndex = startIndex + productsPerPage;
@@ -110,12 +121,21 @@ export default function ProductList({
     setCartLoading(prev => ({ ...prev, [productUniqueID]: true }));
     const cartItem = {
       uniqueID: productUniqueID,
-      qty: 1 // Puedes ajustar la cantidad según sea necesario
+      qty: 1
     };
-
+    
     try {
       await addItemToCart(cartItem);
-      // Puedes mostrar una notificación de éxito aquí
+      // -- Lanzamos la notificación --
+      const product = products.find((p) => p.uniqueID === productUniqueID);
+      if (product) {
+        setToastData({
+          name: product.name,
+          price: product.price,
+          image: product.images[0],
+        });
+        setShowToast(true); // esto hace que se muestre el Toast
+      }
     } catch (error) {
       console.error('Error al agregar al carrito:', error);
       alert('Hubo un problema al agregar el producto al carrito.');
@@ -127,7 +147,6 @@ export default function ProductList({
   // Funciones para alternar favorito
   const handleToggleFavorite = async (productUniqueID) => {
     setFavoriteLoading(prev => ({ ...prev, [productUniqueID]: true }));
-
     try {
       if (favoriteIDs.includes(productUniqueID)) {
         await removeFavorite(productUniqueID);
@@ -151,17 +170,19 @@ export default function ProductList({
     for (let i = 0; i < fullStars; i++) {
       stars.push(<FaStar key={`full-${i}`} className="text-yellow-500" />);
     }
-
     if (hasHalfStar) {
       stars.push(<FaStarHalfAlt key="half" className="text-yellow-500" />);
     }
-
     const emptyStars = 5 - stars.length;
     for (let i = 0; i < emptyStars; i++) {
       stars.push(<FaRegStar key={`empty-${i}`} className="text-yellow-500" />);
     }
-
     return stars;
+  };
+
+  // Función para cerrar el Toast manualmente
+  const handleCloseToast = () => {
+    setShowToast(false);
   };
 
   return (
@@ -197,6 +218,7 @@ export default function ProductList({
             </button>
           )}
         </div>
+
         {/* Sort Dropdown */}
         <div className="relative">
           <button 
@@ -261,13 +283,14 @@ export default function ProductList({
                     className="w-full h-48 object-cover mb-4 rounded-md"
                   />
                   {/* Estrellas y Reseñas */}
-                  <div className="flex justify-center mt-2 ">
-                    <div className="flex ">{renderStars(product.averageRating)}</div>
+                  <div className="flex justify-center mt-2">
+                    <div className="flex">{renderStars(product.averageRating)}</div>
                     <span className="text-xs text-gray-600 ml-2">({product.numReviews})</span>
                   </div>
                   <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
                 </Link>
-                {/* Precio y Botones Fuera del Link */}
+
+                {/* Precio y Botones */}
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
                   <div className="flex space-x-2">
@@ -294,9 +317,9 @@ export default function ProductList({
                       disabled={cartLoading[product.uniqueID]}
                     >
                       {cartLoading[product.uniqueID] ? (
-                        <FaShoppingCart className="h-5 w-5 animate-pulse" />
+                        <FaShoppingCart className="h-5 w-5 animate-pulse "alt="agregar al carrito" />
                       ) : (
-                        <FaShoppingCart className="h-5 w-5" />
+                        <FaShoppingCart className="h-5 w-5 " />
                       )}
                     </button>
                   </div>
@@ -317,6 +340,15 @@ export default function ProductList({
           onPageChange={setCurrentPage} 
         />
       )}
+
+      {/* Aquí abajo, el componente Toast */}
+      <ToastNotification
+        show={showToast}
+        onClose={handleCloseToast}
+        productName={toastData.name}
+        productPrice={toastData.price}
+        productImage={toastData.image}
+      />
     </div>
   );
 }
