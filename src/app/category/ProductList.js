@@ -1,4 +1,4 @@
-// components/ProductList.js
+//src/app/category/ProductList.js
 'use client';
 
 import { useState, useMemo, useContext } from 'react';
