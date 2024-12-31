@@ -6,7 +6,6 @@ import { AuthContext } from '@/context/AuthContext';
 import UserAddress from '../components/UserAddress';
 import CartSummary from './CartSummary'; 
 import Header from '../components/Header';
-import PaymentInformation from './PaymentInformation';
 
 export default function CartPage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
@@ -34,7 +33,6 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <UserAddress />  {/* Sección de dirección y forma de pago */}
           <CartSummary /> {/* Sección del resumen de la compra */}
-          <PaymentInformation />
         </div>
       </div>
     </div>

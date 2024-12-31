@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { CartContext } from '@/context/CartContext'; // Importar CartContext
 import Image from 'next/image'; // Importar la etiqueta Image
 import TermsModal from './TermsModal'; // Importar el modal de términos y condiciones
-import { MdDeleteForever } from "react-icons/md";
 
 export default function CartSummary() {
   const { cartItems, products, loading, error, addItemToCart, removeItemFromCart } = useContext(CartContext);
