@@ -3,7 +3,7 @@
 import React, { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
-import UserAddress from './UserAddress';
+import UserAddress from '../components/UserAddress';
 import CartSummary from './CartSummary'; 
 import Header from '../components/Header';
 import PaymentInformation from './PaymentInformation';
