@@ -1,4 +1,3 @@
-// src/components/CartSummary.js
 
 'use client';
 
@@ -9,12 +8,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function CartSummary({ selectedAddressId, addresses }) {
-  const { cartItems, products, loading, error, addItemToCart, removeItemFromCart, clearCart } = useContext(CartContext);
+  const { cartItems, products, loading, error, clearCart } = useContext(CartContext);
   const [isSubmitting, setIsSubmitting] = useState(false); // Para deshabilitar el botón de completar pedido
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAccepted, setIsAccepted] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
-  
+
   const router = useRouter();
 
   // Mapear los items del carrito con los detalles de los productos
@@ -128,26 +127,10 @@ export default function CartSummary({ selectedAddressId, addresses }) {
                     <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded mr-4" />
                     <div>
                       <h4 className="text-lg font-semibold">{item.name}</h4>
-                      <p className="text-gray-600">Precio: ${item.price.toFixed(2)}</p>
+                      <p className="text-gray-600">Precio por unidad: ${item.price.toFixed(2)}</p>
                       <p className="text-gray-600">Cantidad: {item.qty}</p>
                       <p className="text-gray-800 font-semibold">Total: ${(item.price * item.qty).toFixed(2)}</p>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => addItemToCart({ uniqueID: item.uniqueID, qty: 1 })}
-                      className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition"
-                      disabled={isSubmitting}
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => removeItemFromCart(item.uniqueID)}
-                      className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition"
-                      disabled={isSubmitting}
-                    >
-                      -
-                    </button>
                   </div>
                 </div>
               ))}

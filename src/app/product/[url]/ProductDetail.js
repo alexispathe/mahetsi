@@ -1,4 +1,4 @@
-'use client';
+'use client'; 
 
 import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
 import Image from 'next/image';
@@ -6,7 +6,8 @@ import { AuthContext } from "@/context/AuthContext";
 import { CartContext } from "@/context/CartContext";
 import { FavoritesContext } from "@/context/FavoritesContext";
 import { FaStar, FaRegStar, FaHeart, FaRegHeart, FaTimes, FaBox, FaShoppingCart } from 'react-icons/fa';
-import ToastNotification from '../../ui/ToastNotification'; // la ruta puede variar
+import { toast } from 'react-toastify'; // Importa toast desde react-toastify
+
 export default function ProductDetail({ productUrl }) {
   const { currentUser } = useContext(AuthContext);
   const { addItemToCart } = useContext(CartContext);
@@ -22,8 +23,6 @@ export default function ProductDetail({ productUrl }) {
   const modalRef = useRef(null);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-
 
   // Para la animación de thumbnails
   const [clickedImage, setClickedImage] = useState(null);
@@ -140,16 +139,33 @@ export default function ProductDetail({ productUrl }) {
       qty: 1
     };
 
-    await addItemToCart(cartItem);
-    setIsAddingToCart(false);
-    // Mostramos la notificación
-    setShowToast(true);
+    try {
+      await addItemToCart(cartItem);
+      // Mostramos la notificación con la imagen del producto
+      toast.success(
+        <div className="flex items-center">
+          <img 
+            src={product.images[0]} 
+            alt={product.name} 
+            width={50} 
+            height={50} 
+            className="mr-2 rounded"
+          />
+          <span>"{product.name}" ha sido añadido al carrito.</span>
+        </div>,
+        {
+          theme: "light",
+          icon: false, // Opcional: Oculta el icono predeterminado
+        }
+      );
+    } catch (err) {
+      console.error('Error al agregar al carrito:', err);
+      toast.error(`Error al agregar al carrito: ${err.message}`);
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
-  // Callback para cerrar la notificación manualmente
-  const handleCloseToast = () => {
-    setShowToast(false);
-  };
   // Manejo de favoritos
   const handleToggleFavorite = async () => {
     if (!product) return;
@@ -158,12 +174,46 @@ export default function ProductDetail({ productUrl }) {
     try {
       if (favoriteIDs.includes(product.uniqueID)) {
         await removeFavorite(product.uniqueID);
+        // Mostrar notificación de eliminación con imagen
+        toast.error(
+          <div className="flex items-center">
+            <img 
+              src={product.images[0]} 
+              alt={product.name} 
+              width={50} 
+              height={50} 
+              className="mr-2 rounded"
+            />
+            <span>"{product.name}" ha sido eliminado de tus favoritos.</span>
+          </div>,
+          {
+            theme: 'light',
+            icon: false, // Opcional: Oculta el icono predeterminado
+          }
+        );
       } else {
         await addFavorite(product.uniqueID);
+        // Mostrar notificación de adición con imagen
+        toast.success(
+          <div className="flex items-center">
+            <img 
+              src={product.images[0]} 
+              alt={product.name} 
+              width={50} 
+              height={50} 
+              className="mr-2 rounded"
+            />
+            <span>"{product.name}" ha sido añadido a tus favoritos.</span>
+          </div>,
+          {
+            theme: 'light',
+            icon: false, // Opcional: Oculta el icono predeterminado
+          }
+        );
       }
     } catch (err) {
       console.error('Error toggling favorite:', err);
-      alert(`Error al togglear favorito: ${err.message}`);
+      toast.error(`Error al togglear favorito: ${err.message}`);
     } finally {
       setIsTogglingFavorite(false);
     }
@@ -236,7 +286,7 @@ export default function ProductDetail({ productUrl }) {
                 className={`w-20 h-20 rounded-md border-2 ${mainImage === image ? 'border-gray-800' : 'border-transparent'
                   } ${clickedImage === image ? 'animate-zoomSelected' : ''}`}
               >
-                <Image
+                <img
                   src={image}
                   alt={`Thumbnail ${index + 1}`}
                   width={80}
@@ -253,7 +303,7 @@ export default function ProductDetail({ productUrl }) {
             className="flex-1 relative flex justify-center items-center"
             onClick={handleImageClick}
           >
-            <Image
+            <img
               src={mainImage}
               alt="Producto principal"
               width={500}
@@ -362,7 +412,7 @@ export default function ProductDetail({ productUrl }) {
           onClick={closeModal}
         >
           <div className="relative flex justify-center" ref={modalRef}>
-            <Image
+            <img
               src={mainImage}
               alt="Producto principal expandido"
               width={1000}
@@ -380,13 +430,6 @@ export default function ProductDetail({ productUrl }) {
           </div>
         </div>
       )}
-      <ToastNotification
-        show={showToast}
-        onClose={handleCloseToast}
-        productName={product?.name}
-        productPrice={product?.price}
-        productImage={product?.images[0]}
-      />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import localFont from "next/font/local";
 import "./globals.css";
+import ToastProvider from "./components/ToastProvider";
 import { AuthProvider } from "@/context/AuthContext"; // Importa el AuthProvider
 import { CartProvider } from '@/context/CartContext';
 import { FavoritesProvider } from '@/context/FavoritesContext'; // Importar FavoritesProvider
@@ -29,6 +30,7 @@ export default function RootLayout({ children }) {
           <CartProvider>
             <FavoritesProvider>
               {children}
+              <ToastProvider /> 
             </FavoritesProvider>
           </CartProvider>
         </AuthProvider>
