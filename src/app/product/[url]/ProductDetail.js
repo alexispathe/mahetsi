@@ -151,7 +151,7 @@ export default function ProductDetail({ productUrl }) {
             height={50} 
             className="mr-2 rounded"
           />
-          <span>"{product.name}" ha sido añadido al carrito.</span>
+          <span>{product.name} ha sido añadido al carrito.</span>
         </div>,
         {
           theme: "light",
@@ -184,7 +184,7 @@ export default function ProductDetail({ productUrl }) {
               height={50} 
               className="mr-2 rounded"
             />
-            <span>"{product.name}" ha sido eliminado de tus favoritos.</span>
+            <span>{product.name} ha sido eliminado de tus favoritos.</span>
           </div>,
           {
             theme: 'light',
@@ -203,7 +203,7 @@ export default function ProductDetail({ productUrl }) {
               height={50} 
               className="mr-2 rounded"
             />
-            <span>"{product.name}" ha sido añadido a tus favoritos.</span>
+            <span>{product.name} ha sido añadido a tus favoritos.</span>
           </div>,
           {
             theme: 'light',

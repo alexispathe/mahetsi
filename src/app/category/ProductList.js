@@ -1,4 +1,3 @@
-// src/app/category/ProductList.js
 'use client';
 
 import { useState, useMemo, useContext } from 'react';
@@ -10,8 +9,9 @@ import { AuthContext } from '@/context/AuthContext';
 import { CartContext } from '@/context/CartContext';
 import { FavoritesContext } from '@/context/FavoritesContext';
 
-// Importamos la notificación
-import ToastNotification from '../ui/ToastNotification';
+// Importamos toast desde react-toastify
+import { toast } from 'react-toastify';
+
 export default function ProductList({ 
   products, 
   selectedCategories,
@@ -28,8 +28,6 @@ export default function ProductList({
   setSelectedTypes,
   setSelectedSizes,
   loading,
-  brands,
-  types,
   subcategories,
 }) {
   // Estados generales
@@ -46,14 +44,6 @@ export default function ProductList({
   // Estados para botones de carga
   const [cartLoading, setCartLoading] = useState({});
   const [favoriteLoading, setFavoriteLoading] = useState({});
-
-  // -- ESTADOS PARA LA NOTIFICACIÓN --
-  const [showToast, setShowToast] = useState(false);
-  const [toastData, setToastData] = useState({
-    name: '',
-    price: 0,
-    image: '',
-  });
 
   // Crear mapa de subcategorías
   const subcategoryMap = useMemo(() => {
@@ -129,16 +119,26 @@ export default function ProductList({
       // -- Lanzamos la notificación --
       const product = products.find((p) => p.uniqueID === productUniqueID);
       if (product) {
-        setToastData({
-          name: product.name,
-          price: product.price,
-          image: product.images[0],
-        });
-        setShowToast(true); // esto hace que se muestre el Toast
+        toast.success(
+          <div className="flex items-center">
+            <img 
+              src={product.images[0]} 
+              alt={product.name} 
+              width={50} 
+              height={50} 
+              className="mr-2 rounded"
+            />
+            <span>{product.name} ha sido añadido al carrito.</span>
+          </div>,
+          {
+            theme: "light",
+            icon: false, // Opcional: Oculta el icono predeterminado
+          }
+        );
       }
     } catch (error) {
       console.error('Error al agregar al carrito:', error);
-      alert('Hubo un problema al agregar el producto al carrito.');
+      toast.error(`Error al agregar al carrito: ${error.message}`);
     } finally {
       setCartLoading(prev => ({ ...prev, [productUniqueID]: false }));
     }
@@ -150,12 +150,52 @@ export default function ProductList({
     try {
       if (favoriteIDs.includes(productUniqueID)) {
         await removeFavorite(productUniqueID);
+        // Mostrar notificación de eliminación con imagen
+        const product = products.find((p) => p.uniqueID === productUniqueID);
+        if (product) {
+          toast.error(
+            <div className="flex items-center">
+              <img 
+                src={product.images[0]} 
+                alt={product.name} 
+                width={50} 
+                height={50} 
+                className="mr-2 rounded"
+              />
+              <span>{product.name} ha sido eliminado de tus favoritos.</span>
+            </div>,
+            {
+              theme: 'light',
+              icon: false, // Opcional: Oculta el icono predeterminado
+            }
+          );
+        }
       } else {
         await addFavorite(productUniqueID);
+        // Mostrar notificación de adición con imagen
+        const product = products.find((p) => p.uniqueID === productUniqueID);
+        if (product) {
+          toast.success(
+            <div className="flex items-center">
+              <img 
+                src={product.images[0]} 
+                alt={product.name} 
+                width={50} 
+                height={50} 
+                className="mr-2 rounded"
+              />
+              <span>{product.name} ha sido añadido a tus favoritos.</span>
+            </div>,
+            {
+              theme: 'light',
+              icon: false, // Opcional: Oculta el icono predeterminado
+            }
+          );
+        }
       }
     } catch (error) {
       console.error('Error al alternar favorito:', error);
-      alert('Hubo un problema al actualizar tus favoritos.');
+      toast.error(`Error al alternar favorito: ${error.message}`);
     } finally {
       setFavoriteLoading(prev => ({ ...prev, [productUniqueID]: false }));
     }
@@ -178,11 +218,6 @@ export default function ProductList({
       stars.push(<FaRegStar key={`empty-${i}`} className="text-yellow-500" />);
     }
     return stars;
-  };
-
-  // Función para cerrar el Toast manualmente
-  const handleCloseToast = () => {
-    setShowToast(false);
   };
 
   return (
@@ -317,9 +352,9 @@ export default function ProductList({
                       disabled={cartLoading[product.uniqueID]}
                     >
                       {cartLoading[product.uniqueID] ? (
-                        <FaShoppingCart className="h-5 w-5 animate-pulse "alt="agregar al carrito" />
+                        <FaShoppingCart className="h-5 w-5 animate-pulse" alt="agregar al carrito" />
                       ) : (
-                        <FaShoppingCart className="h-5 w-5 " />
+                        <FaShoppingCart className="h-5 w-5" />
                       )}
                     </button>
                   </div>
@@ -341,14 +376,6 @@ export default function ProductList({
         />
       )}
 
-      {/* Aquí abajo, el componente Toast */}
-      <ToastNotification
-        show={showToast}
-        onClose={handleCloseToast}
-        productName={toastData.name}
-        productPrice={toastData.price}
-        productImage={toastData.image}
-      />
     </div>
   );
 }
