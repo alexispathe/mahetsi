@@ -179,10 +179,6 @@ export default function UserAddress() {
             {errors.colonia && <p className="text-red-500 text-sm mt-1">{errors.colonia.message}</p>}
           </div>
 
-
-
-
-
           {/* Código Postal */}
           <div className="mb-4">
             <label className="text-lg font-semibold" htmlFor="zipcode">Código Postal</label>
@@ -222,7 +218,7 @@ export default function UserAddress() {
           </div>
           {/* Dirección entre calles */}
           <div className="mb-4">
-            <label className="text-lg font-semibold" htmlFor="betweenStreets">Dirección entre calles</label>
+            <label className="text-lg font-semibold" htmlFor="betweenStreets">Dirección entre calles (Opcional)</label>
             <input
               type="text"
               id="betweenStreets"
@@ -242,8 +238,9 @@ export default function UserAddress() {
               id="reference"
               {...register('reference')}
               className="w-full p-3 mt-2 border rounded-md border-gray-300"
-              placeholder="Entre calles, edificio, etc."
+              placeholder="Casa, dificio, etc."
             />
+            {errors.reference && <p className="text-red-500 text-sm mt-1">{errors.reference.message}</p>}
           </div>
 
 
@@ -261,7 +258,7 @@ export default function UserAddress() {
           type="submit"
           className="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition-colors"
         >
-          Enviar
+          Guardar dirección
         </button>
       </form>
     </div>

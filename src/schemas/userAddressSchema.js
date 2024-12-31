@@ -16,9 +16,9 @@ export const userAddressSchema = z.object({
     state: z.string().min(1, { message: 'Estado es requerido' }),
     zipcode: z.string()
       .regex(/^\d{5}$/, { message: 'Código Postal inválido' }),
-    reference: z.string().optional(),
+    reference: z.string().min(1, { message: 'La referencia es requerida' }),
     country: z.string().default('México'),
     useBilling: z.boolean().optional(),
-    betweenStreets: z.string().optional(), // Aquí agregamos el campo "entre calles"
+    betweenStreets: z.string().optional(),
   });
   
