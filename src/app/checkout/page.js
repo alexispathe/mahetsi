@@ -1,6 +1,8 @@
+// src/app/cart/page.js o src/pages/cart.js
+
 'use client';
 
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
 import UserAddress from '../components/UserAddress';
@@ -10,6 +12,9 @@ import Header from '../components/Header';
 export default function CartPage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
+
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [addresses, setAddresses] = useState([]);
 
   useEffect(() => {
     // Redirige al login si no hay usuario autenticado una vez que se completa la carga
@@ -31,8 +36,16 @@ export default function CartPage() {
       <Header position="relative" textColor="text-black" />
       <div className="cart-page container mx-auto pt-20 p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <UserAddress />  {/* Sección de dirección y forma de pago */}
-          <CartSummary /> {/* Sección del resumen de la compra */}
+          <UserAddress 
+            selectedAddressId={selectedAddressId} 
+            setSelectedAddressId={setSelectedAddressId} 
+            setAddresses={setAddresses} 
+            addresses={addresses} // Asegúrate de pasar 'addresses' como prop
+          />  {/* Sección de dirección y forma de pago */}
+          <CartSummary 
+            selectedAddressId={selectedAddressId} 
+            addresses={addresses} // Asegúrate de pasar 'addresses' como prop si es necesario
+          /> {/* Sección del resumen de la compra */}
         </div>
       </div>
     </div>

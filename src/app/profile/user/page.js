@@ -1,18 +1,21 @@
 'use client';
 
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
-import Header from '@/app/components/Header';
+import Header from '../../components/Header';
 import LogoutButton from './LogoutButton';
 import Image from 'next/image';
 import AdminButton from './AdminButton';
-import OrdersTable from './OrderTable';
-import { orders } from '../../category/data';
+import OrdersTable from './OrdersTable';
 
 export default function ProfilePage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
+
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState(null);
 
   useEffect(() => {
     // Redirige al login si no hay usuario autenticado una vez que se completa la carga
@@ -20,6 +23,37 @@ export default function ProfilePage() {
       router.push('/login');
     }
   }, [authLoading, sessionInitializing, currentUser, router]);
+
+  useEffect(() => {
+    if (currentUser && !authLoading && !sessionInitializing) {
+      fetchOrders();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, authLoading, sessionInitializing]);
+
+  const fetchOrders = async () => {
+    setLoadingOrders(true);
+    setOrdersError(null);
+    try {
+      const res = await fetch('/api/orders/get', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setOrders(data.orders);
+      } else {
+        setOrdersError(data.message || 'Error al obtener las órdenes.');
+      }
+    } catch (err) {
+      console.error('Error al obtener las órdenes:', err);
+      setOrdersError('Error al obtener las órdenes.');
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
 
   if (authLoading || sessionInitializing || !currentUser) {
     return (
@@ -32,9 +66,6 @@ export default function ProfilePage() {
   const { email, name, picture, uid, permissions } = currentUser;
   // Verificar si el usuario tiene permisos 'create' o 'update'
   const hasAdminAccess = permissions?.includes('create') || permissions?.includes('update');
-
-  // Filtrar las órdenes del usuario autenticado
-  const userOrders = orders.filter(order => order.ownerId === uid);
 
   return (
     <>
@@ -64,7 +95,13 @@ export default function ProfilePage() {
 
         <div className="bg-white shadow-md rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Mis Compras</h2>
-          <OrdersTable orders={userOrders} />
+          {loadingOrders ? (
+            <p>Cargando órdenes...</p>
+          ) : ordersError ? (
+            <p className="text-red-500">{ordersError}</p>
+          ) : (
+            <OrdersTable orders={orders} />
+          )}
         </div>
       </div>
     </>

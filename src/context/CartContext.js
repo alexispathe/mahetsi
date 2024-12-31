@@ -1,4 +1,5 @@
 // src/context/CartContext.jsx
+
 'use client';
 
 import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
@@ -228,6 +229,9 @@ export const CartProvider = ({ children }) => {
   const clearCart = () => {
     if (currentUser) {
       // Si quisieras limpiar el carrito en Firestore puedes hacerlo aquí
+      // Actualmente, el backend limpia el carrito al crear una orden
+      setCartItems([]);
+      setProducts([]);
     } else {
       clearLocalCart();
       setCartItems([]);

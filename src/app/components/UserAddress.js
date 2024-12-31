@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { userAddressSchema } from '@/schemas/userAddressSchema';
 import { FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
 
-// Lista completa de estados de México
+// Asegúrate de definir o importar 'estadosMexico'
 const estadosMexico = [
   'Aguascalientes',
   'Baja California',
@@ -44,9 +44,7 @@ const estadosMexico = [
   'Zacatecas',
 ];
 
-export default function UserAddress() {
-  const [addresses, setAddresses] = useState([]);
-  const [selectedAddressId, setSelectedAddressId] = useState(null);
+export default function UserAddress({ addresses, selectedAddressId, setSelectedAddressId, setAddresses }) {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
@@ -64,6 +62,7 @@ export default function UserAddress() {
 
   useEffect(() => {
     fetchAddresses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Función para obtener las direcciones del usuario
@@ -237,7 +236,7 @@ export default function UserAddress() {
             ))}
           </div>
           <button
-            className="mt-4 flex items-center text-blue-500 hover:text-blue-700"
+            className={`mt-4 flex items-center text-blue-500 hover:text-blue-700 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={() => setIsAddingNew(true)}
             disabled={isSubmitting}
           >
