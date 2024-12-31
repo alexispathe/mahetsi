@@ -30,8 +30,6 @@ export default function ProfilePage() {
   }
 
   const { email, name, picture, uid, permissions } = currentUser;
-  console.log(currentUser)
-
   // Verificar si el usuario tiene permisos 'create' o 'update'
   const hasAdminAccess = permissions?.includes('create') || permissions?.includes('update');
 
