@@ -20,7 +20,7 @@ export async function GET(request) {
     // Obtener las órdenes del usuario
     const ordersSnapshot = await firestore.collection('orders')
       .where('ownerId', '==', uid)
-    //   .orderBy('dateCreated', 'desc')
+      .orderBy('dateCreated', 'desc')
       .get();
 
     const orders = ordersSnapshot.docs.map(doc => ({
@@ -31,7 +31,6 @@ export async function GET(request) {
 
     return NextResponse.json({ message: 'Órdenes obtenidas exitosamente.', orders }, { status: 200 });
   } catch (error) {
-    console.error('Error al obtener las órdenes:', error);
     return NextResponse.json({ message: 'Error interno del servidor', error: error.message }, { status: 500 });
   }
 }
