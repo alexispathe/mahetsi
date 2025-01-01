@@ -5,7 +5,8 @@ import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } f
 import { cookies } from 'next/headers';
 
 export async function GET(request, context) {
-  const { url } = context.params; // Obtiene la propiedad url desde los parámetros
+  const params = await context.params;
+  const { url } =params ; // Obtiene la propiedad url desde los parámetros
   try {
     // Obtener las cookies de la solicitud y esperar
     const cookieStore = await cookies();

@@ -4,7 +4,8 @@ import { NextResponse } from 'next/server';
 import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
 
-export async function GET(request, { params }) {
+export async function GET(request, context) {
+  const params = await context.params;
   const { categoryID } = params;
 
   try {

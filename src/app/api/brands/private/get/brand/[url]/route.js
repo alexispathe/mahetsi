@@ -8,8 +8,6 @@ export async function GET(request, context) {
   // Espera a que `params` se resuelva
   const params = await context.params;
   const { url } = params; // Obtiene la propiedad url desde los parámetros
-  console.log("Parámetros:", params);
-
   try {
     // Obtener las cookies de la solicitud y esperar
     const cookieStore = await cookies();
