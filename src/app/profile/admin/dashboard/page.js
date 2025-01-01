@@ -1,115 +1,64 @@
 // src/app/profile/admin/dashboard/page.js
-'use client';
+"use client";
 
-import { useContext, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { AuthContext } from '@/context/AuthContext';
-import useFetchData from '@/hooks/useFetchData';
-import CollapsibleSection from './components/CollapsibleSection';
-import Header from '@/app/components/Header';
+import { useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { AuthContext } from "@/context/AuthContext";
+import useGetData from "@/hooks/useGetData";  // <--- Aquí importas tu hook renombrado
+import CollapsibleSection from "./components/CollapsibleSection";
+import Header from "@/app/components/Header";
+
+// Importa tus formularios
+import CreateCategoryForm from "@/app/profile/admin/categories/create/CreateCategoryForm";
+import UpdateCategoryForm from "@/app/profile/admin/categories/update/UpdateCategoryForm";
 
 const AdminDashboard = () => {
   const { currentUser, authLoading } = useContext(AuthContext);
   const router = useRouter();
 
-  // Redirigir si no está autenticado o no tiene permisos adecuados
+  const [action, setAction] = useState(null); // 'create' | 'update' | null
+  const [activeSection, setActiveSection] = useState(null); // 'category', 'subCategory', etc.
+  const [selectedUrl, setSelectedUrl] = useState("");
+
+  // Verifica permisos
   useEffect(() => {
     if (
       !authLoading &&
       (!currentUser ||
-        !currentUser.permissions?.includes('create') ||
-        !currentUser.permissions?.includes('update'))
+        !currentUser.permissions?.includes("create") ||
+        !currentUser.permissions?.includes("update"))
     ) {
-      router.push('/login'); // Redirige al login si no tiene permisos
+      router.push("/login");
     }
   }, [authLoading, currentUser, router]);
 
-  // Solo hacer fetch si el usuario está autenticado y tiene permisos
+  // Solo hacemos fetch si tiene permisos
   const shouldFetch =
-    currentUser?.permissions?.includes('create') &&
-    currentUser?.permissions?.includes('update');
+    currentUser?.permissions?.includes("create") &&
+    currentUser?.permissions?.includes("update");
 
+  // Hook para traer categorías (cambia el nombre)
   const {
     data: categories,
     loading: categoriesLoading,
     error: categoriesError,
-  } = useFetchData(
-    shouldFetch ? '/api/categories/private/get/list' : null,
-    'categories',
+    refetch: refetchCategories, // <-- Destructuramos la función para volver a pedir la data
+  } = useGetData(
+    shouldFetch ? "/api/categories/private/get/list" : null,
+    "categories",
     shouldFetch
   );
+  
+  // Aquí podrías hacer lo mismo para subcategories, brands, etc. con más hooks
+  // const { data: subcategories, ... } = useGetData(...);
 
-  const {
-    data: subcategories,
-    loading: subcategoriesLoading,
-    error: subcategoriesError,
-  } = useFetchData(
-    shouldFetch ? '/api/categories/private/subCategories/get/list' : null,
-    'subcategories',
-    shouldFetch
-  );
-
-  const {
-    data: brands,
-    loading: brandsLoading,
-    error: brandsError,
-  } = useFetchData(
-    shouldFetch ? '/api/brands/private/get/list' : null,
-    'brands',
-    shouldFetch
-  );
-
-  const {
-    data: types,
-    loading: typesLoading,
-    error: typesError,
-  } = useFetchData(
-    shouldFetch ? '/api/types/private/get/list' : null,
-    'types',
-    shouldFetch
-  );
-
-  const {
-    data: products,
-    loading: productsLoading,
-    error: productsError,
-  } = useFetchData(
-    shouldFetch ? '/api/products/private/product/get/list' : null,
-    'products',
-    shouldFetch
-  );
-
-  const loading =
-    authLoading ||
-    categoriesLoading ||
-    subcategoriesLoading ||
-    brandsLoading ||
-    typesLoading ||
-    productsLoading;
-
-  const error =
-    categoriesError ||
-    subcategoriesError ||
-    brandsError ||
-    typesError ||
-    productsError;
-
-  // Determinar si el usuario está autenticado y tiene permisos
-  const isAuthorized = !authLoading && shouldFetch;
-
-  if (authLoading || !isAuthorized) {
-    // Mientras se verifica la autenticación y permisos, muestra el spinner
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-      </div>
-    );
-  }
+  const loading = authLoading || categoriesLoading;
+  const error = categoriesError;
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-100">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500" />
       </div>
     );
   }
@@ -128,49 +77,67 @@ const AdminDashboard = () => {
     );
   }
 
+  // Handlers del panel izquierdo
+  const handleCreateCategory = () => {
+    setActiveSection("category");
+    setAction("create");
+    setSelectedUrl("");
+  };
+
+  const handleUpdateCategory = (url) => {
+    setActiveSection("category");
+    setAction("update");
+    setSelectedUrl(url);
+  };
+
+  // Limpia el panel derecho
+  const resetPanel = () => {
+    setAction(null);
+    setActiveSection(null);
+    setSelectedUrl("");
+  };
+
   return (
     <>
       <Header textColor="black" position="relative" />
       <div className="container mx-auto p-6">
         <h1 className="text-4xl font-bold mb-8 text-center">Panel de Administración</h1>
+        <div className="flex">
+          {/* Left Panel: 40% */}
+          <div className="w-2/5 pr-4 space-y-6">
+            <CollapsibleSection
+              title="Categorías"
+              color="bg-blue-500 hover:bg-blue-600"
+              items={categories.categories}
+              onCreate={handleCreateCategory}
+              onUpdate={handleUpdateCategory}
+            />
+            {/* Podrías poner aquí otras CollapsibleSections para Subcategorías, Marcas, etc. */}
+          </div>
 
-        {/* Secciones Desplegables */}
-        <div className="space-y-6">
-          <CollapsibleSection
-            title="Categorías"
-            color="bg-blue-500 hover:bg-blue-600"
-            createPath="/profile/admin/categories/create"
-            updatePath="/profile/admin/categories/update"
-            items={categories}
-          />
-          <CollapsibleSection
-            title="Subcategorías"
-            color="bg-purple-500 hover:bg-purple-600"
-            createPath="/profile/admin/subCategories/create"
-            updatePath="/profile/admin/subCategories/update"
-            items={subcategories}
-          />
-          <CollapsibleSection
-            title="Marcas"
-            color="bg-red-500 hover:bg-red-600"
-            createPath="/profile/admin/brands/create"
-            updatePath="/profile/admin/brands/update"
-            items={brands}
-          />
-          <CollapsibleSection
-            title="Tipos"
-            color="bg-yellow-500 hover:bg-yellow-600"
-            createPath="/profile/admin/types/create"
-            updatePath="/profile/admin/types/update"
-            items={types}
-          />
-          <CollapsibleSection
-            title="Productos"
-            color="bg-green-500 hover:bg-green-600"
-            createPath="/profile/admin/products/create"
-            updatePath="/profile/admin/products/update"
-            items={products}
-          />
+          {/* Right Panel: 60% */}
+          <div className="w-3/5 bg-gray-50 p-4 rounded">
+            {action === "create" && activeSection === "category" && (
+              <CreateCategoryForm
+                onSuccess={() => {
+                  resetPanel();
+                  refetchCategories(); // <-- Volvemos a traer la lista, se actualiza el panel
+                }}
+              />
+            )}
+
+            {action === "update" && activeSection === "category" && selectedUrl && (
+              <UpdateCategoryForm
+                url={selectedUrl}
+                onSuccess={() => {
+                  resetPanel();
+                  refetchCategories(); // <-- Volvemos a traer la lista
+                }}
+              />
+            )}
+
+            {/* Acá podrías hacer lo mismo para subcategorías, etc. */}
+          </div>
         </div>
       </div>
     </>
