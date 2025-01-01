@@ -6,7 +6,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
 import useFetchData from '@/hooks/useFetchData';
-
+import { toast } from 'react-toastify';
 const CreateBrand = () => {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
@@ -100,8 +100,15 @@ const CreateBrand = () => {
         throw new Error(errorData.message || 'Error al crear la marca.');
       }
 
-      const responseData = await response.json();
-      alert(`Marca creada correctamente. URL: ${responseData.url}`);
+      toast.success(
+        <div className="flex items-center">
+          <span>Marca creada correctamente.</span>
+        </div>,
+        {
+          theme: "light",
+          icon: true, 
+        }
+      );
       router.push('/profile/admin/dashboard');
     } catch (err) {
       setError(err.message);

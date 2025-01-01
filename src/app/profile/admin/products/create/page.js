@@ -5,7 +5,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext'; // <-- Importa tu AuthContext
-
+import { toast } from 'react-toastify';
 const CreateProduct = () => {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
@@ -258,9 +258,15 @@ const CreateProduct = () => {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error al crear el producto.');
       }
-
-      const responseData = await response.json();
-      alert(`Producto creado correctamente. URL: ${responseData.url}`);
+      toast.success(
+        <div className="flex items-center">
+          <span>Producto creado correctamente.</span>
+        </div>,
+        {
+          theme: "light",
+          icon: true, 
+        }
+      );
       router.push('/profile/admin/dashboard'); // Redirige al perfil o a la página deseada
     } catch (err) {
       console.error('Error al crear el producto:', err);

@@ -4,7 +4,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext'; // Importando el AuthContext
-
+import { toast } from 'react-toastify';
 const UpdateSubcategory = () => {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext); // Usando el contexto
   const router = useRouter();
@@ -113,7 +113,15 @@ const UpdateSubcategory = () => {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error al actualizar la subcategoría.');
       } else {
-        alert("Subcategoría actualizada correctamente");
+        toast.success(
+          <div className="flex items-center">
+            <span>Subcategoria actualizada correctamente.</span>
+          </div>,
+          {
+            theme: "light",
+            icon: true, 
+          }
+        );
         router.push('/profile/admin/dashboard'); // Redirige al perfil después de la actualización
       }
     } catch (err) {

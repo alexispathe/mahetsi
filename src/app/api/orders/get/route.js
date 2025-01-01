@@ -27,8 +27,6 @@ export async function GET(request) {
       ...doc.data(),
       dateCreated: doc.data().dateCreated.toDate(), // Convertir timestamp a Date
     }));
-    console.log(orders)
-
     return NextResponse.json({ message: 'Órdenes obtenidas exitosamente.', orders }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ message: 'Error interno del servidor', error: error.message }, { status: 500 });

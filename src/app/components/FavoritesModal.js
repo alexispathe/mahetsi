@@ -7,10 +7,11 @@ import Link from 'next/link';
 import { FavoritesContext } from '@/context/FavoritesContext'; // Asegúrate de que la ruta sea correcta
 import { FaTimes } from 'react-icons/fa'; // Icono para cerrar
 import Image from 'next/image'; // Para optimizar imágenes
+import { toast } from 'react-toastify';
 
 export default function FavoritesModal({ isOpen, onClose }) {
   const modalRef = useRef(null);
-  
+
   // Consumir el contexto de favoritos
   const {
     favoriteProducts,
@@ -120,7 +121,10 @@ export default function FavoritesModal({ isOpen, onClose }) {
                 </Link>
                 {/* Botón para eliminar de favoritos */}
                 <button
-                  onClick={() => removeFavorite(product.uniqueID)}
+                  onClick={() => {
+                    removeFavorite(product.uniqueID);
+                    
+                  }}
                   className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl"
                   aria-label="Eliminar favorito"
                 >

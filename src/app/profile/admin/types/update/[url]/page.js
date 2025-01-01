@@ -4,7 +4,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
-
+import { toast } from 'react-toastify';
 const UpdateType = () => {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
@@ -121,7 +121,15 @@ const UpdateType = () => {
         throw new Error(errorData.message || 'Error al actualizar el tipo.');
       }
 
-      alert('Tipo actualizado correctamente');
+      toast.success(
+        <div className="flex items-center">
+          <span>typo actualizado correctamente.</span>
+        </div>,
+        {
+          theme: "light",
+          icon: true, 
+        }
+      );
       router.push('/profile/admin/dashboard');
     } catch (err) {
       setError(err.message);

@@ -4,7 +4,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext'; 
-
+import { toast } from 'react-toastify';
 const UpdateProduct = () => {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
@@ -302,9 +302,15 @@ const UpdateProduct = () => {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error al actualizar el producto.');
       }
-
-      const responseData = await response.json();
-      alert(`Producto actualizado correctamente. URL: ${responseData.url}`);
+      toast.success(
+        <div className="flex items-center">
+          <span>Producto actualizada correctamente.</span>
+        </div>,
+        {
+          theme: "light",
+          icon: true, 
+        }
+      );
       router.push('/profile/admin/dashboard'); // Redirige a donde quieras
     } catch (err) {
       console.error('Error al actualizar el producto:', err);

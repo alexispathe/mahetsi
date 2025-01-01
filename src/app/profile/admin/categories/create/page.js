@@ -4,7 +4,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
-
+import { toast } from 'react-toastify';
 const CreateCategory = () => {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
@@ -62,8 +62,15 @@ const CreateCategory = () => {
         throw new Error(errorData.message || 'Error al crear la categoría.');
       }
 
-      const responseData = await response.json();
-      alert(`Categoría creada correctamente. URL: ${responseData.url}`);
+      toast.success(
+        <div className="flex items-center">
+          <span>Categoria creada correctamente.</span>
+        </div>,
+        {
+          theme: "light",
+          icon: true, 
+        }
+      );
       router.push('/profile/admin/dashboard');
     } catch (err) {
       setError(err.message);

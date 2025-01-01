@@ -5,7 +5,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
-
+import { toast } from 'react-toastify';
 const UpdateCategory = () => {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
@@ -94,7 +94,15 @@ const UpdateCategory = () => {
         throw new Error(errorData.message || 'Error al actualizar la categoría.');
       }
 
-      alert('Categoría actualizada correctamente');
+      toast.success(
+        <div className="flex items-center">
+          <span>Categoría actualizada correctamente.</span>
+        </div>,
+        {
+          theme: "light",
+          icon: true, 
+        }
+      );
       router.push('/profile/admin/dashboard');
     } catch (err) {
       setError(err.message);

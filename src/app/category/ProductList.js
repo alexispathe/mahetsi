@@ -9,7 +9,6 @@ import { AuthContext } from '@/context/AuthContext';
 import { CartContext } from '@/context/CartContext';
 import { FavoritesContext } from '@/context/FavoritesContext';
 
-// Importamos toast desde react-toastify
 import { toast } from 'react-toastify';
 
 export default function ProductList({ 

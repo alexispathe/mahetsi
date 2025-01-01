@@ -6,7 +6,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
 import useFetchData from '@/hooks/useFetchData';
-
+import { toast } from 'react-toastify';
 const UpdateBrand = () => {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
@@ -115,7 +115,15 @@ const UpdateBrand = () => {
         throw new Error(errorData.message || 'Error al actualizar la marca.');
       }
 
-      alert('Marca actualizada correctamente');
+      toast.success(
+        <div className="flex items-center">
+          <span>Marca actualizada correctamente.</span>
+        </div>,
+        {
+          theme: "light",
+          icon: true, 
+        }
+      );
       router.push('/profile/admin/dashboard');
     } catch (err) {
       setError(err.message);

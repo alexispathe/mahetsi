@@ -1,12 +1,10 @@
 // src/app/profile/admin/categories/subCategiries/create/page.js
-
-// src/app/profile/admin/categories/subCategiries/create/page.js
 "use client";
 
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext'; // Importando el AuthContext
-
+import { toast } from 'react-toastify';
 const CreateSubcategory = () => {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext); // Usando el contexto
   const router = useRouter();
@@ -89,7 +87,15 @@ const CreateSubcategory = () => {
         throw new Error(errorData.message || 'Error al crear la subcategoría.');
       }
 
-      alert("Subcategoría creada correctamente");
+      toast.success(
+        <div className="flex items-center">
+          <span>Subcategoria creada correctamente.</span>
+        </div>,
+        {
+          theme: "light",
+          icon: true, 
+        }
+      );
       router.push('/profile/admin/dashboard'); // Redirige al perfil después de la creación
     } catch (err) {
       setError(err.message || 'Error al crear la subcategoría.');
