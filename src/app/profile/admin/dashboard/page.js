@@ -4,23 +4,27 @@
 import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/context/AuthContext";
-import useGetData from "@/hooks/useGetData";  // <--- Aquí importas tu hook renombrado
-import CollapsibleSection from "./components/CollapsibleSection";
 import Header from "@/app/components/Header";
+import useGetData from "@/hooks/useGetData";
+import CollapsibleSection from "./components/CollapsibleSection";
 
-// Importa tus formularios
+// Category forms (si los tienes)
 import CreateCategoryForm from "@/app/profile/admin/categories/create/CreateCategoryForm";
 import UpdateCategoryForm from "@/app/profile/admin/categories/update/UpdateCategoryForm";
+
+// Brand forms
+import CreateBrandForm from "@/app/profile/admin/brands/create/CreateBrandForm";
+import UpdateBrandForm from "@/app/profile/admin/brands/update/UpdateBrandForm";
 
 const AdminDashboard = () => {
   const { currentUser, authLoading } = useContext(AuthContext);
   const router = useRouter();
 
-  const [action, setAction] = useState(null); // 'create' | 'update' | null
-  const [activeSection, setActiveSection] = useState(null); // 'category', 'subCategory', etc.
+  // Manejo de acción y sección
+  const [action, setAction] = useState(null);          // 'create' | 'update' | null
+  const [activeSection, setActiveSection] = useState(null); // 'category' | 'brand' | ...
   const [selectedUrl, setSelectedUrl] = useState("");
 
-  // Verifica permisos
   useEffect(() => {
     if (
       !authLoading &&
@@ -37,23 +41,32 @@ const AdminDashboard = () => {
     currentUser?.permissions?.includes("create") &&
     currentUser?.permissions?.includes("update");
 
-  // Hook para traer categorías (cambia el nombre)
+  // --- 1) Fetch de Categorías ---
   const {
     data: categories,
     loading: categoriesLoading,
     error: categoriesError,
-    refetch: refetchCategories, // <-- Destructuramos la función para volver a pedir la data
+    refetch: refetchCategories,
   } = useGetData(
     shouldFetch ? "/api/categories/private/get/list" : null,
     "categories",
     shouldFetch
   );
-  
-  // Aquí podrías hacer lo mismo para subcategories, brands, etc. con más hooks
-  // const { data: subcategories, ... } = useGetData(...);
 
-  const loading = authLoading || categoriesLoading;
-  const error = categoriesError;
+  // --- 2) Fetch de Marcas ---
+  const {
+    data: brands,
+    loading: brandsLoading,
+    error: brandsError,
+    refetch: refetchBrands,
+  } = useGetData(
+    shouldFetch ? "/api/brands/private/get/list" : null,
+    "brands",
+    shouldFetch
+  );
+
+  const loading = authLoading || categoriesLoading || brandsLoading;
+  const error = categoriesError || brandsError;
 
   if (loading) {
     return (
@@ -77,20 +90,31 @@ const AdminDashboard = () => {
     );
   }
 
-  // Handlers del panel izquierdo
+  // Handlers para Categorías (opcional)
   const handleCreateCategory = () => {
     setActiveSection("category");
     setAction("create");
     setSelectedUrl("");
   };
-
   const handleUpdateCategory = (url) => {
     setActiveSection("category");
     setAction("update");
     setSelectedUrl(url);
   };
 
-  // Limpia el panel derecho
+  // Handlers para Marcas
+  const handleCreateBrand = () => {
+    setActiveSection("brand");
+    setAction("create");
+    setSelectedUrl("");
+  };
+  const handleUpdateBrand = (url) => {
+    setActiveSection("brand");
+    setAction("update");
+    setSelectedUrl(url);
+  };
+
+  // Resetea el panel derecho
   const resetPanel = () => {
     setAction(null);
     setActiveSection(null);
@@ -102,9 +126,11 @@ const AdminDashboard = () => {
       <Header textColor="black" position="relative" />
       <div className="container mx-auto p-6">
         <h1 className="text-4xl font-bold mb-8 text-center">Panel de Administración</h1>
+
         <div className="flex">
-          {/* Left Panel: 40% */}
+          {/* Panel Izquierdo: 40% */}
           <div className="w-2/5 pr-4 space-y-6">
+            {/* Collapsible Sección de Categorías */}
             <CollapsibleSection
               title="Categorías"
               color="bg-blue-500 hover:bg-blue-600"
@@ -112,16 +138,26 @@ const AdminDashboard = () => {
               onCreate={handleCreateCategory}
               onUpdate={handleUpdateCategory}
             />
-            {/* Podrías poner aquí otras CollapsibleSections para Subcategorías, Marcas, etc. */}
+
+            {/* Collapsible Sección de Marcas */}
+            <CollapsibleSection
+              title="Marcas"
+              color="bg-red-500 hover:bg-red-600"
+              items={brands.brands}
+              onCreate={handleCreateBrand}
+              onUpdate={handleUpdateBrand}
+            />
+            {/* Podrías poner subcategorías, tipos, productos, etc. de la misma forma */}
           </div>
 
-          {/* Right Panel: 60% */}
+          {/* Panel Derecho: 60% */}
           <div className="w-3/5 bg-gray-50 p-4 rounded">
+            {/* Formularios para Categorías (ejemplo) */}
             {action === "create" && activeSection === "category" && (
               <CreateCategoryForm
                 onSuccess={() => {
                   resetPanel();
-                  refetchCategories(); // <-- Volvemos a traer la lista, se actualiza el panel
+                  refetchCategories();
                 }}
               />
             )}
@@ -131,12 +167,34 @@ const AdminDashboard = () => {
                 url={selectedUrl}
                 onSuccess={() => {
                   resetPanel();
-                  refetchCategories(); // <-- Volvemos a traer la lista
+                  refetchCategories();
                 }}
               />
             )}
 
-            {/* Acá podrías hacer lo mismo para subcategorías, etc. */}
+            {/* Formularios para Marcas */}
+            {action === "create" && activeSection === "brand" && (
+              <CreateBrandForm
+                // Pasamos las categorías como prop para poblar el <select>
+                categories={categories.categories}
+                onSuccess={() => {
+                  resetPanel();
+                  refetchBrands(); // Re-cargamos marcas
+                }}
+              />
+            )}
+
+            {action === "update" && activeSection === "brand" && selectedUrl && (
+              <UpdateBrandForm
+                url={selectedUrl}
+                // Pasamos las categorías como prop para poblar el <select>
+                categories={categories.categories}
+                onSuccess={() => {
+                  resetPanel();
+                  refetchBrands(); // Re-cargamos marcas
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

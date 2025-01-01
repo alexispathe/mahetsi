@@ -49,8 +49,8 @@ const CollapsibleSection = ({
             <p className="text-gray-500">No hay {title.toLowerCase()} disponibles.</p>
           ) : (
             <ul className="space-y-3">
-              {items.map((item) => (
-                <li key={item[itemKey]} className="flex justify-between items-center">
+              {items.map((item, i) => (
+                <li key={i} className="flex justify-between items-center">
                   <span className="text-gray-700">{item[itemName]}</span>
                   <button
                     onClick={() => onUpdate?.(item[itemKey])}
