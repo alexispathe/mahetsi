@@ -24,6 +24,8 @@ import UpdateSubCategoryForm from "@/app/profile/admin/subCategories/update/Upda
 import CreateTypeForm from "@/app/profile/admin/types/create/CreateTypeForm";
 import UpdateTypeForm from "@/app/profile/admin/types/update/UpdateTypeForm";
 
+// ========== Formularios Rol (solo crear) ==========
+import CreateRoleForm from "../roles/create/CreateRoleForm";
 const AdminDashboard = () => {
   // ---- CONTEXT Y ROUTER ----
   const { currentUser, authLoading } = useContext(AuthContext);
@@ -32,13 +34,13 @@ const AdminDashboard = () => {
   // ---- ESTADOS PARA EL PANEL DERECHO ----
   // action: "create" o "update"
   const [action, setAction] = useState(null);
-  // activeSection: "category", "brand", "subCategory", "type"
+  // activeSection: "category", "brand", "subCategory", "type", "role", etc.
   const [activeSection, setActiveSection] = useState(null);
 
-  // Para actualizar, a veces necesitamos una "url" o "uniqueID"
+  // Para actualizar (categorías, marcas, tipos), necesitamos un "url"
   const [selectedUrl, setSelectedUrl] = useState("");
 
-  // Para subcategorías
+  // Para subcategorías, necesitamos saber `categoryUrl` y `subCategoryUrl`
   const [selectedCategoryUrl, setSelectedCategoryUrl] = useState("");
   const [selectedSubCategoryUrl, setSelectedSubCategoryUrl] = useState("");
 
@@ -54,7 +56,7 @@ const AdminDashboard = () => {
     }
   }, [authLoading, currentUser, router]);
 
-  // Solo hacemos fetch si tiene permisos
+  // Solo hacemos fetch si el usuario tiene permisos
   const shouldFetch =
     currentUser?.permissions?.includes("create") &&
     currentUser?.permissions?.includes("update");
@@ -107,15 +109,33 @@ const AdminDashboard = () => {
     shouldFetch
   );
 
-  // ---- ESTADOS DE CARGA/ERROR ----
+  // ---- FETCH DE ROLES (solo crear, pero quizás queramos listar) ----
+  const {
+    data: roles,
+    loading: rolesLoading,
+    error: rolesError,
+    refetch: refetchRoles,
+  } = useGetData(
+    shouldFetch ? "/api/roles/get/list" : null, // Ajusta la ruta si difiere
+    "roles",
+    shouldFetch
+  );
+
+  // ---- ESTADOS DE CARGA Y ERROR ----
   const loading =
     authLoading ||
     categoriesLoading ||
     brandsLoading ||
     subcategoriesLoading ||
-    typesLoading;
+    typesLoading ||
+    rolesLoading;
+
   const error =
-    categoriesError || brandsError || subcategoriesError || typesError;
+    categoriesError ||
+    brandsError ||
+    subcategoriesError ||
+    typesError ||
+    rolesError;
 
   if (loading) {
     return (
@@ -170,10 +190,10 @@ const AdminDashboard = () => {
     setSelectedCategoryUrl("");
     setSelectedSubCategoryUrl("");
   };
-  const handleUpdateSubCategory = (categoryUrl, subCatUrl) => {
+  const handleUpdateSubCategory = (catUrl, subCatUrl) => {
     setActiveSection("subCategory");
     setAction("update");
-    setSelectedCategoryUrl(categoryUrl);
+    setSelectedCategoryUrl(catUrl);
     setSelectedSubCategoryUrl(subCatUrl);
   };
 
@@ -189,6 +209,12 @@ const AdminDashboard = () => {
     setSelectedUrl(url);
   };
 
+  // ---- HANDLER PARA ROLES (solo create, sin update) ----
+  const handleCreateRole = () => {
+    setActiveSection("role");
+    setAction("create");
+  };
+
   // ---- RESETEAR EL PANEL DERECHO ----
   const resetPanel = () => {
     setAction(null);
@@ -202,7 +228,9 @@ const AdminDashboard = () => {
     <>
       <Header textColor="black" position="relative" />
       <div className="container mx-auto p-6">
-        <h1 className="text-4xl font-bold mb-8 text-center">Panel de Administración</h1>
+        <h1 className="text-4xl font-bold mb-8 text-center">
+          Panel de Administración
+        </h1>
 
         <div className="flex">
           {/* ===================== PANEL IZQUIERDO (40%) ===================== */}
@@ -211,7 +239,7 @@ const AdminDashboard = () => {
             <CollapsibleSection
               title="Categorías"
               color="bg-blue-500 hover:bg-blue-600"
-              items={categories.categories} 
+              items={categories.categories} // Asumiendo tu API retorna { categories: [ ... ] }
               onCreate={handleCreateCategory}
               onUpdate={(url) => handleUpdateCategory(url)}
             />
@@ -220,7 +248,7 @@ const AdminDashboard = () => {
             <CollapsibleSection
               title="Marcas"
               color="bg-red-500 hover:bg-red-600"
-              items={brands.brands}
+              items={brands.brands} // Asumiendo tu API retorna { brands: [ ... ] }
               onCreate={handleCreateBrand}
               onUpdate={(url) => handleUpdateBrand(url)}
             />
@@ -229,11 +257,13 @@ const AdminDashboard = () => {
             <CollapsibleSection
               title="Subcategorías"
               color="bg-purple-500 hover:bg-purple-600"
-              items={subcategories.subcategories}
+              items={subcategories.subcategories} // Asumiendo tu API retorna { subcategories: [ ... ] }
               onCreate={handleCreateSubCategory}
               onUpdate={(subCatUrl) => {
-                // Buscamos la subcategoría en el array para obtener "categoryUrl" y "url"
-                const sc = subcategories.subcategories.find((s) => s.url === subCatUrl);
+                // Buscamos la subcategoría
+                const sc = subcategories.subcategories.find(
+                  (s) => s.url === subCatUrl
+                );
                 if (sc) {
                   handleUpdateSubCategory(sc.categoryUrl, sc.url);
                 }
@@ -244,15 +274,24 @@ const AdminDashboard = () => {
             <CollapsibleSection
               title="Tipos"
               color="bg-yellow-500 hover:bg-yellow-600"
-              items={types.types} 
+              items={types.types} // Asumiendo tu API retorna { types: [ ... ] }
               onCreate={handleCreateType}
               onUpdate={(url) => handleUpdateType(url)}
+            />
+
+            {/* --- SECCIÓN ROLES (SOLO CREATE) --- */}
+            <CollapsibleSection
+              title="Roles"
+              color="bg-teal-500 hover:bg-teal-600"
+              items={roles.roles} // Asumiendo tu API retorna { roles: [ ... ] }
+              onCreate={handleCreateRole}
+              // No pasamos onUpdate, porque no tendremos actualización de roles
             />
           </div>
 
           {/* ===================== PANEL DERECHO (60%) ===================== */}
           <div className="w-3/5 bg-gray-50 p-4 rounded">
-            {/* --- CATEGORÍAS: CREAR --- */}
+            {/* ===================== CATEGORÍAS ===================== */}
             {action === "create" && activeSection === "category" && (
               <CreateCategoryForm
                 onSuccess={() => {
@@ -261,8 +300,6 @@ const AdminDashboard = () => {
                 }}
               />
             )}
-
-            {/* --- CATEGORÍAS: ACTUALIZAR --- */}
             {action === "update" && activeSection === "category" && selectedUrl && (
               <UpdateCategoryForm
                 url={selectedUrl}
@@ -273,7 +310,7 @@ const AdminDashboard = () => {
               />
             )}
 
-            {/* --- MARCAS: CREAR --- */}
+            {/* ===================== MARCAS ===================== */}
             {action === "create" && activeSection === "brand" && (
               <CreateBrandForm
                 categories={categories.categories}
@@ -283,8 +320,6 @@ const AdminDashboard = () => {
                 }}
               />
             )}
-
-            {/* --- MARCAS: ACTUALIZAR --- */}
             {action === "update" && activeSection === "brand" && selectedUrl && (
               <UpdateBrandForm
                 url={selectedUrl}
@@ -296,7 +331,7 @@ const AdminDashboard = () => {
               />
             )}
 
-            {/* --- SUBCATEGORÍAS: CREAR --- */}
+            {/* ===================== SUBCATEGORÍAS ===================== */}
             {action === "create" && activeSection === "subCategory" && (
               <CreateSubCategoryForm
                 categories={categories.categories}
@@ -306,8 +341,6 @@ const AdminDashboard = () => {
                 }}
               />
             )}
-
-            {/* --- SUBCATEGORÍAS: ACTUALIZAR --- */}
             {action === "update" &&
               activeSection === "subCategory" &&
               selectedCategoryUrl &&
@@ -323,10 +356,19 @@ const AdminDashboard = () => {
                 />
               )}
 
-            {/* --- TIPOS: CREAR --- */}
+            {/* ===================== TIPOS ===================== */}
             {action === "create" && activeSection === "type" && (
               <CreateTypeForm
-                // Pasamos la lista de categorías para el <select>
+                categories={categories.categories}
+                onSuccess={() => {
+                  resetPanel();
+                  refetchTypes();
+                }}
+              />
+            )}
+            {action === "update" && activeSection === "type" && selectedUrl && (
+              <UpdateTypeForm
+                url={selectedUrl}
                 categories={categories.categories}
                 onSuccess={() => {
                   resetPanel();
@@ -335,15 +377,13 @@ const AdminDashboard = () => {
               />
             )}
 
-            {/* --- TIPOS: ACTUALIZAR --- */}
-            {action === "update" && activeSection === "type" && selectedUrl && (
-              <UpdateTypeForm
-                url={selectedUrl}
-                // Pasamos las categorías para el <select>
-                categories={categories.categories}
+            {/* ===================== ROLES (SOLO CREATE) ===================== */}
+            {action === "create" && activeSection === "role" && (
+              <CreateRoleForm
                 onSuccess={() => {
                   resetPanel();
-                  refetchTypes();
+                  // Si quisieras recargar la lista de roles (y verlo en panel izq):
+                  refetchRoles();
                 }}
               />
             )}
