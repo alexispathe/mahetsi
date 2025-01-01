@@ -20,6 +20,10 @@ import UpdateBrandForm from "@/app/profile/admin/brands/update/UpdateBrandForm";
 import CreateSubCategoryForm from "@/app/profile/admin/subCategories/create/CreateSubCategoryForm";
 import UpdateSubCategoryForm from "@/app/profile/admin/subCategories/update/UpdateSubCategoryForm";
 
+// ========== Formularios Tipo ==========
+import CreateTypeForm from "@/app/profile/admin/types/create/CreateTypeForm";
+import UpdateTypeForm from "@/app/profile/admin/types/update/UpdateTypeForm";
+
 const AdminDashboard = () => {
   // ---- CONTEXT Y ROUTER ----
   const { currentUser, authLoading } = useContext(AuthContext);
@@ -28,13 +32,13 @@ const AdminDashboard = () => {
   // ---- ESTADOS PARA EL PANEL DERECHO ----
   // action: "create" o "update"
   const [action, setAction] = useState(null);
-  // activeSection: "category", "brand", "subCategory", etc.
+  // activeSection: "category", "brand", "subCategory", "type"
   const [activeSection, setActiveSection] = useState(null);
 
   // Para actualizar, a veces necesitamos una "url" o "uniqueID"
   const [selectedUrl, setSelectedUrl] = useState("");
 
-  // Para subcategorías, podría hacer falta saber `categoryUrl` y `subCategoryUrl`
+  // Para subcategorías
   const [selectedCategoryUrl, setSelectedCategoryUrl] = useState("");
   const [selectedSubCategoryUrl, setSelectedSubCategoryUrl] = useState("");
 
@@ -91,9 +95,27 @@ const AdminDashboard = () => {
     shouldFetch
   );
 
+  // ---- FETCH DE TIPOS ----
+  const {
+    data: types,
+    loading: typesLoading,
+    error: typesError,
+    refetch: refetchTypes,
+  } = useGetData(
+    shouldFetch ? "/api/types/private/get/list" : null,
+    "types",
+    shouldFetch
+  );
+
   // ---- ESTADOS DE CARGA/ERROR ----
-  const loading = authLoading || categoriesLoading || brandsLoading || subcategoriesLoading;
-  const error = categoriesError || brandsError || subcategoriesError;
+  const loading =
+    authLoading ||
+    categoriesLoading ||
+    brandsLoading ||
+    subcategoriesLoading ||
+    typesLoading;
+  const error =
+    categoriesError || brandsError || subcategoriesError || typesError;
 
   if (loading) {
     return (
@@ -148,15 +170,23 @@ const AdminDashboard = () => {
     setSelectedCategoryUrl("");
     setSelectedSubCategoryUrl("");
   };
-
-  // En la lista de subcategorías, cada item debería tener
-  // algo como { url, categoryUrl, name, ... }
-  // para que podamos armar la actualización
   const handleUpdateSubCategory = (categoryUrl, subCatUrl) => {
     setActiveSection("subCategory");
     setAction("update");
     setSelectedCategoryUrl(categoryUrl);
     setSelectedSubCategoryUrl(subCatUrl);
+  };
+
+  // ---- HANDLERS PARA TIPOS ----
+  const handleCreateType = () => {
+    setActiveSection("type");
+    setAction("create");
+    setSelectedUrl("");
+  };
+  const handleUpdateType = (url) => {
+    setActiveSection("type");
+    setAction("update");
+    setSelectedUrl(url);
   };
 
   // ---- RESETEAR EL PANEL DERECHO ----
@@ -181,8 +211,7 @@ const AdminDashboard = () => {
             <CollapsibleSection
               title="Categorías"
               color="bg-blue-500 hover:bg-blue-600"
-              items={categories.categories}
-              // Por defecto, CollapsibleSection usa itemKey="url", itemName="name"
+              items={categories.categories} 
               onCreate={handleCreateCategory}
               onUpdate={(url) => handleUpdateCategory(url)}
             />
@@ -201,17 +230,23 @@ const AdminDashboard = () => {
               title="Subcategorías"
               color="bg-purple-500 hover:bg-purple-600"
               items={subcategories.subcategories}
-              // Las subcategorías deben contener "categoryUrl" y "url"
-              // para poder actualizar. Ej: item.categoryUrl, item.url
               onCreate={handleCreateSubCategory}
               onUpdate={(subCatUrl) => {
-                // 1) Buscar la subcategoría en el array
+                // Buscamos la subcategoría en el array para obtener "categoryUrl" y "url"
                 const sc = subcategories.subcategories.find((s) => s.url === subCatUrl);
-                // 2) Llamar a la función
                 if (sc) {
                   handleUpdateSubCategory(sc.categoryUrl, sc.url);
                 }
               }}
+            />
+
+            {/* --- SECCIÓN TIPOS --- */}
+            <CollapsibleSection
+              title="Tipos"
+              color="bg-yellow-500 hover:bg-yellow-600"
+              items={types.types} 
+              onCreate={handleCreateType}
+              onUpdate={(url) => handleUpdateType(url)}
             />
           </div>
 
@@ -222,7 +257,7 @@ const AdminDashboard = () => {
               <CreateCategoryForm
                 onSuccess={() => {
                   resetPanel();
-                  refetchCategories(); // recargamos la lista de categorías
+                  refetchCategories();
                 }}
               />
             )}
@@ -241,10 +276,10 @@ const AdminDashboard = () => {
             {/* --- MARCAS: CREAR --- */}
             {action === "create" && activeSection === "brand" && (
               <CreateBrandForm
-                categories={categories.categories} // Para el <select> de categoría en Marca
+                categories={categories.categories}
                 onSuccess={() => {
                   resetPanel();
-                  refetchBrands(); // recargamos la lista de marcas
+                  refetchBrands();
                 }}
               />
             )}
@@ -264,10 +299,10 @@ const AdminDashboard = () => {
             {/* --- SUBCATEGORÍAS: CREAR --- */}
             {action === "create" && activeSection === "subCategory" && (
               <CreateSubCategoryForm
-                categories={categories.categories} // Se usa en el <select>
+                categories={categories.categories}
                 onSuccess={() => {
                   resetPanel();
-                  refetchSubCategories(); 
+                  refetchSubCategories();
                 }}
               />
             )}
@@ -287,6 +322,31 @@ const AdminDashboard = () => {
                   }}
                 />
               )}
+
+            {/* --- TIPOS: CREAR --- */}
+            {action === "create" && activeSection === "type" && (
+              <CreateTypeForm
+                // Pasamos la lista de categorías para el <select>
+                categories={categories.categories}
+                onSuccess={() => {
+                  resetPanel();
+                  refetchTypes();
+                }}
+              />
+            )}
+
+            {/* --- TIPOS: ACTUALIZAR --- */}
+            {action === "update" && activeSection === "type" && selectedUrl && (
+              <UpdateTypeForm
+                url={selectedUrl}
+                // Pasamos las categorías para el <select>
+                categories={categories.categories}
+                onSuccess={() => {
+                  resetPanel();
+                  refetchTypes();
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
