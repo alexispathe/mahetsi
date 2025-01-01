@@ -8,23 +8,37 @@ import Header from "@/app/components/Header";
 import useGetData from "@/hooks/useGetData";
 import CollapsibleSection from "./components/CollapsibleSection";
 
-// Category forms (si los tienes)
+// ========== Formularios Categoría ==========
 import CreateCategoryForm from "@/app/profile/admin/categories/create/CreateCategoryForm";
 import UpdateCategoryForm from "@/app/profile/admin/categories/update/UpdateCategoryForm";
 
-// Brand forms
+// ========== Formularios Marca ==========
 import CreateBrandForm from "@/app/profile/admin/brands/create/CreateBrandForm";
 import UpdateBrandForm from "@/app/profile/admin/brands/update/UpdateBrandForm";
 
+// ========== Formularios SubCategoría ==========
+import CreateSubCategoryForm from "@/app/profile/admin/subCategories/create/CreateSubCategoryForm";
+import UpdateSubCategoryForm from "@/app/profile/admin/subCategories/update/UpdateSubCategoryForm";
+
 const AdminDashboard = () => {
+  // ---- CONTEXT Y ROUTER ----
   const { currentUser, authLoading } = useContext(AuthContext);
   const router = useRouter();
 
-  // Manejo de acción y sección
-  const [action, setAction] = useState(null);          // 'create' | 'update' | null
-  const [activeSection, setActiveSection] = useState(null); // 'category' | 'brand' | ...
+  // ---- ESTADOS PARA EL PANEL DERECHO ----
+  // action: "create" o "update"
+  const [action, setAction] = useState(null);
+  // activeSection: "category", "brand", "subCategory", etc.
+  const [activeSection, setActiveSection] = useState(null);
+
+  // Para actualizar, a veces necesitamos una "url" o "uniqueID"
   const [selectedUrl, setSelectedUrl] = useState("");
 
+  // Para subcategorías, podría hacer falta saber `categoryUrl` y `subCategoryUrl`
+  const [selectedCategoryUrl, setSelectedCategoryUrl] = useState("");
+  const [selectedSubCategoryUrl, setSelectedSubCategoryUrl] = useState("");
+
+  // ---- VERIFICA PERMISOS ----
   useEffect(() => {
     if (
       !authLoading &&
@@ -41,7 +55,7 @@ const AdminDashboard = () => {
     currentUser?.permissions?.includes("create") &&
     currentUser?.permissions?.includes("update");
 
-  // --- 1) Fetch de Categorías ---
+  // ---- FETCH DE CATEGORÍAS ----
   const {
     data: categories,
     loading: categoriesLoading,
@@ -53,7 +67,7 @@ const AdminDashboard = () => {
     shouldFetch
   );
 
-  // --- 2) Fetch de Marcas ---
+  // ---- FETCH DE MARCAS ----
   const {
     data: brands,
     loading: brandsLoading,
@@ -65,8 +79,21 @@ const AdminDashboard = () => {
     shouldFetch
   );
 
-  const loading = authLoading || categoriesLoading || brandsLoading;
-  const error = categoriesError || brandsError;
+  // ---- FETCH DE SUBCATEGORÍAS ----
+  const {
+    data: subcategories,
+    loading: subcategoriesLoading,
+    error: subcategoriesError,
+    refetch: refetchSubCategories,
+  } = useGetData(
+    shouldFetch ? "/api/categories/private/subCategories/get/list" : null,
+    "subcategories",
+    shouldFetch
+  );
+
+  // ---- ESTADOS DE CARGA/ERROR ----
+  const loading = authLoading || categoriesLoading || brandsLoading || subcategoriesLoading;
+  const error = categoriesError || brandsError || subcategoriesError;
 
   if (loading) {
     return (
@@ -90,7 +117,7 @@ const AdminDashboard = () => {
     );
   }
 
-  // Handlers para Categorías (opcional)
+  // ---- HANDLERS PARA CATEGORÍAS ----
   const handleCreateCategory = () => {
     setActiveSection("category");
     setAction("create");
@@ -102,7 +129,7 @@ const AdminDashboard = () => {
     setSelectedUrl(url);
   };
 
-  // Handlers para Marcas
+  // ---- HANDLERS PARA MARCAS ----
   const handleCreateBrand = () => {
     setActiveSection("brand");
     setAction("create");
@@ -114,11 +141,31 @@ const AdminDashboard = () => {
     setSelectedUrl(url);
   };
 
-  // Resetea el panel derecho
+  // ---- HANDLERS PARA SUBCATEGORÍAS ----
+  const handleCreateSubCategory = () => {
+    setActiveSection("subCategory");
+    setAction("create");
+    setSelectedCategoryUrl("");
+    setSelectedSubCategoryUrl("");
+  };
+
+  // En la lista de subcategorías, cada item debería tener
+  // algo como { url, categoryUrl, name, ... }
+  // para que podamos armar la actualización
+  const handleUpdateSubCategory = (categoryUrl, subCatUrl) => {
+    setActiveSection("subCategory");
+    setAction("update");
+    setSelectedCategoryUrl(categoryUrl);
+    setSelectedSubCategoryUrl(subCatUrl);
+  };
+
+  // ---- RESETEAR EL PANEL DERECHO ----
   const resetPanel = () => {
     setAction(null);
     setActiveSection(null);
     setSelectedUrl("");
+    setSelectedCategoryUrl("");
+    setSelectedSubCategoryUrl("");
   };
 
   return (
@@ -128,40 +175,59 @@ const AdminDashboard = () => {
         <h1 className="text-4xl font-bold mb-8 text-center">Panel de Administración</h1>
 
         <div className="flex">
-          {/* Panel Izquierdo: 40% */}
+          {/* ===================== PANEL IZQUIERDO (40%) ===================== */}
           <div className="w-2/5 pr-4 space-y-6">
-            {/* Collapsible Sección de Categorías */}
+            {/* --- SECCIÓN CATEGORÍAS --- */}
             <CollapsibleSection
               title="Categorías"
               color="bg-blue-500 hover:bg-blue-600"
               items={categories.categories}
+              // Por defecto, CollapsibleSection usa itemKey="url", itemName="name"
               onCreate={handleCreateCategory}
-              onUpdate={handleUpdateCategory}
+              onUpdate={(url) => handleUpdateCategory(url)}
             />
 
-            {/* Collapsible Sección de Marcas */}
+            {/* --- SECCIÓN MARCAS --- */}
             <CollapsibleSection
               title="Marcas"
               color="bg-red-500 hover:bg-red-600"
               items={brands.brands}
               onCreate={handleCreateBrand}
-              onUpdate={handleUpdateBrand}
+              onUpdate={(url) => handleUpdateBrand(url)}
             />
-            {/* Podrías poner subcategorías, tipos, productos, etc. de la misma forma */}
+
+            {/* --- SECCIÓN SUBCATEGORÍAS --- */}
+            <CollapsibleSection
+              title="Subcategorías"
+              color="bg-purple-500 hover:bg-purple-600"
+              items={subcategories.subcategories}
+              // Las subcategorías deben contener "categoryUrl" y "url"
+              // para poder actualizar. Ej: item.categoryUrl, item.url
+              onCreate={handleCreateSubCategory}
+              onUpdate={(subCatUrl) => {
+                // 1) Buscar la subcategoría en el array
+                const sc = subcategories.subcategories.find((s) => s.url === subCatUrl);
+                // 2) Llamar a la función
+                if (sc) {
+                  handleUpdateSubCategory(sc.categoryUrl, sc.url);
+                }
+              }}
+            />
           </div>
 
-          {/* Panel Derecho: 60% */}
+          {/* ===================== PANEL DERECHO (60%) ===================== */}
           <div className="w-3/5 bg-gray-50 p-4 rounded">
-            {/* Formularios para Categorías (ejemplo) */}
+            {/* --- CATEGORÍAS: CREAR --- */}
             {action === "create" && activeSection === "category" && (
               <CreateCategoryForm
                 onSuccess={() => {
                   resetPanel();
-                  refetchCategories();
+                  refetchCategories(); // recargamos la lista de categorías
                 }}
               />
             )}
 
+            {/* --- CATEGORÍAS: ACTUALIZAR --- */}
             {action === "update" && activeSection === "category" && selectedUrl && (
               <UpdateCategoryForm
                 url={selectedUrl}
@@ -172,29 +238,55 @@ const AdminDashboard = () => {
               />
             )}
 
-            {/* Formularios para Marcas */}
+            {/* --- MARCAS: CREAR --- */}
             {action === "create" && activeSection === "brand" && (
               <CreateBrandForm
-                // Pasamos las categorías como prop para poblar el <select>
-                categories={categories.categories}
+                categories={categories.categories} // Para el <select> de categoría en Marca
                 onSuccess={() => {
                   resetPanel();
-                  refetchBrands(); // Re-cargamos marcas
+                  refetchBrands(); // recargamos la lista de marcas
                 }}
               />
             )}
 
+            {/* --- MARCAS: ACTUALIZAR --- */}
             {action === "update" && activeSection === "brand" && selectedUrl && (
               <UpdateBrandForm
                 url={selectedUrl}
-                // Pasamos las categorías como prop para poblar el <select>
                 categories={categories.categories}
                 onSuccess={() => {
                   resetPanel();
-                  refetchBrands(); // Re-cargamos marcas
+                  refetchBrands();
                 }}
               />
             )}
+
+            {/* --- SUBCATEGORÍAS: CREAR --- */}
+            {action === "create" && activeSection === "subCategory" && (
+              <CreateSubCategoryForm
+                categories={categories.categories} // Se usa en el <select>
+                onSuccess={() => {
+                  resetPanel();
+                  refetchSubCategories(); 
+                }}
+              />
+            )}
+
+            {/* --- SUBCATEGORÍAS: ACTUALIZAR --- */}
+            {action === "update" &&
+              activeSection === "subCategory" &&
+              selectedCategoryUrl &&
+              selectedSubCategoryUrl && (
+                <UpdateSubCategoryForm
+                  categoryUrl={selectedCategoryUrl}
+                  subCategoryUrl={selectedSubCategoryUrl}
+                  categories={categories.categories}
+                  onSuccess={() => {
+                    resetPanel();
+                    refetchSubCategories();
+                  }}
+                />
+              )}
           </div>
         </div>
       </div>
