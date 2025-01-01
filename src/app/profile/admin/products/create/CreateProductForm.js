@@ -1,15 +1,13 @@
-// src/app/profile/admin/products/create/page.js
+// src/app/profile/admin/products/create/CreateProductForm.js
 "use client";
 
-import { useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { AuthContext } from '@/context/AuthContext'; // <-- Importa tu AuthContext
+import { useContext, useState } from 'react';
+import { AuthContext } from '@/context/AuthContext';
 import { toast } from 'react-toastify';
-const CreateProduct = () => {
-  const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
-  const router = useRouter();
 
-  // Estado del formulario
+const CreateProductForm = ({ categories = [], onSuccess }) => {
+  const { currentUser } = useContext(AuthContext);
+
   const [productData, setProductData] = useState({
     name: '',
     description: '',
@@ -21,56 +19,13 @@ const CreateProduct = () => {
     typeID: '',
     images: [''],
   });
-
-  // Catálogos
-  const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [types, setTypes] = useState([]);
-
-  // Estados de error y envío
   const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false); // Para manejar el botón y mostrar "Cargando..."
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Verificamos si tiene permiso de 'create'
-  const hasPermission = currentUser?.permissions?.includes('create');
-
-  // Efecto para verificar autenticación/permiso y cargar categorías
-  useEffect(() => {
-    if (!authLoading && !sessionInitializing) {
-      if (!currentUser) {
-        router.push('/login'); // Redirige si no está autenticado
-      } else if (!hasPermission) {
-        router.push('/not-found'); // Redirige si no tiene permiso
-      } else {
-        loadCategories(); // Cargamos las categorías si está todo OK
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, sessionInitializing, currentUser, hasPermission]);
-
-  // Carga de categorías
-  const loadCategories = async () => {
-    try {
-      const response = await fetch('/api/categories/private/get/list', {
-        method: 'GET',
-        credentials: 'include', // Incluye las cookies
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al cargar las categorías.');
-      }
-
-      const data = await response.json();
-      setCategories(data.categories);
-    } catch (err) {
-      console.error('Error al cargar las categorías:', err);
-      setError(err.message);
-    }
-  };
-
-  // Carga de subcategorías
+  // Función para cargar subcategorías cuando se selecciona una categoría
   const loadSubcategories = async (categoryID) => {
     try {
       const response = await fetch(`/api/categories/private/subCategories/get/list/${categoryID}`, {
@@ -91,7 +46,7 @@ const CreateProduct = () => {
     }
   };
 
-  // Carga de marcas
+  // Función para cargar marcas cuando se selecciona una categoría
   const loadBrands = async (categoryID) => {
     try {
       const response = await fetch(`/api/brands/private/get/byCategory/${categoryID}`, {
@@ -112,7 +67,7 @@ const CreateProduct = () => {
     }
   };
 
-  // Carga de tipos
+  // Función para cargar tipos cuando se selecciona una categoría
   const loadTypes = async (categoryID) => {
     try {
       const response = await fetch(`/api/types/private/get/byCategory/${categoryID}`, {
@@ -257,6 +212,7 @@ const CreateProduct = () => {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error al crear el producto.');
       }
+
       toast.success(
         <div className="flex items-center">
           <span>Producto creado correctamente.</span>
@@ -266,45 +222,33 @@ const CreateProduct = () => {
           icon: true, 
         }
       );
-      router.push('/profile/admin/dashboard'); // Redirige al perfil o a la página deseada
+      // Resetear el formulario
+      setProductData({
+        name: '',
+        description: '',
+        price: '',
+        stockQuantity: '',
+        categoryID: '',
+        subcategoryID: '',
+        brandID: '',
+        typeID: '',
+        images: [''],
+      });
+      // Avisar al Dashboard para refetchear la lista de productos si lo implementas
+      onSuccess?.();
     } catch (err) {
       console.error('Error al crear el producto:', err);
       setError(err.message);
     } finally {
-      setIsSubmitting(false); // Volvemos a habilitar el botón
+      setIsSubmitting(false);
     }
   };
 
-  /**
-   * 1. MIENTRAS authLoading O sessionInitializing -> Spinner full screen
-   * 2. Si no tiene permisos -> Mensaje
-   * 3. Si todo OK -> Render formulario
-   */
-
-  if (authLoading || sessionInitializing) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (!hasPermission) {
-    return (
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded">
-        {error ? (
-          <p className="text-red-500 mb-2">{error}</p>
-        ) : (
-          <p>No tienes permisos para crear productos.</p>
-        )}
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-md rounded">
-      <h2 className="text-2xl mb-4">Crear Nuevo Producto</h2>
+    <div className="p-4 bg-white shadow-md rounded">
+      <h2 className="text-xl mb-4 font-bold">Crear Nuevo Producto</h2>
       {error && <p className="text-red-500 mb-2">{error}</p>}
+
       <form onSubmit={handleSubmit}>
         {/* Nombre del Producto */}
         <div className="mb-4">
@@ -393,7 +337,7 @@ const CreateProduct = () => {
             >
               <option value="">Selecciona una subcategoría</option>
               {subcategories.map((subcategory) => (
-                <option key={subcategory.subCategoryID} value={subcategory.subCategoryID}>
+                <option key={subcategory.uniqueID} value={subcategory.uniqueID}>
                   {subcategory.name}
                 </option>
               ))}
@@ -492,5 +436,4 @@ const CreateProduct = () => {
   );
 };
 
-export default CreateProduct;
-
+export default CreateProductForm;

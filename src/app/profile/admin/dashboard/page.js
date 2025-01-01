@@ -25,7 +25,12 @@ import CreateTypeForm from "@/app/profile/admin/types/create/CreateTypeForm";
 import UpdateTypeForm from "@/app/profile/admin/types/update/UpdateTypeForm";
 
 // ========== Formularios Rol (solo crear) ==========
-import CreateRoleForm from "../roles/create/CreateRoleForm";
+import CreateRoleForm from "@/app/profile/admin/roles/create/CreateRoleForm";
+
+// ========== Formularios Producto ==========
+import CreateProductForm from "@/app/profile/admin/products/create/CreateProductForm";
+import UpdateProductForm from "@/app/profile/admin/products/update/UpdateProductForm";
+
 const AdminDashboard = () => {
   // ---- CONTEXT Y ROUTER ----
   const { currentUser, authLoading } = useContext(AuthContext);
@@ -34,15 +39,18 @@ const AdminDashboard = () => {
   // ---- ESTADOS PARA EL PANEL DERECHO ----
   // action: "create" o "update"
   const [action, setAction] = useState(null);
-  // activeSection: "category", "brand", "subCategory", "type", "role", etc.
+  // activeSection: "category", "brand", "subCategory", "type", "role", "product", etc.
   const [activeSection, setActiveSection] = useState(null);
 
-  // Para actualizar (categorías, marcas, tipos), necesitamos un "url"
+  // Para actualizar (categorías, marcas, tipos, productos), necesitamos un "url"
   const [selectedUrl, setSelectedUrl] = useState("");
 
   // Para subcategorías, necesitamos saber `categoryUrl` y `subCategoryUrl`
   const [selectedCategoryUrl, setSelectedCategoryUrl] = useState("");
   const [selectedSubCategoryUrl, setSelectedSubCategoryUrl] = useState("");
+
+  // Para actualizar productos, necesitamos pasar el `url`
+  const [selectedProductUrl, setSelectedProductUrl] = useState("");
 
   // ---- VERIFICA PERMISOS ----
   useEffect(() => {
@@ -121,6 +129,18 @@ const AdminDashboard = () => {
     shouldFetch
   );
 
+  // ---- FETCH DE PRODUCTOS ----
+  const {
+    data: products,
+    loading: productsLoading,
+    error: productsError,
+    refetch: refetchProducts,
+  } = useGetData(
+    shouldFetch ? "/api/products/private/product/get/list" : null,
+    "products",
+    shouldFetch
+  );
+
   // ---- ESTADOS DE CARGA Y ERROR ----
   const loading =
     authLoading ||
@@ -128,14 +148,16 @@ const AdminDashboard = () => {
     brandsLoading ||
     subcategoriesLoading ||
     typesLoading ||
-    rolesLoading;
+    rolesLoading ||
+    productsLoading;
 
   const error =
     categoriesError ||
     brandsError ||
     subcategoriesError ||
     typesError ||
-    rolesError;
+    rolesError ||
+    productsError;
 
   if (loading) {
     return (
@@ -209,10 +231,21 @@ const AdminDashboard = () => {
     setSelectedUrl(url);
   };
 
-  // ---- HANDLER PARA ROLES (solo create, sin update) ----
+  // ---- HANDLERS PARA ROLES (solo create, sin update) ----
   const handleCreateRole = () => {
     setActiveSection("role");
     setAction("create");
+  };
+
+  // ---- HANDLERS PARA PRODUCTOS ----
+  const handleCreateProduct = () => {
+    setActiveSection("product");
+    setAction("create");
+  };
+  const handleUpdateProduct = (url) => {
+    setActiveSection("product");
+    setAction("update");
+    setSelectedProductUrl(url);
   };
 
   // ---- RESETEAR EL PANEL DERECHO ----
@@ -222,6 +255,7 @@ const AdminDashboard = () => {
     setSelectedUrl("");
     setSelectedCategoryUrl("");
     setSelectedSubCategoryUrl("");
+    setSelectedProductUrl("");
   };
 
   return (
@@ -286,6 +320,15 @@ const AdminDashboard = () => {
               items={roles.roles} // Asumiendo tu API retorna { roles: [ ... ] }
               onCreate={handleCreateRole}
               // No pasamos onUpdate, porque no tendremos actualización de roles
+            />
+
+            {/* --- SECCIÓN PRODUCTOS --- */}
+            <CollapsibleSection
+              title="Productos"
+              color="bg-green-500 hover:bg-green-600"
+              items={products.products} // Asumiendo tu API retorna { products: [ ... ] }
+              onCreate={handleCreateProduct}
+              onUpdate={(url) => handleUpdateProduct(url)}
             />
           </div>
 
@@ -382,8 +425,28 @@ const AdminDashboard = () => {
               <CreateRoleForm
                 onSuccess={() => {
                   resetPanel();
-                  // Si quisieras recargar la lista de roles (y verlo en panel izq):
                   refetchRoles();
+                }}
+              />
+            )}
+
+            {/* ===================== PRODUCTOS ===================== */}
+            {action === "create" && activeSection === "product" && (
+              <CreateProductForm
+                categories={categories.categories}
+                onSuccess={() => {
+                  resetPanel();
+                  refetchProducts();
+                }}
+              />
+            )}
+            {action === "update" && activeSection === "product" && selectedProductUrl && (
+              <UpdateProductForm
+                url={selectedProductUrl}
+                categories={categories.categories}
+                onSuccess={() => {
+                  resetPanel();
+                  refetchProducts();
                 }}
               />
             )}

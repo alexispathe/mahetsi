@@ -6,8 +6,6 @@ import { cookies } from 'next/headers';
 
 export async function GET(request, context) {
   const { url } = context.params; // Obtiene la propiedad url desde los parámetros
-  console.log('Parámetros:', context.params);
-
   try {
     // Obtener las cookies de la solicitud y esperar
     const cookieStore = await cookies();
