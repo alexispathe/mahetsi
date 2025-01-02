@@ -1,10 +1,13 @@
-// src/app/api/orders/admin/get/route.js
-//Devuelve las ordenes de todos los usuarios pero para el administrador
+// src/app/api/orders/admin/get/[orderId]/route.js
+//Devuelve la informacion del n usuario de forma individual para el administrador
 import { NextResponse } from 'next/server';
-import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../libs/firebaseAdmin';
+import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
 
-export async function GET(request) {
+export async function GET(request, context) {
+ const params = await context.params;
+  const { orderId } = params;
+
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
@@ -43,24 +46,25 @@ export async function GET(request) {
       return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "admin".' }, { status: 403 });
     }
 
-    // Obtener todas las órdenes pendientes y enviadas
-    const ordersSnapshot = await firestore.collection('orders')
-      .where('orderStatus', 'in', ['pendiente', 'enviado'])
-      .orderBy('dateCreated', 'desc')
-      .get();
-    
+    // Obtener la orden específica por ID
+    const orderDoc = await firestore.collection('orders').doc(orderId).get();
 
-    const orders = ordersSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      dateCreated: doc.data().dateCreated?.toDate() || null,
-    }));
-    
+    if (!orderDoc.exists) {
+      return NextResponse.json({ message: 'Orden no encontrada' }, { status: 404 });
+    }
 
-    return NextResponse.json({ message: 'Órdenes obtenidas exitosamente.', orders }, { status: 200 });
+    const orderData = orderDoc.data();
+
+    const order = {
+      id: orderDoc.id,
+      ...orderData,
+      dateCreated: orderData.dateCreated?.toDate() || null,
+    };
+
+    return NextResponse.json({ message: 'Orden obtenida exitosamente.', order }, { status: 200 });
 
   } catch (error) {
-    console.error('Error al obtener las órdenes de admin:', error);
+    console.error('Error al obtener la orden específica de admin:', error);
     let errorMessage = 'Error interno del servidor';
     
     // Manejar errores específicos de Firestore

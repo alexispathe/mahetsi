@@ -10,7 +10,7 @@ import LogoutButton from './LogoutButton';
 import Image from 'next/image';
 import AdminButton from './AdminButton';
 import OrdersTable from './OrdersTable';
-import AdminOrders from './AdminOrders'; // Importar el nuevo componente
+import AdminOrders from '../admin/orders/AdminOrders'; // Importar el nuevo componente
 
 export default function ProfilePage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
