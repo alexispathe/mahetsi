@@ -135,88 +135,130 @@ export default function OrderDetailsPage() {
         Detalles de la Orden {order.uniqueID}
       </h2>
 
-      <div className="mb-4">
-        <h4 className="font-semibold">Fecha:</h4>
-        <p>{new Date(order.dateCreated).toLocaleString('es-MX', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true
-        })}</p>
+      {/* Tabla de Información Principal */}
+      <div className="mb-6 overflow-x-auto">
+        <table className="min-w-full bg-white border">
+          <tbody>
+            <tr className="border-b">
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Fecha</th>
+              <td className="px-6 py-4 text-sm text-gray-700">
+                {new Date(order.dateCreated).toLocaleString('es-MX', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: true,
+                })}
+              </td>
+            </tr>
+            <tr className="border-b">
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Nombre</th>
+              <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.firstName}</td>
+            </tr>
+            <tr className="border-b">
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Apellido</th>
+              <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.lastName}</td>
+            </tr>
+            <tr className="border-b">
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Número de Teléfono</th>
+              <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.phone}</td>
+            </tr>
+            <tr className="border-b">
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Método de Pago</th>
+              <td className="px-6 py-4 text-sm text-gray-700">{order.paymentMethod}</td>
+            </tr>
+            <tr className="border-b">
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">ID Usuario</th>
+              <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.ownerId}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div className="mb-4">
-        <h4 className="font-semibold">Nombre:</h4>
-        <p>{order.shippingAddress.firstName}</p>
+      {/* Artículos Comprados */}
+      <div className="mb-6 overflow-x-auto">
+        <h3 className="text-xl font-semibold mb-2">Artículos Comprados</h3>
+        <table className="min-w-full bg-white border">
+          <thead>
+            <tr className="border-b bg-gray-50">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Nombre
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Cantidad
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Precio Unitario
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {order.items.map((item, index) => (
+              <tr key={index} className="hover:bg-gray-100">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{item.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{item.qty}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${item.price.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${item.total.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <div className="mb-4">
-        <h4 className="font-semibold">Apellidos:</h4>
-        <p>{order.shippingAddress.lastName}</p>
-      </div>
-      <div className="mb-4">
-        <h4 className="font-semibold">Número de Teléfono:</h4>
-        <p>{order.shippingAddress.phone}</p>
-      </div>
-      <div className="mb-4">
-        <h4 className="font-semibold">Método de Pago:</h4>
-        <p>{order.paymentMethod}</p>
-      </div>
-      <div className="mb-4">
-        <h4 className="font-semibold">ID Usuario:</h4>
-        <p>{order.shippingAddress.ownerId}</p>
-      </div>
-      <div className="mb-4">
-        <h4 className="font-semibold">Dirección de Envío:</h4>
+
+      {/* Dirección de Envío */}
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-2">Dirección de Envío</h3>
         <p>
-          {order.shippingAddress.address}, {order.shippingAddress.colonia}, {order.shippingAddress.city}, {order.shippingAddress.state}, C.P. {order.shippingAddress.zipcode}, {order.shippingAddress.country}
+          {order.shippingAddress.address}, {order.shippingAddress.colonia}, {order.shippingAddress.city},{' '}
+          {order.shippingAddress.state}, C.P. {order.shippingAddress.zipcode}, {order.shippingAddress.country}
         </p>
       </div>
-      <div className="mb-4">
-        <h4 className="font-semibold">Estado de la Orden:</h4>
+
+      {/* Estado de la Orden */}
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-2">Estado de la Orden</h3>
         <span
-          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-            order.orderStatus === 'pendiente'
-              ? 'bg-yellow-100 text-yellow-800'
-              : order.orderStatus === 'enviado'
-                ? 'bg-blue-100 text-blue-800'
-                : order.orderStatus === 'entregado'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-          }`}
+          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.orderStatus === 'pendiente'
+            ? 'bg-yellow-100 text-yellow-800'
+            : order.orderStatus === 'enviado'
+              ? 'bg-blue-100 text-blue-800'
+              : order.orderStatus === 'entregado'
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
+            }`}
         >
           {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
         </span>
       </div>
-      <div className="mb-4">
-        <h4 className="font-semibold">Número de Guía:</h4>
-        <p>{order.trackingNumber ? order.trackingNumber : 'N/A'}</p>
-      </div>
-      <div className="mb-4">
-        <h4 className="font-semibold">Paquetería:</h4>
-        <p>{order.courier ? order.courier : 'N/A'}</p>
-      </div>
-      <div className="mb-4">
-        <h4 className="font-semibold">Artículos Comprados:</h4>
-        <ul className="list-disc list-inside">
-          {order.items.map((item, index) => (
-            <li key={index}>
-              {item.name} | Cantidad: {item.qty} | Precio unitario: ${item.price.toFixed(2)} | Total: ${item.total.toFixed(2)}
-            </li>
-          ))}
-        </ul>
+
+      {/* Número de Guía y Paquetería */}
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-2">Información de Envío</h3>
+        <p>
+          <strong>Número de Guía:</strong> {order.trackingNumber ? order.trackingNumber : 'N/A'}
+        </p>
+        <p>
+          <strong>Paquetería:</strong> {order.courier ? order.courier : 'N/A'}
+        </p>
       </div>
 
+
       {/* Botón para abrir el modal de envío */}
-      {order && (
-        <button
-          onClick={openUpdateModal}
-          className="flex items-center  px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-        >
-          <FaEdit className="mr-2" /> Enviar Orden
-        </button>
+      {order.orderStatus === 'pendiente' && (
+        <div className="flex justify-end mb-6">
+          <button
+            onClick={openUpdateModal}
+            className="flex items-center px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+          >
+            <FaEdit className="mr-2" /> Enviar Orden
+          </button>
+        </div>
+
       )}
 
       {/* Modal para Actualizar el Estado de Envío */}

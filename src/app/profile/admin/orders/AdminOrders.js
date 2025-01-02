@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FaShippingFast, FaEdit } from 'react-icons/fa';
+import { FaShippingFast } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import { useAdminOrders } from '../../../../hooks/useAdminOrders';
 

@@ -1,8 +1,10 @@
-// src/app/profile/user/OrdersTable.js
+// src/app/profile/user/OrdersTable.js*
 'use client';
+
 
 import React, { useState } from 'react';
 import Modal from './Modal';
+import { FaShippingFast } from 'react-icons/fa';
 
 export default function OrdersTable({ orders }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -100,15 +102,14 @@ export default function OrdersTable({ orders }) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        order.orderStatus === 'pendiente'
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.orderStatus === 'pendiente'
                           ? 'bg-yellow-100 text-yellow-800'
                           : order.orderStatus === 'enviado'
-                          ? 'bg-blue-100 text-blue-800'
-                          : order.orderStatus === 'entregado'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
+                            ? 'bg-blue-100 text-blue-800'
+                            : order.orderStatus === 'entregado'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                        }`}
                     >
                       {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
                     </span>
@@ -136,7 +137,10 @@ export default function OrdersTable({ orders }) {
       {isModalOpen && selectedOrder && (
         <Modal onClose={closeModal}>
           <div className="p-4">
-            <h3 className="text-xl font-semibold mb-4">Detalles de la Orden {selectedOrder.uniqueID}</h3>
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <FaShippingFast className="mr-2 text-blue-500" />
+              Detalles de la Orden {selectedOrder.uniqueID}
+            </h2>
             <div className="mb-4">
               <h4 className="font-semibold">Fecha:</h4>
               <p>
@@ -167,15 +171,14 @@ export default function OrdersTable({ orders }) {
             <div className="mb-4">
               <h4 className="font-semibold">Estado de la Orden:</h4>
               <span
-                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  selectedOrder.orderStatus === 'pendiente'
+                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${selectedOrder.orderStatus === 'pendiente'
                     ? 'bg-yellow-100 text-yellow-800'
                     : selectedOrder.orderStatus === 'enviado'
-                    ? 'bg-blue-100 text-blue-800'
-                    : selectedOrder.orderStatus === 'entregado'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}
+                      ? 'bg-blue-100 text-blue-800'
+                      : selectedOrder.orderStatus === 'entregado'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                  }`}
               >
                 {selectedOrder.orderStatus.charAt(0).toUpperCase() + selectedOrder.orderStatus.slice(1)}
               </span>
