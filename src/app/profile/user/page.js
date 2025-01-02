@@ -1,3 +1,5 @@
+// src/app/profile/page.js
+
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
@@ -8,6 +10,7 @@ import LogoutButton from './LogoutButton';
 import Image from 'next/image';
 import AdminButton from './AdminButton';
 import OrdersTable from './OrdersTable';
+import AdminOrders from './AdminOrders'; // Importar el nuevo componente
 
 export default function ProfilePage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
@@ -64,8 +67,8 @@ export default function ProfilePage() {
   }
 
   const { email, name, picture, uid, permissions } = currentUser;
-  // Verificar si el usuario tiene permisos 'create' o 'update'
-  const hasAdminAccess = permissions?.includes('create') || permissions?.includes('update');
+  // Verificar si el usuario tiene permisos 'admin'
+  const isAdmin = permissions?.includes('admin');
 
   return (
     <>
@@ -90,10 +93,11 @@ export default function ProfilePage() {
           <div className="mt-4">
             <LogoutButton />
           </div>
-          {hasAdminAccess && <AdminButton />}
+          {isAdmin && <AdminButton />}
         </div>
 
-        <div className="bg-white shadow-md rounded-lg p-6">
+        {/* Sección de Órdenes de Usuario */}
+        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Mis Compras</h2>
           {loadingOrders ? (
             <p>Cargando órdenes...</p>
@@ -103,6 +107,9 @@ export default function ProfilePage() {
             <OrdersTable orders={orders} />
           )}
         </div>
+
+        {/* Sección de Órdenes de Admin */}
+        {isAdmin && <AdminOrders />}
       </div>
     </>
   );

@@ -1,5 +1,5 @@
 // src/app/api/orders/get/route.js
-
+//Sirve para devolver las ordenes de los usuarios
 import { NextResponse } from 'next/server';
 import { verifySessionCookie, firestore } from '../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
