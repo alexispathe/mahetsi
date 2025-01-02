@@ -166,7 +166,6 @@ const CreateProductForm = ({ categories = [], onSuccess }) => {
       setError('Por favor, selecciona una categoría.');
       return;
     }
-
     if (!productData.subcategoryID) {
       setError('Por favor, selecciona una subcategoría.');
       return;
@@ -337,7 +336,7 @@ const CreateProductForm = ({ categories = [], onSuccess }) => {
             >
               <option value="">Selecciona una subcategoría</option>
               {subcategories.map((subcategory) => (
-                <option key={subcategory.uniqueID} value={subcategory.uniqueID}>
+                <option key={subcategory.subCategoryID} value={subcategory.subCategoryID}>
                   {subcategory.name}
                 </option>
               ))}

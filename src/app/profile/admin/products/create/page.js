@@ -394,7 +394,7 @@ const CreateProduct = () => {
               <option value="">Selecciona una subcategoría</option>
               {subcategories.map((subcategory) => (
                 <option key={subcategory.subCategoryID} value={subcategory.subCategoryID}>
-                  {subcategory.name}
+                  {"Hola"}
                 </option>
               ))}
             </select>

@@ -50,7 +50,6 @@ export async function POST(request) {
     const ownerId = decodedToken.uid; // El ID del usuario actual
 
     const { name, description, price, stockQuantity, categoryID, subcategoryID, brandID, typeID, images } = await request.json();
-    console.log("esta es la sub ",subcategoryID )
     // Validaciones básicas
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return NextResponse.json({ message: 'Nombre del producto es obligatorio y debe ser una cadena de texto.' }, { status: 400 });

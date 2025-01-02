@@ -43,7 +43,8 @@ const ensureUniqueSlug = async (slug, currentProductId) => {
   return uniqueSlug;
 };
 
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
+  const params = await context.params;
   const { url } = params;
   try {
     // 1. Verificar que url está presente y es una cadena válida

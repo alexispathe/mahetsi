@@ -388,7 +388,7 @@ const UpdateProductForm = ({ url, categories = [], onSuccess }) => {
             >
               <option value="">Selecciona una subcategoría</option>
               {subcategories.map((subcategory, i) => (
-                <option key={i} value={subcategory.uniqueID}>
+                <option key={i} value={subcategory.subCategoryID}>
                   {subcategory.name}
                 </option>
               ))}
