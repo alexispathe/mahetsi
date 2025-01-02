@@ -34,11 +34,12 @@ export default function CategoryPage() {
   const { brands, types } = useBrandsAndTypes(currentCategory);
   
   // Usar el nuevo hook para obtener subcategoryID
-  const {  subcategory,  } = useSubcategoryByURL(currentCategory?.uniqueID, subcategoryURL);
+  const {  subcategory } =  useSubcategoryByURL(currentCategory?.uniqueID, subcategoryURL);
+ 
+  const { isLoadingProducts, products } = useProducts(currentCategory,  subcategory && subcategory.length>=1? subcategory[0]?.subcategoryID : null);
 
-  // Pasar el subcategoryID obtenido al hook de productos
-  const { isLoadingProducts, products } = useProducts(currentCategory, subcategory?.subcategoryID);
-
+  // Pasar el subcategoryID obtenido al hook de producto
+  
   const {
     minPrice,
     maxPrice,
@@ -58,7 +59,6 @@ export default function CategoryPage() {
     setSelectedSubcategories, // Función para actualizar subcategorías seleccionadas
     clearAllFilters,
   } = useFilters();
-
   // Obtener subcategorías usando el hook existente
   const { isLoadingSubcategories, subcategories } = useSubcategories(currentCategory?.uniqueID);
 

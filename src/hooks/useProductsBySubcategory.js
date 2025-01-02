@@ -1,7 +1,7 @@
 // hooks/useProductsBySubcategory.js
 import { useState, useEffect } from 'react';
 
-export const useProducts = (category, subcategory) => { // Eliminamos el valor por defecto
+export const useProducts = (category, subcategory) => { 
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [products, setProducts] = useState([]);
 
