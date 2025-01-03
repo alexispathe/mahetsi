@@ -50,7 +50,9 @@ const AdminDashboard = () => {
       !authLoading &&
       (!currentUser ||
         !currentUser.permissions?.includes("create") ||
-        !currentUser.permissions?.includes("update"))
+        !currentUser.permissions?.includes("update") ||
+        !currentUser.permissions?.includes("admin"))
+
     ) {
       router.push("/login");
     }
@@ -58,7 +60,8 @@ const AdminDashboard = () => {
 
   const shouldFetch =
     currentUser?.permissions?.includes("create") &&
-    currentUser?.permissions?.includes("update");
+    currentUser?.permissions?.includes("update") &&
+    currentUser.permissions?.includes("admin");
 
   // ---- FETCH DE DATOS ----
   const {
