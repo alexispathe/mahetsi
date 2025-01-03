@@ -1,18 +1,16 @@
-// src/app/profile/admin/orders/[orderId]/page.js
-
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FaArrowLeft, FaShippingFast, FaEdit, FaClock,FaCheckCircle, FaTimesCircle
-
- } from 'react-icons/fa';
+import { FaArrowLeft, FaShippingFast, FaEdit, FaClock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Modal from '../../../user/Modal';
+import { AuthContext } from '@/context/AuthContext'; // Importa el contexto de autenticación
 
 export default function OrderDetailsPage() {
   const { orderId } = useParams();
   const router = useRouter();
+  const { currentUser } = useContext(AuthContext); // Obtener el usuario actual
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,8 +22,14 @@ export default function OrderDetailsPage() {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
+    // Verifica si el usuario es admin, de lo contrario redirige al inicio
+    if (currentUser && !currentUser.permissions?.includes('admin')) {
+      router.push('/');
+      return;
+    }
+
     fetchOrderDetails();
-  }, [orderId]);
+  }, [orderId, currentUser, router]);
 
   const fetchOrderDetails = async () => {
     setLoading(true);
@@ -43,6 +47,8 @@ export default function OrderDetailsPage() {
       } else {
         setError(data.message || 'Error al obtener los detalles de la orden.');
         toast.error(data.message || 'Error al obtener los detalles de la orden.');
+        router.push('/');
+
       }
     } catch (err) {
       console.error('Error al obtener los detalles de la orden:', err);
@@ -179,6 +185,7 @@ export default function OrderDetailsPage() {
           </tbody>
         </table>
       </div>
+
       {/* Artículos Comprados */}
       <div className="mb-6 overflow-x-auto">
         <h3 className="text-xl font-semibold mb-2">Artículos Comprados</h3>
@@ -303,7 +310,6 @@ export default function OrderDetailsPage() {
             <FaEdit className="mr-2" /> Enviar Orden
           </button>
         </div>
-
       )}
 
       {/* Modal para Actualizar el Estado de Envío */}

@@ -43,7 +43,7 @@ export async function GET(request, context) {
 
     // Verificar si el usuario tiene el permiso 'admin'
     if (!permissions.includes('admin')) {
-      return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "admin".' }, { status: 403 });
+      return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso.' }, { status: 403 });
     }
 
     // Obtener la orden específica por ID

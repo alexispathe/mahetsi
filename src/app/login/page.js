@@ -1,4 +1,4 @@
-// src/app/login/page.jsx
+// src/app/login/page.js
 'use client';
 
 import { useContext, useState, useEffect } from 'react';

@@ -170,7 +170,7 @@ export default function OrdersTable({ orders }) {
               <h4 className="font-semibold text-lg text-gray-700">Dirección de Envío:</h4>
               <p className="text-gray-600">
                 {selectedOrder.shippingAddress.address}, {selectedOrder.shippingAddress.colonia}, {selectedOrder.shippingAddress.city},
-                {selectedOrder.shippingAddress.state}, C.P. {selectedOrder.shippingAddress.zipcode}, {selectedOrder.shippingAddress.country}
+                {selectedOrder.shippingAddress.state}, C.P. {selectedOrder.shippingAddress.zipcode}, {selectedOrder.shippingAddress.betweenStreets},{selectedOrder.shippingAddress.reference} , {selectedOrder.shippingAddress.country}
               </p>
             </div>
 

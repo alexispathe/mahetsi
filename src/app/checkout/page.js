@@ -1,4 +1,4 @@
-// src/app/cart/page.js o src/pages/cart.js
+// src/app/checkout/page.js
 
 'use client';
 
@@ -9,7 +9,7 @@ import UserAddress from '../components/UserAddress';
 import CartSummary from './CartSummary'; 
 import Header from '../components/Header';
 
-export default function CartPage() {
+export default function CheckoutPage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
 
@@ -19,7 +19,7 @@ export default function CartPage() {
   useEffect(() => {
     // Redirige al login si no hay usuario autenticado una vez que se completa la carga
     if (!authLoading && !sessionInitializing && !currentUser) {
-      router.push('/login');
+      router.push('/login?redirect=/checkout');
     }
   }, [authLoading, sessionInitializing, currentUser, router]);
 
