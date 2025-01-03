@@ -7,16 +7,25 @@ import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
 import Header from '../components/Header';
 import { AuthContext } from '@/context/AuthContext';
+import { useSearchParams } from 'next/navigation';
+
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const { currentUser, authLoading } = useContext(AuthContext);
   const [loginLoading, setLoginLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     if (!authLoading && currentUser) {
-      router.push('/profile/user'); // Redirige si ya está autenticado
+      if (redirect) {
+        router.push(redirect);
+      } else {
+        router.push('/profile/user');
+      }
     }
-  }, [authLoading, currentUser, router]);
+  }, [authLoading, currentUser, router, redirect]);
+
   const waitForCookie = async () => {
     return new Promise((resolve) => {
       const interval = setInterval(() => {
@@ -45,11 +54,15 @@ export default function LoginPage() {
         });
 
         if (res.ok) {
-            // Esperar la creación de la cookie
-            await waitForCookie();
+          // Esperar la creación de la cookie
+          await waitForCookie();
 
-            // Redirigir al perfil después de asegurar que la cookie existe
+          // Redirigir al perfil después de asegurar que la cookie existe
+          if (redirect) {
+            router.push(redirect);
+          } else {
             router.push('/profile/user');
+          }
         } else {
           const errorData = await res.json();
           console.error('Error al crear sesión:', errorData.error);
