@@ -4,7 +4,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FaArrowLeft, FaShippingFast, FaEdit } from 'react-icons/fa';
+import { FaArrowLeft, FaShippingFast, FaEdit, FaClock,FaCheckCircle, FaTimesCircle
+
+ } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Modal from '../../../user/Modal';
 
@@ -213,40 +215,83 @@ export default function OrderDetailsPage() {
       {/* Dirección de Envío */}
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-2">Dirección de Envío</h3>
-        <p>
-          {order.shippingAddress.address}, {order.shippingAddress.colonia}, {order.shippingAddress.city},{' '}
-          {order.shippingAddress.state}, C.P. {order.shippingAddress.zipcode}, {order.shippingAddress.country}
-        </p>
+        <div className="overflow-x-auto bg-white border rounded-lg shadow-sm">
+          <table className="min-w-full">
+            <tbody>
+              <tr className="border-b">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Calle</th>
+                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.address}</td>
+              </tr>
+              <tr className="border-b">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Colonia</th>
+                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.colonia}</td>
+              </tr>
+              <tr className="border-b">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Ciudad</th>
+                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.city}</td>
+              </tr>
+              <tr className="border-b">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Estado</th>
+                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.state}</td>
+              </tr>
+              <tr className="border-b">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">C.P.</th>
+                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.zipcode}</td>
+              </tr>
+              <tr className="border-b">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">País</th>
+                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.country}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Estado de la Orden */}
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-2">Estado de la Orden</h3>
-        <span
-          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.orderStatus === 'pendiente'
-            ? 'bg-yellow-100 text-yellow-800'
-            : order.orderStatus === 'enviado'
-              ? 'bg-blue-100 text-blue-800'
-              : order.orderStatus === 'entregado'
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
-            }`}
-        >
-          {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
-        </span>
+        <div className="flex items-center space-x-3">
+          <span
+            className={`px-4 py-2 inline-flex text-xs font-semibold rounded-full ${order.orderStatus === 'pendiente'
+              ? 'bg-yellow-100 text-yellow-800'
+              : order.orderStatus === 'enviado'
+                ? 'bg-blue-100 text-blue-800'
+                : order.orderStatus === 'entregado'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+              }`}
+          >
+            {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
+          </span>
+          <div className="flex items-center text-sm text-gray-600">
+            {order.orderStatus === 'pendiente' && <FaClock className="mr-1 text-yellow-800" />}
+            {order.orderStatus === 'enviado' && <FaShippingFast className="mr-1 text-blue-800" />}
+            {order.orderStatus === 'entregado' && <FaCheckCircle className="mr-1 text-green-800" />}
+            {order.orderStatus === 'cancelado' && <FaTimesCircle className="mr-1 text-red-800" />}
+            <span>
+              {order.orderStatus === 'pendiente' && 'Esperando confirmación'}
+              {order.orderStatus === 'enviado' && 'En tránsito'}
+              {order.orderStatus === 'entregado' && 'Entregado'}
+              {order.orderStatus === 'cancelado' && 'Orden cancelada'}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Número de Guía y Paquetería */}
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-2">Información de Envío</h3>
-        <p>
-          <strong>Número de Guía:</strong> {order.trackingNumber ? order.trackingNumber : 'N/A'}
-        </p>
-        <p>
-          <strong>Paquetería:</strong> {order.courier ? order.courier : 'N/A'}
-        </p>
+        <div className="space-y-2">
+          <p>
+            <strong className="font-medium text-gray-700">Número de Guía:</strong>{' '}
+            <span className="text-gray-800">{order.trackingNumber ? order.trackingNumber : 'N/A'}</span>
+          </p>
+          <p>
+            <strong className="font-medium text-gray-700">Paquetería:</strong>{' '}
+            <span className="text-gray-800">{order.courier ? order.courier : 'N/A'}</span>
+          </p>
+        </div>
       </div>
-
 
       {/* Botón para abrir el modal de envío */}
       {order.orderStatus === 'pendiente' && (

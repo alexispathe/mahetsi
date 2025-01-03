@@ -103,12 +103,12 @@ export default function OrdersTable({ orders }) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.orderStatus === 'pendiente'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : order.orderStatus === 'enviado'
-                            ? 'bg-blue-100 text-blue-800'
-                            : order.orderStatus === 'entregado'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : order.orderStatus === 'enviado'
+                          ? 'bg-blue-100 text-blue-800'
+                          : order.orderStatus === 'entregado'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                         }`}
                     >
                       {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
@@ -136,81 +136,96 @@ export default function OrdersTable({ orders }) {
       {/* Modal de Detalles de la Orden */}
       {isModalOpen && selectedOrder && (
         <Modal onClose={closeModal}>
-          <div className="p-4">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
+          <div className="pb-7   rounded-lg">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center">
               <FaShippingFast className="mr-2 text-blue-500" />
               Detalles de la Orden {selectedOrder.uniqueID}
             </h2>
+
+            {/* Fecha */}
             <div className="mb-4">
-              <h4 className="font-semibold">Fecha:</h4>
-              <p>
+              <h4 className="font-semibold text-lg text-gray-700">Fecha:</h4>
+              <p className="text-gray-600">
                 {new Date(selectedOrder.dateCreated).toLocaleString('es-MX', {
-                  weekday: 'long', // Día de la semana completo (Ej. "lunes")
-                  year: 'numeric', // Año en formato completo (Ej. "2024")
-                  month: 'long', // Nombre del mes completo (Ej. "diciembre")
-                  day: 'numeric', // Día del mes (Ej. "31")
-                  hour: '2-digit', // Hora en formato de dos dígitos (Ej. "20")
-                  minute: '2-digit', // Minuto en formato de dos dígitos (Ej. "21")
-                  second: '2-digit', // Segundo en formato de dos dígitos (Ej. "28")
-                  hour12: true, // Para usar el formato de 12 horas (AM/PM)
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: true,
                 })}
               </p>
             </div>
+
+            {/* Método de Pago */}
             <div className="mb-4">
-              <h4 className="font-semibold">Método de Pago:</h4>
-              <p>{selectedOrder.paymentMethod}</p>
+              <h4 className="font-semibold text-lg text-gray-700">Método de Pago:</h4>
+              <p className="text-gray-600">{selectedOrder.paymentMethod}</p>
             </div>
+
+            {/* Dirección de Envío */}
             <div className="mb-4">
-              <h4 className="font-semibold">Dirección de Envío:</h4>
-              <p>
-                {selectedOrder.shippingAddress.address}, {selectedOrder.shippingAddress.colonia},{' '}
-                {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state}, C.P.{' '}
-                {selectedOrder.shippingAddress.zipcode}, {selectedOrder.shippingAddress.country}
+              <h4 className="font-semibold text-lg text-gray-700">Dirección de Envío:</h4>
+              <p className="text-gray-600">
+                {selectedOrder.shippingAddress.address}, {selectedOrder.shippingAddress.colonia}, {selectedOrder.shippingAddress.city},
+                {selectedOrder.shippingAddress.state}, C.P. {selectedOrder.shippingAddress.zipcode}, {selectedOrder.shippingAddress.country}
               </p>
             </div>
+
+            {/* Estado de la Orden */}
             <div className="mb-4">
-              <h4 className="font-semibold">Estado de la Orden:</h4>
+              <h4 className="font-semibold text-lg text-gray-700">Estado de la Orden:</h4>
               <span
-                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${selectedOrder.orderStatus === 'pendiente'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : selectedOrder.orderStatus === 'enviado'
-                      ? 'bg-blue-100 text-blue-800'
-                      : selectedOrder.orderStatus === 'entregado'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                className={`px-4 py-2 inline-flex text-xs font-semibold rounded-full ${selectedOrder.orderStatus === 'pendiente'
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : selectedOrder.orderStatus === 'enviado'
+                    ? 'bg-blue-100 text-blue-800'
+                    : selectedOrder.orderStatus === 'entregado'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
                   }`}
               >
                 {selectedOrder.orderStatus.charAt(0).toUpperCase() + selectedOrder.orderStatus.slice(1)}
               </span>
             </div>
+
+            {/* Número de Guía */}
             <div className="mb-4">
-              <h4 className="font-semibold">Número de Guía:</h4>
-              <p>{selectedOrder.trackingNumber ? selectedOrder.trackingNumber : 'N/A'}</p>
+              <h4 className="font-semibold text-lg text-gray-700">Número de Guía:</h4>
+              <p className="text-gray-600">{selectedOrder.trackingNumber ? selectedOrder.trackingNumber : 'N/A'}</p>
             </div>
+
+            {/* Paquetería */}
             <div className="mb-4">
-              <h4 className="font-semibold">Paquetería:</h4>
-              <p>{selectedOrder.courier ? selectedOrder.courier : 'N/A'}</p>
+              <h4 className="font-semibold text-lg text-gray-700">Paquetería:</h4>
+              <p className="text-gray-600">{selectedOrder.courier ? selectedOrder.courier : 'N/A'}</p>
             </div>
+
+            {/* Artículos Comprados */}
             <div className="mb-4">
-              <h4 className="font-semibold">Artículos Comprados:</h4>
-              <ul className="list-disc list-inside">
+              <h4 className="font-semibold text-lg text-gray-700">Artículos Comprados:</h4>
+              <ul className="list-disc list-inside text-gray-600">
                 {selectedOrder.items.map((item, index) => (
                   <li key={index}>
-                    {item.name} | Cantidad: {item.qty} | Precio unitario: ${item.price.toFixed(2)} | Total: $
-                    {item.total.toFixed(2)}
+                    <strong>{item.name}</strong> | Cantidad: {item.qty} | Precio unitario: ${item.price.toFixed(2)} | Total: ${item.total.toFixed(2)}
                   </li>
                 ))}
               </ul>
             </div>
+
+            {/* Botón de Cerrar */}
             <div className="flex justify-end">
               <button
                 onClick={closeModal}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
               >
                 Cerrar
               </button>
             </div>
           </div>
+
         </Modal>
       )}
     </>
