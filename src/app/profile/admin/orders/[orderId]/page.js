@@ -246,6 +246,14 @@ export default function OrderDetailsPage() {
                 <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.zipcode}</td>
               </tr>
               <tr className="border-b">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Entre calles</th>
+                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.betweenStreets}</td>
+              </tr>
+              <tr className="border-b">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Referencias</th>
+                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.references}</td>
+              </tr>
+              <tr className="border-b">
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">País</th>
                 <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.country}</td>
               </tr>
