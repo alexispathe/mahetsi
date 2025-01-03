@@ -1,7 +1,6 @@
-// src/app/login/page.js
 'use client';
 
-import { useContext, useState, useEffect } from 'react';
+import React, { Suspense, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
@@ -10,6 +9,14 @@ import { AuthContext } from '@/context/AuthContext';
 import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen bg-gray-100"><p className="text-gray-600">Cargando...</p></div>}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect');
   const { currentUser, authLoading } = useContext(AuthContext);
