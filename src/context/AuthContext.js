@@ -4,17 +4,18 @@
 import { createContext, useEffect, useState } from 'react';
 import { auth } from '@/libs/firebaseClient';
 import { onAuthStateChanged } from 'firebase/auth';
-
+import { getLocalCart,  clearLocalCart } from '@/app/utils/cartLocalStorage';
+import { getLocalFavorites, clearLocalFavorites } from '@/app/utils/favoritesLocalStorage';
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [sessionInitializing, setSessionInitializing] = useState(false); // Nuevo estado
+  const [sessionInitializing, setSessionInitializing] = useState(false);
 
   useEffect(() => {
     const checkLocalSession = async () => {
-      setSessionInitializing(true); // Inicia la inicialización
+      setSessionInitializing(true);
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
           try {
@@ -29,6 +30,34 @@ export function AuthProvider({ children }) {
                 if (res.ok) {
                   const data = await res.json();
                   setCurrentUser(data.user || null);
+
+                  // Verificar si hay elementos en el carrito o favoritos
+                  const localCart = getLocalCart();
+                  const localFavorites = getLocalFavorites();
+
+                  if (localCart.length > 0 || localFavorites.length > 0) {
+                    // Llamar al nuevo endpoint de sincronización
+                    const syncRes = await fetch('/api/syncItems', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({
+                        items: localCart,
+                        favorites: localFavorites,
+                      }),
+                    });
+
+                    if (syncRes.ok) {
+                      // Limpiar localStorage después de la sincronización exitosa
+                      clearLocalCart();
+                      clearLocalFavorites();
+                      console.log('Sincronización exitosa.');
+                    } else {
+                      const errorData = await syncRes.json();
+                      console.error('Error al sincronizar items:', errorData.error);
+                    }
+                  }
+
                 } else {
                   console.warn('Cookie inválida o sesión no encontrada.');
                   setCurrentUser(null);
@@ -37,21 +66,23 @@ export function AuthProvider({ children }) {
                 console.error('Error verificando la sesión:', error.message);
                 setCurrentUser(null);
               } finally {
-                setAuthLoading(false); // Finaliza la carga
-                setSessionInitializing(false); // Finaliza la inicialización
+                setAuthLoading(false);
+                setSessionInitializing(false);
               }
-            }, 1000); // Esperar 1 segundo
+            }, 3000); // Esperar 3 segundos
           } catch (error) {
             console.error('Error durante la verificación local:', error.message);
+            setAuthLoading(false);
+            setSessionInitializing(false);
           }
         } else {
           setCurrentUser(null);
           setAuthLoading(false);
-          setSessionInitializing(false); // Finaliza la inicialización
+          setSessionInitializing(false);
         }
       });
 
-      return () => unsubscribe(); // Limpia el listener
+      return () => unsubscribe();
     };
 
     checkLocalSession();

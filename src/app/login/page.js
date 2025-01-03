@@ -5,13 +5,10 @@ import { useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
-import { getLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage';
-import { getLocalFavorites, clearLocalFavorites } from '@/app/utils/favoritesLocalStorage';
 import Header from '../components/Header';
 import { AuthContext } from '@/context/AuthContext';
-
 export default function LoginPage() {
-  const { currentUser, authLoading } = useContext(AuthContext); // Usar el contexto
+  const { currentUser, authLoading } = useContext(AuthContext);
   const [loginLoading, setLoginLoading] = useState(false);
   const router = useRouter();
 
@@ -20,7 +17,6 @@ export default function LoginPage() {
       router.push('/profile/user'); // Redirige si ya está autenticado
     }
   }, [authLoading, currentUser, router]);
-
   const waitForCookie = async () => {
     return new Promise((resolve) => {
       const interval = setInterval(() => {
@@ -40,32 +36,24 @@ export default function LoginPage() {
 
       if (user) {
         const idToken = await user.getIdToken();
-        const localCart = getLocalCart();
-        const localFavorites = getLocalFavorites();
 
         const res = await fetch('/api/sessionLogin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({
-            idToken,
-            items: localCart,
-            favorites: localFavorites,
-          }),
+          body: JSON.stringify({ idToken }),
         });
 
         if (res.ok) {
-          clearLocalCart();
-          clearLocalFavorites();
+            // Esperar la creación de la cookie
+            await waitForCookie();
 
-          // Esperar la creación de la cookie
-          await waitForCookie();
-
-          // Redirigir al perfil después de asegurar que la cookie existe
-          router.push('/profile/user');
+            // Redirigir al perfil después de asegurar que la cookie existe
+            router.push('/profile/user');
         } else {
           const errorData = await res.json();
           console.error('Error al crear sesión:', errorData.error);
+          alert(`Error al crear sesión: ${errorData.error}`);
         }
       }
     } catch (error) {

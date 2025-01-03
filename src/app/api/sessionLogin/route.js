@@ -3,44 +3,17 @@ import { NextResponse } from 'next/server';
 import { authAdmin, firestore } from '@/libs/firebaseAdmin';
 import { z } from 'zod';
 import admin from 'firebase-admin'
+
 // Definir el esquema de validación
 const sessionLoginSchema = z.object({
   idToken: z.string(),
-  items: z.array(z.object({
-    uniqueID: z.string(),
-    qty: z.number(),
-    size: z.string()
-  })).optional(),
-  favorites: z.array(z.object({
-    uniqueID: z.string(),
-    qty: z.number(),
-    size: z.string()
-  })).optional(),
 });
-
-// Función para sincronizar items
-const syncItems = async (firestore, uid, items, collectionName) => {
-  if (!Array.isArray(items) || items.length === 0) return;
-  
-  const batch = firestore.batch();
-  const collectionRef = firestore.collection(collectionName).doc(uid).collection('items');
-  
-  for (const item of items) {
-    if (item && item.uniqueID) {
-      const itemRef = collectionRef.doc(item.uniqueID);
-      batch.set(itemRef, item, { merge: true });
-    }
-  }
-  
-  await batch.commit();
-};
 
 export async function POST(request) {
   try {
     // Validar y extraer datos del cuerpo de la solicitud
     const body = await request.json();
     const parsedBody = sessionLoginSchema.safeParse(body);
-
     if (!parsedBody.success) {
       return NextResponse.json({ 
         error: 'Datos de entrada inválidos', 
@@ -48,7 +21,7 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    const { idToken, items = [], favorites = [] } = parsedBody.data;
+    const { idToken } = parsedBody.data;
 
     // Verificar el ID token
     const decodedIdToken = await authAdmin.verifyIdToken(idToken);
@@ -90,12 +63,6 @@ export async function POST(request) {
         dateModified: timestamp 
       });
     }
-
-    // Sincronizar carrito y favoritos
-    await Promise.all([
-      syncItems(firestore, uid, items, 'carts'),
-      syncItems(firestore, uid, favorites, 'favorites')
-    ]);
 
     // Crear y configurar la respuesta sin incluir el sessionCookie en el cuerpo
     const response = NextResponse.json({ 
