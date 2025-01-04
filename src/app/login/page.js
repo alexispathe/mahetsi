@@ -26,9 +26,9 @@ function LoginContent() {
   useEffect(() => {
     if (!authLoading && currentUser) {
       if (redirect) {
-        router.push(redirect);
+        window.location.href= redirect;
       } else {
-        router.push('/profile/user');
+        window.location.href= '/profile/user';
       }
     }
   }, [authLoading, currentUser, router, redirect]);
@@ -66,9 +66,9 @@ function LoginContent() {
 
           // Redirigir al perfil después de asegurar que la cookie existe
           if (redirect) {
-            router.push(redirect);
+            window.location.href= redirect;
           } else {
-            router.push('/profile/user');
+            window.location.href= '/profile/user';
           }
         } else {
           const errorData = await res.json();
