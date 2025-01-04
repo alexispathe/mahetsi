@@ -32,7 +32,7 @@ export default function Navigation({
               {/* Enlace de la categoría principal */}
               <Link
                 href={`/category/${category.url}`}
-                className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}
+                className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-yellow-500`}
                 aria-label={`Categoría ${category.name}`}
               >
                 {category.name}
@@ -47,7 +47,7 @@ export default function Navigation({
                     transition-all duration-500
                     w-screen h-[250px] shadow-lg bg-white
                     py-8
-                    mt-[60px]
+                    mt-[50px]
                   `}
                 >
                   {/* Contenedor que controla el layout con flex */}
@@ -57,13 +57,13 @@ export default function Navigation({
                       <h3 className="uppercase text-gray-400 mb-4 text-sm tracking-wider">
                         {category.name} {/* Cambia esto según tu gusto */}
                       </h3>
-                      <div className="grid grid-cols-3 ">
+                      <div className="grid grid-cols-3">
                         {/* Subcategorías distribuidas en 3 columnas */}
                         {filteredSubcategories.map((subcat, index) => (
                           <div key={subcat.uniqueID} className="flex items-start">
                             <Link
                               href={`/category/${category.url}/${subcat.url}`}
-                              className="py-1 hover:text-gray-700 block"
+                              className="py-1 hover:text-yellow-500 block"
                               aria-label={`Subcategoría ${subcat.name}`}
                             >
                               {subcat.name}
@@ -92,7 +92,7 @@ export default function Navigation({
       {/* Link fijo de Contacto */}
       <Link
         href="/contacto"
-        className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}
+        className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-yellow-500`}
       >
         Contacto
       </Link>
