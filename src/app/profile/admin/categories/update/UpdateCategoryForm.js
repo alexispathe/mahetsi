@@ -10,6 +10,7 @@ const UpdateCategoryForm = ({ url, onSuccess }) => {
   const [categoryData, setCategoryData] = useState({
     name: "",
     description: "",
+    image: "", // Nuevo campo para la URL de la imagen
   });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,6 +30,7 @@ const UpdateCategoryForm = ({ url, onSuccess }) => {
         setCategoryData({
           name: data.name,
           description: data.description || "",
+          image: data.image || "", // Cargar la URL de la imagen existente
         });
       } catch (err) {
         setError(err.message);
@@ -51,6 +53,12 @@ const UpdateCategoryForm = ({ url, onSuccess }) => {
 
     if (!categoryData.name.trim()) {
       setError("Por favor, ingresa un nombre válido para la categoría.");
+      return;
+    }
+
+    // Validación opcional para la URL de la imagen
+    if (categoryData.image && !isValidUrl(categoryData.image)) {
+      setError("Por favor, ingresa una URL válida para la imagen.");
       return;
     }
 
@@ -78,6 +86,16 @@ const UpdateCategoryForm = ({ url, onSuccess }) => {
     }
   };
 
+  // Función para validar URLs
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
   if (loadingCategory) {
     return (
       <div className="flex justify-center items-center h-full bg-gray-100">
@@ -91,6 +109,7 @@ const UpdateCategoryForm = ({ url, onSuccess }) => {
       <h2 className="text-xl mb-4 font-bold">Actualizar Categoría</h2>
       {error && <p className="text-red-500 mb-2">{error}</p>}
       <form onSubmit={handleSubmit}>
+        {/* Campo Nombre de la Categoría */}
         <div className="mb-4">
           <label className="block mb-1">Nombre de la Categoría</label>
           <input
@@ -99,8 +118,11 @@ const UpdateCategoryForm = ({ url, onSuccess }) => {
             value={categoryData.name}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded"
+            required
           />
         </div>
+
+        {/* Campo Descripción */}
         <div className="mb-4">
           <label className="block mb-1">Descripción (opcional)</label>
           <textarea
@@ -110,6 +132,21 @@ const UpdateCategoryForm = ({ url, onSuccess }) => {
             className="w-full border px-3 py-2 rounded"
           />
         </div>
+
+        {/* Nuevo Campo URL de la Imagen */}
+        <div className="mb-4">
+          <label className="block mb-1">URL de la Imagen (opcional)</label>
+          <input
+            type="url"
+            name="image"
+            value={categoryData.image}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded"
+            placeholder="https://ejemplo.com/imagen.jpg"
+          />
+        </div>
+
+        {/* Botón de Envío */}
         <button
           type="submit"
           disabled={isSubmitting}

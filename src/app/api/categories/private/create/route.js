@@ -40,10 +40,20 @@ const ensureUniqueSlug = async (slug) => {
   return uniqueSlug;
 };
 
+// Función para validar URLs
+const isValidUrl = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
+
 export async function POST(request) {
   try {
     // Obtener las cookies de la solicitud de manera síncrona
-    const cookieStore = await  cookies();
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
 
     if (!sessionCookie) {
@@ -71,10 +81,15 @@ export async function POST(request) {
     }
 
     // Obtener los datos de la categoría
-    const { name, description } = await request.json();
+    const { name, description, image } = await request.json();
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return NextResponse.json({ message: 'Nombre de la categoría obligatorio.' }, { status: 400 });
+    }
+
+    // Validar la URL de la imagen si se proporciona
+    if (image && !isValidUrl(image)) {
+      return NextResponse.json({ message: 'URL de la imagen no válida.' }, { status: 400 });
     }
 
     // Generar slug
@@ -90,6 +105,7 @@ export async function POST(request) {
       name: name.trim(),
       description: description ? description.trim() : '',
       url, // Añade el slug generado
+      image: image ? image.trim() : '', // Añade la URL de la imagen si se proporciona
       dateCreated: admin.firestore.FieldValue.serverTimestamp(),
       dateModified: admin.firestore.FieldValue.serverTimestamp(),
       uniqueID: categoryDocRef.id, // Establecer uniqueID

@@ -33,6 +33,7 @@ export async function GET(request) {
       categories.push({
         uniqueID: categoryId, // Agregar uniqueID a la categoría
         name: categoryData.name,
+        image: categoryData.image,
         url: categoryData.url,
         subcategories: subcategories.length > 0 ? subcategories : null,
       });

@@ -47,6 +47,7 @@ export default function Navigation({
                     transition-all duration-500
                     w-screen h-[250px] shadow-lg bg-white
                     py-8
+                    pl-10
                     mt-[50px]
                   `}
                 >
@@ -75,8 +76,9 @@ export default function Navigation({
 
                     {/* Sección derecha: imagen o banner */}
                     <div className="absolute right-0 top-0 w-[500px] h-full overflow-hidden">
+                      {console.log(category)}
                       <img
-                        src="https://mahetsipage.web.app/assets/images/banners/rom3.png"
+                        src={category.image}
                         alt={`${category.name} banner`}
                         className="w-full h-full object-cover rounded-sm"
                       />

@@ -57,6 +57,7 @@ export async function GET(request, context) {
       ownerId: categoryData.ownerId,
       dateCreated: categoryData.dateCreated,
       dateModified: categoryData.dateModified,
+      image: categoryData.image
     }, { status: 200 });
 
   } catch (error) {

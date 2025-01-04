@@ -5,13 +5,23 @@ import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } f
 import { cookies } from 'next/headers';
 import admin from 'firebase-admin';
 
-export async function PUT(request, { params }) {
+// Función para validar URLs
+const isValidUrl = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
+
+export async function PUT(request, context) {
+  const params = context.params;
   const { url } = params; // Obtener el parámetro dinámico 'url'
-  console.log(params);
 
   try {
-    // Esperar la obtención de las cookies
-    const cookieStore = await cookies(); // Añadir 'await' aquí
+    // Obtener las cookies de la solicitud de manera síncrona
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
 
     if (!sessionCookie) {
@@ -39,10 +49,15 @@ export async function PUT(request, { params }) {
     }
 
     // Obtener los datos de la categoría
-    const { name, description } = await request.json();
+    const { name, description, image } = await request.json();
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return NextResponse.json({ message: 'Nombre de la categoría obligatorio.' }, { status: 400 });
+    }
+
+    // Validar la URL de la imagen si se proporciona
+    if (image && !isValidUrl(image)) {
+      return NextResponse.json({ message: 'URL de la imagen no válida.' }, { status: 400 });
     }
 
     // Buscar la categoría por la propiedad url
@@ -61,6 +76,7 @@ export async function PUT(request, { params }) {
       name: name.trim(),
       description: description ? description.trim() : '',
       dateModified: admin.firestore.FieldValue.serverTimestamp(),
+      image: image ? image.trim() : '', // Añade o actualiza la URL de la imagen si se proporciona
     };
 
     await categoryDocRef.update(updatedCategoryData); // Actualizar el documento de la categoría
