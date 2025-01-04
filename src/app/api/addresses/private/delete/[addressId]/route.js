@@ -4,7 +4,8 @@ import { NextResponse } from 'next/server';
 import { verifySessionCookie, firestore } from '../../../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
 
-export async function DELETE(request, { params }) {
+export async function DELETE(request, context) {
+  const params = context.params;
   const { addressId } = params; // Obtener el parámetro dinámico 'addressId'
 
   try {

@@ -1,4 +1,4 @@
-// src/app/profile/page.js
+// src/app/profile/user/page.js
 
 'use client';
 
@@ -10,7 +10,8 @@ import LogoutButton from './LogoutButton';
 import Image from 'next/image';
 import AdminButton from './AdminButton';
 import OrdersTable from './OrdersTable';
-import AdminOrders from '../admin/orders/AdminOrders'; // Importar el nuevo componente
+import AdminOrders from '../admin/orders/AdminOrders';
+import UserAddress from '../../components/UserAddress'; // Asegúrate de que la ruta sea correcta
 
 export default function ProfilePage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
@@ -19,6 +20,10 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState(null);
+
+  // Estados para direcciones
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
 
   useEffect(() => {
     // Redirige al login si no hay usuario autenticado una vez que se completa la carga
@@ -30,6 +35,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (currentUser && !authLoading && !sessionInitializing) {
       fetchOrders();
+      // También puedes cargar direcciones aquí si no lo haces en el componente UserAddress
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, authLoading, sessionInitializing]);
@@ -74,6 +80,7 @@ export default function ProfilePage() {
     <>
       <Header textColor="black" position="relative" />
       <div className="container mx-auto p-4">
+        {/* Información del Perfil */}
         <div className="bg-white shadow-md rounded-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row items-center">
             {picture && (
@@ -94,6 +101,17 @@ export default function ProfilePage() {
             <LogoutButton />
           </div>
           {isAdmin && <AdminButton />}
+        </div>
+
+        {/* Sección de Direcciones */}
+        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">Mis Direcciones</h2>
+          <UserAddress
+            selectedAddressId={selectedAddressId}
+            setSelectedAddressId={setSelectedAddressId}
+            setAddresses={setAddresses}
+            addresses={addresses}
+          />
         </div>
 
         {/* Sección de Órdenes de Usuario */}

@@ -7,8 +7,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userAddressSchema } from '@/schemas/userAddressSchema';
 import { FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
-// Asegúrate de definir o importar 'estadosMexico'
 const estadosMexico = [
   'Aguascalientes',
   'Baja California',
@@ -98,16 +98,14 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
           body: JSON.stringify(data),
         });
 
-        const result = await response.json();
-
         if (response.ok) {
-          alert('Dirección actualizada exitosamente');
+          toast.success('Dirección actualizada exitosamente');
           fetchAddresses();
           setIsEditing(false);
           setEditingAddress(null);
           reset();
         } else {
-          alert(result.message || 'Error al actualizar la dirección');
+          toast.error('Error al actualizar la dirección');
         }
       } else {
         // Crear nueva dirección
@@ -119,21 +117,17 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
           credentials: 'include', // Asegura que las cookies se envíen
           body: JSON.stringify(data),
         });
-
-        const result = await response.json();
-
         if (response.ok) {
-          alert('Dirección creada exitosamente');
+          toast.success('Dirección creada exitosamente');
           fetchAddresses();
           reset();
           setIsAddingNew(false);
         } else {
-          alert(result.message || 'Error al crear la dirección');
+          toast.error('Error al crear la dirección');
         }
       }
     } catch (error) {
-      console.error('Error al guardar la dirección:', error);
-      alert('Error al guardar la dirección');
+      toast.error('Error al guardar la dirección');
     } finally {
       setIsSubmitting(false);
     }
@@ -167,21 +161,18 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
         credentials: 'include', // Asegura que las cookies se envíen
       });
 
-      const result = await response.json();
-
       if (response.ok) {
-        alert('Dirección eliminada exitosamente');
+        toast.success('Dirección eliminada exitosamente');
         fetchAddresses();
         // Si la dirección eliminada estaba seleccionada, deseleccionarla
         if (selectedAddressId === addressId) {
           setSelectedAddressId(null);
         }
       } else {
-        alert(result.message || 'Error al eliminar la dirección');
+        toast.error('Error al eliminar la dirección');
       }
     } catch (error) {
-      console.error('Error al eliminar la dirección:', error);
-      alert('Error al eliminar la dirección');
+      toast.error('Error al eliminar la dirección');
     } finally {
       setDeletingAddressIds(prev => prev.filter(id => id !== addressId));
     }

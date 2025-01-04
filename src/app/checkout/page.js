@@ -32,7 +32,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className='user-details-container bg-white py-10 px-6 shadow-lg rounded-lg'>
+    <div className=''>
       <Header position="relative" textColor="text-black" />
       <div className="cart-page container mx-auto pt-20 p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

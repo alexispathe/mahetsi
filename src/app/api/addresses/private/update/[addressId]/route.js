@@ -6,7 +6,8 @@ import { cookies } from 'next/headers';
 import { userAddressSchema } from '@/schemas/userAddressSchema';
 import admin from 'firebase-admin'; // Asegúrate de que admin está inicializado
 
-export async function PUT(request, { params }) {
+export async function PUT(request, context) {
+  const params = context.params;
   const { addressId } = params; // Obtener el parámetro dinámico 'addressId'
   
   try {
