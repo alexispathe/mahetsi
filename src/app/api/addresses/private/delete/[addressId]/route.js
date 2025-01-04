@@ -31,9 +31,25 @@ export async function DELETE(request, context) {
       return NextResponse.json({ message: 'Dirección no encontrada.' }, { status: 404 });
     }
 
-    const addressDocRef = addressSnapshot.docs[0].ref; // Obtener la referencia del documento
+    const addressDoc = addressSnapshot.docs[0];
+    const addressDocRef = addressDoc.ref;
+    const addressData = addressDoc.data(); // Para ver si esDefault
 
-    await addressDocRef.delete(); // Eliminar la dirección
+    // Borramos la dirección
+    await addressDocRef.delete(); 
+
+    // Si la dirección era principal, buscar otra dirección y ponerla como principal
+    if (addressData.isDefault) {
+      const remainingSnapshot = await firestore.collection('addresses')
+        .where('ownerId', '==', uid)
+        .limit(1)
+        .get();
+
+      if (!remainingSnapshot.empty) {
+        const newDefaultRef = remainingSnapshot.docs[0].ref;
+        await newDefaultRef.update({ isDefault: true });
+      }
+    }
 
     return NextResponse.json({ message: 'Dirección eliminada exitosamente.' }, { status: 200 });
 

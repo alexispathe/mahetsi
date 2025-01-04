@@ -1,5 +1,3 @@
-// src/components/UserAddress.js
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -83,7 +81,7 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
     }
   };
 
-  // Función para manejar el envío del formulario
+  // Función para manejar el envío del formulario (crear o editar dirección)
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
@@ -178,6 +176,29 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
     }
   };
 
+  // Función para establecer dirección principal
+  const handleSetDefault = async (addressId) => {
+    try {
+      const response = await fetch('/api/addresses/private/setDefault', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ addressId }),
+      });
+      if (response.ok) {
+        toast.success('Se ha seleccionado la dirección principal');
+        // Actualizamos direcciones y, si quieres, puedes setear esa address como seleccionada
+        fetchAddresses();
+        setSelectedAddressId(addressId);
+      } else {
+        toast.error('No se pudo establecer la dirección principal');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Hubo un error al establecer la dirección principal');
+    }
+  };
+
   return (
     <div className="user-address-container bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Dirección de Envío</h2>
@@ -194,7 +215,10 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-semibold">{address.firstName} {address.lastName}</p>
+                    <p className="font-semibold">
+                      {address.firstName} {address.lastName} 
+                      {address.isDefault && <span className="ml-2 text-xs text-white bg-green-500 px-2 py-1 rounded">Principal</span>}
+                    </p>
                     <p>{address.address}, {address.colonia}, {address.city}, {address.state}, C.P. {address.zipcode}</p>
                     <p>Teléfono: {address.phone}</p>
                     {address.reference && <p>Referencia: {address.reference}</p>}
@@ -207,6 +231,18 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
                     >
                       {selectedAddressId === address.uniqueID ? 'Seleccionada' : 'Seleccionar'}
                     </button>
+
+                    {/* Botón de establecer como principal */}
+                    {!address.isDefault && (
+                      <button
+                        className="text-purple-500 hover:text-purple-700"
+                        onClick={() => handleSetDefault(address.uniqueID)}
+                        disabled={isSubmitting || deletingAddressIds.includes(address.uniqueID)}
+                      >
+                        Establecer como principal
+                      </button>
+                    )}
+
                     <button
                       className="text-green-500 hover:text-green-700 flex items-center"
                       onClick={() => handleEdit(address)}

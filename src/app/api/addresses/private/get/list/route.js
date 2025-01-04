@@ -1,5 +1,4 @@
 // src/app/api/addresses/private/get/list/route.js
-
 import { NextResponse } from 'next/server';
 import { verifySessionCookie, firestore } from '../../../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
@@ -34,3 +33,4 @@ export async function GET(request) {
     return NextResponse.json({ message: 'Error interno del servidor.', error: error.message }, { status: 500 });
   }
 }
+

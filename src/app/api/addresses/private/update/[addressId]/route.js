@@ -1,5 +1,4 @@
 // src/app/api/addresses/private/update/[addressId]/route.js
-
 import { NextResponse } from 'next/server';
 import { verifySessionCookie, firestore } from '../../../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
@@ -48,6 +47,7 @@ export async function PUT(request, context) {
 
     const updatedAddressData = {
       ...addressData,
+      // si no manejas isDefault aquí, no lo sobreescribas
       dateModified: admin.firestore.FieldValue.serverTimestamp(),
     };
 
