@@ -53,7 +53,7 @@ export default function Navigation({
                   {/* Contenedor que controla el layout con flex */}
                   <div className="flex justify-between h-full px-4">
                     {/* Sección izquierda: subcategorías */}
-                    <div className="min-w-[400px] h-full overflow-y-auto">
+                    <div className="min-w-[400px] h-full overflow-y-auto pl-10">
                       <h3 className="uppercase text-gray-400 mb-4 text-sm tracking-wider">
                         {category.name} {/* Cambia esto según tu gusto */}
                       </h3>
@@ -70,14 +70,7 @@ export default function Navigation({
                           </li>
                         ))}
                       </ul>
-                      <Link
-                        href={`/category/${category.url}`}
-                        className="block mt-3 text-blue-600 hover:underline text-sm"
-                      >
-                        VIEW ALL
-                      </Link>
                     </div>
-
                     {/* Sección derecha: imagen o banner */}
                     <div className="absolute right-0 top-0 w-[300px] h-full">
                       <img
