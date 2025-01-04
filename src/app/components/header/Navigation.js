@@ -1,10 +1,20 @@
-import Link from 'next/link';
+import Link from "next/link";
+import React, { useState } from "react";
 
-export default function Navigation({ categories, subcategories, isHovered, textColor, isLoading }) {
+export default function Navigation({
+  categories = [],
+  subcategories = {},
+  isHovered = false,
+  textColor = "text-white",
+  isLoading = false,
+}) {
+  const [activeSubMenu, setActiveSubMenu] = useState(null);
+
   return (
     <nav className="hidden md:flex space-x-6">
       {isLoading ? (
         <div className="flex gap-6">
+          {/* Skeleton de carga */}
           <div className="w-24 h-8 bg-gray-300 animate-pulse rounded-md"></div>
           <div className="w-24 h-8 bg-gray-300 animate-pulse rounded-md"></div>
           <div className="w-24 h-8 bg-gray-300 animate-pulse rounded-md"></div>
@@ -13,7 +23,13 @@ export default function Navigation({ categories, subcategories, isHovered, textC
         categories.map((category) => {
           const filteredSubcategories = subcategories[category.uniqueID] || [];
           return (
-            <div key={category.uniqueID} className="group relative">
+            <div
+              key={category.uniqueID}
+              className="group relative"
+              onMouseEnter={() => setActiveSubMenu(category.uniqueID)}
+              onMouseLeave={() => setActiveSubMenu(null)}
+            >
+              {/* Enlace de la categoría principal */}
               <Link
                 href={`/category/${category.url}`}
                 className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}
@@ -21,28 +37,68 @@ export default function Navigation({ categories, subcategories, isHovered, textC
               >
                 {category.name}
               </Link>
+
+              {/* Submenú desplegable */}
               {filteredSubcategories.length > 0 && (
-                <div className="absolute top-full left-0 hidden group-hover:block bg-white shadow-lg p-4">
-                  <ul>
-                    {filteredSubcategories.map((subcat) => (
-                      <li key={subcat.uniqueID}>
-                        <Link 
-                          href={`/category/${category.url}/${subcat.url}`} 
-                          className="py-1 hover:text-gray-700 block"
-                          aria-label={`Subcategoría ${subcat.name}`}
-                        >
-                          {subcat.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+                <div
+                  className={`
+                    fixed top-0 left-0
+                    ${activeSubMenu === category.uniqueID ? "opacity-100 visible" : "opacity-0 invisible"}
+                    transition-all duration-500
+                    w-screen h-[250px] bg-white shadow-lg
+                    py-8 z-50
+                    mt-[40px] /* Margen superior de 40px */
+                  `}
+                >
+                  {/* Contenedor que controla el layout con flex */}
+                  <div className="flex justify-between h-full px-4">
+                    {/* Sección izquierda: subcategorías */}
+                    <div className="min-w-[400px] h-full overflow-y-auto">
+                      <h3 className="uppercase text-gray-400 mb-4 text-sm tracking-wider">
+                        {category.name} {/* Cambia esto según tu gusto */}
+                      </h3>
+                      <ul>
+                        {filteredSubcategories.map((subcat) => (
+                          <li key={subcat.uniqueID}>
+                            <Link
+                              href={`/category/${category.url}/${subcat.url}`}
+                              className="py-1 hover:text-gray-700 block"
+                              aria-label={`Subcategoría ${subcat.name}`}
+                            >
+                              {subcat.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                      <Link
+                        href={`/category/${category.url}`}
+                        className="block mt-3 text-blue-600 hover:underline text-sm"
+                      >
+                        VIEW ALL
+                      </Link>
+                    </div>
+
+                    {/* Sección derecha: imagen o banner */}
+                    <div className="absolute right-0 top-0 w-[300px] h-full">
+                      <img
+                        src="https://mahetsipage.web.app/assets/images/banners/rom3.png"
+                        alt={`${category.name} banner`}
+                        className="w-full h-full object-cover rounded-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
           );
         })
       )}
-      <Link href="/contacto" className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}>
+
+      {/* Link fijo de Contacto */}
+      <Link
+        href="/contacto"
+        className={`cursor-pointer ${isHovered ? "text-black" : textColor}`}
+      >
         Contacto
       </Link>
     </nav>
