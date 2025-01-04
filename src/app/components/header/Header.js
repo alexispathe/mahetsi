@@ -46,7 +46,6 @@ export default function Header({ textColor = 'text-white', position = "absolute"
 
     fetchCategories();
   }, []);
-
   const handleSearchClick = () => setSearchOpen(true);
   const handleCartClick = () => setCartOpen(true);
   const handleFavoritesClick = () => setFavoritesOpen(true);

@@ -1,6 +1,9 @@
 import { FaSearch, FaHeart, FaUser, FaShoppingCart } from "react-icons/fa";
 
-export default function Icons({ isHovered, textColor, handleSearchClick, handleFavoritesClick, redirectProfile, cartCount, handleCartClick }) {
+export default function Icons({ isHovered, textColor, handleSearchClick, handleFavoritesClick, cartCount, handleCartClick }) {
+  const redirectProfile =()=> {
+    window.location.href ='/profile/user'
+  }
     return (
         <div className="flex items-center space-x-4">
             <FaSearch

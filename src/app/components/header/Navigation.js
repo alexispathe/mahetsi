@@ -45,21 +45,22 @@ export default function Navigation({
                     fixed top-0 left-0
                     ${activeSubMenu === category.uniqueID ? "opacity-100 visible" : "opacity-0 invisible"}
                     transition-all duration-500
-                    w-screen h-[250px] bg-white shadow-lg
-                    py-8 z-50
-                    mt-[40px] /* Margen superior de 40px */
+                    w-screen h-[250px] shadow-lg bg-white
+                    py-8
+                    mt-[60px]
                   `}
                 >
                   {/* Contenedor que controla el layout con flex */}
                   <div className="flex justify-between h-full px-4">
                     {/* Sección izquierda: subcategorías */}
-                    <div className="min-w-[400px] h-full overflow-y-auto pl-10">
+                    <div className="min-w-[400px] h-full overflow-y-auto">
                       <h3 className="uppercase text-gray-400 mb-4 text-sm tracking-wider">
                         {category.name} {/* Cambia esto según tu gusto */}
                       </h3>
-                      <ul>
-                        {filteredSubcategories.map((subcat) => (
-                          <li key={subcat.uniqueID}>
+                      <div className="grid grid-cols-3 ">
+                        {/* Subcategorías distribuidas en 3 columnas */}
+                        {filteredSubcategories.map((subcat, index) => (
+                          <div key={subcat.uniqueID} className="flex items-start">
                             <Link
                               href={`/category/${category.url}/${subcat.url}`}
                               className="py-1 hover:text-gray-700 block"
@@ -67,12 +68,13 @@ export default function Navigation({
                             >
                               {subcat.name}
                             </Link>
-                          </li>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
+
                     {/* Sección derecha: imagen o banner */}
-                    <div className="absolute right-0 top-0 w-[300px] h-full">
+                    <div className="absolute right-0 top-0 w-[500px] h-full overflow-hidden">
                       <img
                         src="https://mahetsipage.web.app/assets/images/banners/rom3.png"
                         alt={`${category.name} banner`}
