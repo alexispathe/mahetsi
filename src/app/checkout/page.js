@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
 import UserAddress from '../components/UserAddress';
 import CartSummary from './CartSummary'; 
-import Header from '../components/Header';
+import Header from '../components/header/Header';
 
 export default function CheckoutPage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);

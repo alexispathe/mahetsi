@@ -4,7 +4,7 @@
 
 import React from "react";
 import { useParams } from "next/navigation";
-import Header from "../../components/Header";
+import Header from "../../components/header/Header";
 import ProductDetail from "./ProductDetail";
 
 export default function ProductPage() {

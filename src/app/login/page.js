@@ -4,7 +4,7 @@ import React, { Suspense, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
-import Header from '../components/Header';
+import Header from '../components/header/Header';
 import { AuthContext } from '@/context/AuthContext';
 import { useSearchParams } from 'next/navigation';
 

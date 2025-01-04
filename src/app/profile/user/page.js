@@ -5,7 +5,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
-import Header from '../../components/Header';
+import Header from '../../components/header/Header';
 import LogoutButton from './LogoutButton';
 import Image from 'next/image';
 import AdminButton from './AdminButton';

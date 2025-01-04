@@ -4,7 +4,7 @@
 import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/context/AuthContext";
-import Header from "@/app/components/Header";
+import Header from "@/app/components/header/Header";
 import useGetData from "@/hooks/useGetData";
 import CollapsibleSection from "./components/CollapsibleSection";
 

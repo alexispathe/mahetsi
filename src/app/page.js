@@ -1,5 +1,5 @@
 'use client';
-import Header from "./components/Header";
+import Header from "./components/header/Header";
 import Hero from "./components/Hero";
 import FavoriteProductsCarousel from "./components/FavoriteProductsCarousel";
 import BestProducts from "./components/BestProducts";
