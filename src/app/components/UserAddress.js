@@ -214,7 +214,7 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
                 <div className="flex flex-col lg:flex-row justify-between items-start">
                   <div className="w-full">
                     {/* Nuevo Contenedor para Nombre y Botón "Establecer como principal" */}
-                    <div className="flex items-center justify-between flex-wrap">
+                    <div className="flex items-center  flex-wrap">
                       <p className="font-semibold">
                         {address.firstName} {address.lastName}
                         {address.isDefault && (
@@ -223,7 +223,7 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
                       </p>
                       {!address.isDefault && (
                         <button
-                          className="text-purple-500 hover:text-purple-700 mt-2 lg:mt-0"
+                          className="text-blue-500 0 ml-10  hover:text-blue-700 mt-2 lg:mt-0"
                           onClick={() => handleSetDefault(address.uniqueID)}
                           disabled={isSubmitting || deletingAddressIds.includes(address.uniqueID)}
                         >
