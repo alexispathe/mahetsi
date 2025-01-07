@@ -1,38 +1,9 @@
 // src/app/profile/user/UserReviews.js
 'use client';
 
-import { useState, useEffect } from 'react';
+import React from 'react';
 
-export default function UserReviews() {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchUserReviews();
-  }, []);
-
-  const fetchUserReviews = async () => {
-    try {
-      const res = await fetch('/api/reviews/user', {
-        method: 'GET',
-        credentials: 'include'
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        setReviews(data.reviews);
-      } else {
-        setError(data.message || 'Error al obtener las reseñas');
-      }
-    } catch (err) {
-      console.error('Error al obtener las reseñas:', err);
-      setError('Error al obtener las reseñas');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function UserReviews({ reviews, loading, error }) {
   if (loading) {
     return <p>Cargando reseñas...</p>;
   }

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import Modal from './Modal'; 
 import { toast } from 'react-toastify';
 
-export default function ReviewModal({ product, orderId, onClose }) {
+export default function ReviewModal({ product, orderId, onClose, onReviewSubmitted }) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function ReviewModal({ product, orderId, onClose }) {
         credentials: 'include',
         body: JSON.stringify({
           orderId,
-          productId: product.uniqueID, // Lo que tengas
+          productId: product.uniqueID, // Asegúrate de que 'uniqueID' es el campo correcto
           productName: product.name,
           rating,
           comment,
@@ -34,6 +34,9 @@ export default function ReviewModal({ product, orderId, onClose }) {
 
       if (res.ok) {
         toast.success('Reseña guardada correctamente');
+        if (onReviewSubmitted) {
+          onReviewSubmitted();
+        }
         onClose(); // Cerrar el modal
       } else {
         toast.error(data.message || 'Error al guardar la reseña');
@@ -48,7 +51,7 @@ export default function ReviewModal({ product, orderId, onClose }) {
 
   return (
     <Modal onClose={onClose}>
-      <div className="p-4 w-full max-w-md">
+      <div className="p-4">
         <h2 className="text-xl font-semibold mb-4">Dejar Reseña - {product.name}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -60,6 +63,7 @@ export default function ReviewModal({ product, orderId, onClose }) {
               value={rating}
               onChange={(e) => setRating(parseInt(e.target.value))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+              required
             />
           </div>
 
@@ -70,6 +74,7 @@ export default function ReviewModal({ product, orderId, onClose }) {
               onChange={(e) => setComment(e.target.value)}
               rows="3"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
+              required
             />
           </div>
 

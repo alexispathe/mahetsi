@@ -39,7 +39,19 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Datos de usuario no encontrados.' }, { status: 404 });
     }
 
-    // Crear el doc en la colección 'reviews'
+    // Verificar si ya existe una reseña para este producto y orden por este usuario
+    const existingReviewSnapshot = await firestore.collection('reviews')
+      .where('ownerId', '==', uid)
+      .where('orderId', '==', orderId)
+      .where('productId', '==', productId)
+      .limit(1)
+      .get();
+
+    if (!existingReviewSnapshot.empty) {
+      return NextResponse.json({ message: 'Ya has dejado una reseña para este producto en esta orden.' }, { status: 400 });
+    }
+
+    // Crear el documento en la colección 'reviews'
     const newReviewRef = firestore.collection('reviews').doc();
     const now = admin.firestore.FieldValue.serverTimestamp();
 
@@ -47,7 +59,7 @@ export async function POST(request) {
       ownerId: uid,
       orderId,
       productId,
-      productName: productName || '',  // Opcional, por si quieres guardar el nombre
+      productName: productName || '',
       rating,
       comment: comment || '',
       createdAt: now,

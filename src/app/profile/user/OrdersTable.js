@@ -6,7 +6,7 @@ import Modal from './Modal';
 import { FaShippingFast } from 'react-icons/fa';
 import ReviewModal from './ReviewModal'; 
 
-export default function OrdersTable({ orders }) {
+export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -32,6 +32,13 @@ export default function OrdersTable({ orders }) {
   const closeReviewModal = () => {
     setReviewProduct(null);
     setShowReviewModal(false);
+  };
+
+  // Función para verificar si ya se ha reseñado un producto en una orden
+  const hasReviewed = (orderId, productId) => {
+    return userReviews.some(
+      (review) => review.orderId === orderId && review.productId === productId
+    );
   };
 
   return (
@@ -188,24 +195,30 @@ export default function OrdersTable({ orders }) {
             <div className="mb-4">
               <h4 className="font-semibold text-lg text-gray-700">Artículos Comprados:</h4>
               <ul className="list-disc list-inside text-gray-600">
-                {selectedOrder.items.map((item, index) => (
-                  <li key={index} className="my-2">
-                    <strong>{item.name}</strong> | Cantidad: {item.qty} | Precio unitario: $
-                    {item.price.toFixed(2)} | Total: ${item.total.toFixed(2)}
-                    {/* Botón para reseña solo si la orden está entregada */}
-                    {selectedOrder.orderStatus === 'entregado' && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); // Para que no cierre el modal principal
-                          openReviewModal(item);
-                        }}
-                        className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm"
-                      >
-                        Dejar Reseña
-                      </button>
-                    )}
-                  </li>
-                ))}
+                {selectedOrder.items.map((item, index) => {
+                  const alreadyReviewed = hasReviewed(selectedOrder.uniqueID, item.uniqueID);
+                  return (
+                    <li key={index} className="my-2">
+                      <strong>{item.name}</strong> | Cantidad: {item.qty} | Precio unitario: $
+                      {item.price.toFixed(2)} | Total: ${item.total.toFixed(2)}
+                      {/* Botón para reseña solo si la orden está entregada y no ha sido reseñada */}
+                      {selectedOrder.orderStatus === 'entregado' && !alreadyReviewed && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Para que no cierre el modal principal
+                            openReviewModal(item);
+                          }}
+                          className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm"
+                        >
+                          Dejar Reseña
+                        </button>
+                      )}
+                      {selectedOrder.orderStatus === 'entregado' && alreadyReviewed && (
+                        <span className="ml-4 text-green-600 text-sm">Reseña ya realizada</span>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
 
@@ -238,8 +251,9 @@ export default function OrdersTable({ orders }) {
       {showReviewModal && reviewProduct && (
         <ReviewModal
           product={reviewProduct}
-          orderId={selectedOrder?.uniqueID} // O "selectedOrder.id" para enlazar la reseña con la orden
+          orderId={selectedOrder?.uniqueID} 
           onClose={closeReviewModal}
+          onReviewSubmitted={onReviewSubmitted} // Pasa la función para actualizar reseñas
         />
       )}
     </>
