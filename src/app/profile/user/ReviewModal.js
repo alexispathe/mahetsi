@@ -1,10 +1,37 @@
 // src/app/profile/user/ReviewModal.js
 
 'use client';
-
 import { useState } from 'react';
-import Modal from './Modal'; 
+import Modal from './Modal';
 import { toast } from 'react-toastify';
+import { FaStar } from 'react-icons/fa';
+
+const StarRating = ({ rating, onRatingChange }) => {
+  const [hoverRating, setHoverRating] = useState(0);
+
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          className="focus:outline-none"
+          onMouseEnter={() => setHoverRating(star)}
+          onMouseLeave={() => setHoverRating(0)}
+          onClick={() => onRatingChange(star)}
+        >
+          <FaStar
+            className={`w-8 h-8 transition-colors ${
+              star <= (hoverRating || rating)
+                ? 'text-yellow-400'
+                : 'text-gray-300'
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+};
 
 export default function ReviewModal({ product, orderId, onClose, onReviewSubmitted }) {
   const [rating, setRating] = useState(5);
@@ -23,21 +50,19 @@ export default function ReviewModal({ product, orderId, onClose, onReviewSubmitt
         credentials: 'include',
         body: JSON.stringify({
           orderId,
-          productId: product.uniqueID, // Asegúrate de que 'uniqueID' es el campo correcto
+          productId: product.uniqueID,
           productName: product.name,
           rating,
           comment,
         }),
       });
-
       const data = await res.json();
-
       if (res.ok) {
         toast.success('Reseña guardada correctamente');
         if (onReviewSubmitted) {
           onReviewSubmitted();
         }
-        onClose(); // Cerrar el modal
+        onClose();
       } else {
         toast.error(data.message || 'Error al guardar la reseña');
       }
@@ -55,20 +80,15 @@ export default function ReviewModal({ product, orderId, onClose, onReviewSubmitt
         <h2 className="text-xl font-semibold mb-4">Dejar Reseña - {product.name}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Calificación (1-5)</label>
-            <input
-              type="number"
-              min="1"
-              max="5"
-              value={rating}
-              onChange={(e) => setRating(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Calificación
+            </label>
+            <StarRating rating={rating} onRatingChange={setRating} />
           </div>
-
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Comentario</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Comentario
+            </label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
@@ -77,7 +97,6 @@ export default function ReviewModal({ product, orderId, onClose, onReviewSubmitt
               required
             />
           </div>
-
           <div className="flex justify-end">
             <button
               type="button"
