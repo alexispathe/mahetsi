@@ -1,9 +1,11 @@
 import { FaSearch, FaHeart, FaUser, FaShoppingCart } from "react-icons/fa";
+import Link from "next/link";
 
-export default function Icons({ isHovered, textColor, handleSearchClick, handleFavoritesClick, cartCount, handleCartClick }) {
-  const redirectProfile =()=> {
-    window.location.href ='/profile/user'
-  }
+export default function Icons({isHovered, textColor, handleSearchClick, handleFavoritesClick, cartCount, handleCartClick, currentUser }) { // Recibimos currentUser
+    const redirectProfile = () => {
+        window.location.href = '/profile/user'
+    }
+
     return (
         <div className="flex items-center space-x-4">
             <FaSearch
@@ -16,6 +18,15 @@ export default function Icons({ isHovered, textColor, handleSearchClick, handleF
                 onClick={handleFavoritesClick}
                 aria-label="Favoritos"
             />
+            {!currentUser ?  // Verificamos si el usuario está autenticado
+                <div>
+                    <Link href={'/login'} >Ingresar</Link> {/* Si no está autenticado, mostramos el enlace */}
+                </div>
+                : <FaUser
+                    className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
+                    onClick={redirectProfile}
+                    aria-label="Perfil de usuario"
+                />}
 
             <div className="relative">
                 <FaShoppingCart
@@ -31,13 +42,7 @@ export default function Icons({ isHovered, textColor, handleSearchClick, handleF
                         {cartCount}
                     </span>
                 )}
-
             </div>
-            <FaUser
-                className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
-                onClick={redirectProfile}
-                aria-label="Perfil de usuario"
-            />
         </div>
     );
 }

@@ -9,6 +9,7 @@ import SearchModal from '../SearchModal';
 import CartDrawer from '../CartDrawer';
 import FavoritesModal from '../FavoritesModal';
 import { CartContext } from '@/context/CartContext';
+import { AuthContext } from '@/context/AuthContext'; // Importamos el AuthContext
 import { FaBars } from "react-icons/fa"; // Icono de hamburguesa
 
 export default function Header({ textColor = 'text-white', position = "absolute" }) { 
@@ -19,6 +20,7 @@ export default function Header({ textColor = 'text-white', position = "absolute"
   const [isFavoritesOpen, setFavoritesOpen] = useState(false); 
 
   const { cartCount } = useContext(CartContext);
+  const { currentUser } = useContext(AuthContext); // Usamos el contexto para obtener el usuario
 
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState({});
@@ -68,7 +70,7 @@ export default function Header({ textColor = 'text-white', position = "absolute"
         <div className="flex items-center space-x-4 md:space-x-6 ml-auto">
           {/* Los iconos de búsqueda, favoritos, y carrito están a la izquierda */}
           <div className="flex items-center space-x-4">
-            <Icons isHovered={isHovered} textColor={textColor} handleSearchClick={handleSearchClick} handleFavoritesClick={handleFavoritesClick} cartCount={cartCount} handleCartClick={handleCartClick} />
+            <Icons isHovered={isHovered} textColor={textColor} handleSearchClick={handleSearchClick} handleFavoritesClick={handleFavoritesClick} cartCount={cartCount} handleCartClick={handleCartClick} currentUser={currentUser} /> {/* Pasamos currentUser */}
           </div>
 
           {/* Botón de menú solo en pantallas pequeñas */}

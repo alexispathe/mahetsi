@@ -46,8 +46,8 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Para deshabilitar botones de guardar/actualizar
-  const [deletingAddressIds, setDeletingAddressIds] = useState([]); // Para deshabilitar botones de borrar individualmente
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingAddressIds, setDeletingAddressIds] = useState([]);
 
   const {
     register,
@@ -68,7 +68,7 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
     try {
       const response = await fetch('/api/addresses/private/get/list', {
         method: 'GET',
-        credentials: 'include', // Asegura que las cookies se envíen
+        credentials: 'include',
       });
       const data = await response.json();
       if (response.ok) {
@@ -92,7 +92,7 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
           headers: {
             'Content-Type': 'application/json',
           },
-          credentials: 'include', // Asegura que las cookies se envíen
+          credentials: 'include',
           body: JSON.stringify(data),
         });
 
@@ -112,7 +112,7 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
           headers: {
             'Content-Type': 'application/json',
           },
-          credentials: 'include', // Asegura que las cookies se envíen
+          credentials: 'include',
           body: JSON.stringify(data),
         });
         if (response.ok) {
@@ -156,13 +156,12 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
     try {
       const response = await fetch(`/api/addresses/private/delete/${addressId}`, {
         method: 'DELETE',
-        credentials: 'include', // Asegura que las cookies se envíen
+        credentials: 'include',
       });
 
       if (response.ok) {
         toast.success('Dirección eliminada exitosamente');
         fetchAddresses();
-        // Si la dirección eliminada estaba seleccionada, deseleccionarla
         if (selectedAddressId === addressId) {
           setSelectedAddressId(null);
         }
@@ -187,7 +186,6 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
       });
       if (response.ok) {
         toast.success('Se ha seleccionado la dirección principal');
-        // Actualizamos direcciones y, si quieres, puedes setear esa address como seleccionada
         fetchAddresses();
         setSelectedAddressId(addressId);
       } else {
@@ -213,45 +211,54 @@ export default function UserAddress({ addresses, selectedAddressId, setSelectedA
                 key={address.uniqueID}
                 className={`p-4 border rounded-md ${selectedAddressId === address.uniqueID ? 'border-blue-500' : 'border-gray-300'}`}
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-semibold">
-                      {address.firstName} {address.lastName} 
-                      {address.isDefault && <span className="ml-2 text-xs text-white bg-green-500 px-2 py-1 rounded">Principal</span>}
+                <div className="flex flex-col lg:flex-row justify-between items-start">
+                  <div className="w-full">
+                    {/* Nuevo Contenedor para Nombre y Botón "Establecer como principal" */}
+                    <div className="flex items-center justify-between flex-wrap">
+                      <p className="font-semibold">
+                        {address.firstName} {address.lastName}
+                        {address.isDefault && (
+                          <span className="ml-2 text-xs text-white bg-green-500 px-2 py-1 rounded">Principal</span>
+                        )}
+                      </p>
+                      {!address.isDefault && (
+                        <button
+                          className="text-purple-500 hover:text-purple-700 mt-2 lg:mt-0"
+                          onClick={() => handleSetDefault(address.uniqueID)}
+                          disabled={isSubmitting || deletingAddressIds.includes(address.uniqueID)}
+                        >
+                          Establecer como principal
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Detalles de la Dirección */}
+                    <p className="mt-2">
+                      {address.address}, {address.colonia}, {address.city}, {address.state}, C.P. {address.zipcode}
                     </p>
-                    <p>{address.address}, {address.colonia}, {address.city}, {address.state}, C.P. {address.zipcode}</p>
                     <p>Teléfono: {address.phone}</p>
                     {address.reference && <p>Referencia: {address.reference}</p>}
                   </div>
-                  <div className="flex flex-col space-y-2">
+                  <div className="flex flex-row md:flex-row lg:flex-col space-x-2 lg:space-x-0 lg:space-y-2 mt-4 lg:mt-0 w-full lg:w-auto">
                     <button
-                      className={`text-blue-500 hover:text-blue-700 ${selectedAddressId === address.uniqueID ? 'font-bold' : ''}`}
+                      className={`text-blue-500 hover:text-blue-700 ${selectedAddressId === address.uniqueID ? 'font-bold' : ''} w-full lg:w-auto`}
                       onClick={() => setSelectedAddressId(address.uniqueID)}
                       disabled={isSubmitting || deletingAddressIds.includes(address.uniqueID)}
                     >
                       {selectedAddressId === address.uniqueID ? 'Seleccionada' : 'Seleccionar'}
                     </button>
 
-                    {/* Botón de establecer como principal */}
-                    {!address.isDefault && (
-                      <button
-                        className="text-purple-500 hover:text-purple-700"
-                        onClick={() => handleSetDefault(address.uniqueID)}
-                        disabled={isSubmitting || deletingAddressIds.includes(address.uniqueID)}
-                      >
-                        Establecer como principal
-                      </button>
-                    )}
-
+                    {/* Botón de establecer como principal está movido arriba */}
+                    
                     <button
-                      className="text-green-500 hover:text-green-700 flex items-center"
+                      className="text-green-500 hover:text-green-700 flex items-center w-full lg:w-auto"
                       onClick={() => handleEdit(address)}
                       disabled={isSubmitting || deletingAddressIds.includes(address.uniqueID)}
                     >
                       <FaEdit className="mr-1" /> Editar
                     </button>
                     <button
-                      className="text-red-500 hover:text-red-700 flex items-center"
+                      className="text-red-500 hover:text-red-700 flex items-center w-full lg:w-auto"
                       onClick={() => handleDelete(address.uniqueID)}
                       disabled={isSubmitting || deletingAddressIds.includes(address.uniqueID)}
                     >
