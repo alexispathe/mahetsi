@@ -4,6 +4,8 @@ import ToastProvider from "./components/ToastProvider";
 import { AuthProvider } from "@/context/AuthContext"; // Importa el AuthProvider
 import { CartProvider } from '@/context/CartContext';
 import { FavoritesProvider } from '@/context/FavoritesContext'; // Importar FavoritesProvider
+import { FaWhatsapp } from 'react-icons/fa'; 
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -22,6 +24,8 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const whatsappNumber = '+524461199704'; // Aquí pon el número de WhatsApp al que quieres redirigir
+  const message = 'Hola';
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -34,6 +38,15 @@ export default function RootLayout({ children }) {
             </FavoritesProvider>
           </CartProvider>
         </AuthProvider>
+        {/* Icono de WhatsApp */}
+      <a
+        href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-12  right-5 bg-green-500 p-3 rounded-full shadow-lg hover:bg-green-600 transition-colors"
+      >
+        <FaWhatsapp size={30} color="white" />
+      </a>
       </body>
     </html>
   );
