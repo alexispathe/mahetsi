@@ -1,7 +1,12 @@
 // src/app/api/orders/admin/get/route.js
 //Devuelve las ordenes de todos los usuarios pero para el administrador
 import { NextResponse } from 'next/server';
-import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../libs/firebaseAdmin';
+import {
+  verifySessionCookie,
+  getUserDocument,
+  getRolePermissions,
+  firestore
+} from '../../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
 
 export async function GET(request) {
@@ -15,57 +20,50 @@ export async function GET(request) {
 
     // Verificar la session cookie
     const decodedToken = await verifySessionCookie(sessionCookie);
-    
     if (!decodedToken) {
       throw new Error('Token decodificado es nulo');
     }
 
     const uid = decodedToken.uid;
 
-    // Obtener el documento del usuario
+    // Obtener datos del usuario
     const userData = await getUserDocument(uid);
-    
     if (!userData) {
       throw new Error('Datos de usuario no encontrados');
     }
 
     const rolID = userData.rolID;
-
     if (!rolID) {
       return NextResponse.json({ message: 'Usuario sin rol asignado' }, { status: 403 });
     }
 
-    // Obtener los permisos del rol
+    // Obtener los permisos
     const permissions = await getRolePermissions(rolID);
 
-    // Verificar si el usuario tiene el permiso 'admin'
+    // Checar permiso
     if (!permissions.includes('admin')) {
       return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "admin".' }, { status: 403 });
     }
 
-    // Obtener todas las órdenes pendientes y enviadas
+    // Obtener órdenes 
     const ordersSnapshot = await firestore.collection('orders')
-      .where('orderStatus', 'in', ['pendiente', 'enviado'])
-      .orderBy('dateCreated', 'desc')
-      .get();
-    
+  .orderBy('dateCreated', 'desc')
+  .get();
 
     const orders = ordersSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       dateCreated: doc.data().dateCreated?.toDate() || null,
     }));
-    
 
     return NextResponse.json({ message: 'Órdenes obtenidas exitosamente.', orders }, { status: 200 });
 
   } catch (error) {
     console.error('Error al obtener las órdenes de admin:', error);
     let errorMessage = 'Error interno del servidor';
-    
-    // Manejar errores específicos de Firestore
+
     if (error.code === 'failed-precondition' || error.code === 'unimplemented') {
-      errorMessage = 'Índice requerido no encontrado. Por favor, crea el índice necesario en Firestore.';
+      errorMessage = 'Índice requerido no encontrado en Firestore.';
     } else if (error.message) {
       errorMessage = error.message;
     }

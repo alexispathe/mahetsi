@@ -1,23 +1,26 @@
 // src/app/api/orders/admin/update/route.js
-
 import { NextResponse } from 'next/server';
-import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '@/libs/firebaseAdmin';
+import {
+  verifySessionCookie,
+  getUserDocument,
+  getRolePermissions,
+  firestore
+} from '@/libs/firebaseAdmin';
 import { cookies } from 'next/headers';
-import admin from 'firebase-admin'
+import admin from 'firebase-admin';
+
 export async function POST(request) {
   try {
-    // Obtener el cuerpo de la solicitud
-    const { orderId, trackingNumber, courier } = await request.json();
+    const { orderId, trackingNumber, courier, newStatus } = await request.json();
 
-    // Validar los datos recibidos
-    if (!orderId || !trackingNumber || !courier) {
+    if (!orderId) {
       return NextResponse.json(
-        { message: 'Datos incompletos. Se requieren orderId, trackingNumber y courier.' },
+        { message: 'Falta el orderId.' },
         { status: 400 }
       );
     }
 
-    // Obtener las cookies de la solicitud
+    // Session cookie
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
 
@@ -25,37 +28,31 @@ export async function POST(request) {
       return NextResponse.json({ message: 'No autenticado.' }, { status: 401 });
     }
 
-    // Verificar la session cookie
+    // Verificar la cookie
     const decodedToken = await verifySessionCookie(sessionCookie);
-
     if (!decodedToken) {
       return NextResponse.json({ message: 'Token de sesión inválido.' }, { status: 401 });
     }
 
     const uid = decodedToken.uid;
 
-    // Obtener los datos del usuario
+    // Verificar permisos
     const userData = await getUserDocument(uid);
-
     if (!userData) {
       return NextResponse.json({ message: 'Datos de usuario no encontrados.' }, { status: 404 });
     }
 
     const rolID = userData.rolID;
-
     if (!rolID) {
       return NextResponse.json({ message: 'Usuario sin rol asignado.' }, { status: 403 });
     }
 
-    // Obtener los permisos del rol
     const permissions = await getRolePermissions(rolID);
-
-    // Verificar si el usuario tiene el permiso 'admin'
     if (!permissions.includes('admin')) {
       return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso "admin".' }, { status: 403 });
     }
 
-    // Referencia a la orden en Firestore
+    // Buscar la orden
     const orderRef = firestore.collection('orders').doc(orderId);
     const orderDoc = await orderRef.get();
 
@@ -65,23 +62,33 @@ export async function POST(request) {
 
     const orderData = orderDoc.data();
 
-    // Verificar que la orden esté en estado 'pendiente' antes de actualizar
-    if (orderData.orderStatus !== 'pendiente') {
-      return NextResponse.json(
-        { message: 'Solo se pueden actualizar órdenes en estado "pendiente".' },
-        { status: 400 }
-      );
+    // Construir campos a actualizar
+    const updateFields = {};
+
+    if (typeof trackingNumber === 'string') {
+      updateFields.trackingNumber = trackingNumber;
+    }
+    if (typeof courier === 'string') {
+      updateFields.courier = courier;
+    }
+    if (typeof newStatus === 'string') {
+      updateFields.orderStatus = newStatus;
+
+      // Guardamos fecha de envío si pasa a "enviado"
+      if (newStatus === 'enviado' && orderData.orderStatus !== 'enviado') {
+        updateFields.dateShipped = admin.firestore.FieldValue.serverTimestamp();
+      }
+      // Guardamos fecha de entrega si pasa a "entregado"
+      if (newStatus === 'entregado' && orderData.orderStatus !== 'entregado') {
+        updateFields.dateDelivered = admin.firestore.FieldValue.serverTimestamp();
+      }
+      // Podrías manejar una fecha de cancelación, etc., si quieres
     }
 
-    // Actualizar la orden en Firestore
-    await orderRef.update({
-      orderStatus: 'enviado',
-      trackingNumber,
-      courier,
-      dateShipped: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    // Actualizar Firestore
+    await orderRef.update(updateFields);
 
-    // Obtener la orden actualizada
+    // Traer la orden actualizada
     const updatedOrderDoc = await orderRef.get();
     const updatedOrder = updatedOrderDoc.data();
 
@@ -93,9 +100,8 @@ export async function POST(request) {
     console.error('Error al actualizar la orden:', error);
     let errorMessage = 'Error interno del servidor.';
 
-    // Manejar errores específicos de Firestore relacionados con índices
     if (error.code === 'failed-precondition' || error.code === 'unimplemented') {
-      errorMessage = 'Índice requerido no encontrado. Por favor, crea el índice necesario en Firestore.';
+      errorMessage = 'Índice requerido no encontrado en Firestore.';
     } else if (error.message) {
       errorMessage = error.message;
     }

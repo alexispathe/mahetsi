@@ -11,7 +11,8 @@ import Image from 'next/image';
 import AdminButton from './AdminButton';
 import OrdersTable from './OrdersTable';
 import AdminOrders from '../admin/orders/AdminOrders';
-import UserAddress from '../../components/UserAddress'; // Asegúrate de que la ruta sea correcta
+import UserAddress from '../../components/UserAddress';
+import UserReviews from './UserReviews'; 
 
 export default function ProfilePage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
@@ -21,12 +22,12 @@ export default function ProfilePage() {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState(null);
 
-  // Estados para direcciones
+  // Direcciones
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
 
   useEffect(() => {
-    // Redirige al login si no hay usuario autenticado una vez que se completa la carga
+    // Redirige al login si no hay usuario
     if (!authLoading && !sessionInitializing && !currentUser) {
       router.push('/login');
     }
@@ -35,7 +36,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (currentUser && !authLoading && !sessionInitializing) {
       fetchOrders();
-      // También puedes cargar direcciones aquí si no lo haces en el componente UserAddress
+      // Podrías cargar direcciones aquí si quieres
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, authLoading, sessionInitializing]);
@@ -72,15 +73,14 @@ export default function ProfilePage() {
     );
   }
 
-  const { email, name, picture, uid, permissions } = currentUser;
-  // Verificar si el usuario tiene permisos 'admin'
+  const { email, name, picture, permissions } = currentUser;
   const isAdmin = permissions?.includes('admin');
 
   return (
     <>
       <Header textColor="black" position="relative" />
       <div className="container mx-auto p-4">
-        {/* Información del Perfil */}
+        {/* Info del Perfil */}
         <div className="bg-white shadow-md rounded-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row items-center">
             {picture && (
@@ -125,8 +125,8 @@ export default function ProfilePage() {
             <OrdersTable orders={orders} />
           )}
         </div>
-
-        {/* Sección de Órdenes de Admin */}
+        <UserReviews />
+        {/* Si es admin, mostramos las órdenes de admin */}
         {isAdmin && <AdminOrders />}
       </div>
     </>

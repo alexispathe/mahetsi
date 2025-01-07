@@ -4,25 +4,28 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { FaArrowLeft, FaShippingFast, FaEdit, FaClock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import Modal from '../../../user/Modal';
-import { AuthContext } from '@/context/AuthContext'; // Importa el contexto de autenticación
+import Modal from '@/app/profile/user/Modal';
+import { AuthContext } from '@/context/AuthContext';
+import UpdateShippingModal from '../UpdateShippingModal';
 
 export default function OrderDetailsPage() {
   const { orderId } = useParams();
   const router = useRouter();
-  const { currentUser } = useContext(AuthContext); // Obtener el usuario actual
+  const { currentUser } = useContext(AuthContext);
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Modal states
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [courier, setCourier] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('pendiente');
   const [updateError, setUpdateError] = useState(null);
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    // Verifica si el usuario es admin, de lo contrario redirige al inicio
+    // Verifica si el usuario es admin, si no, lo manda al inicio
     if (currentUser && !currentUser.permissions?.includes('admin')) {
       router.push('/');
       return;
@@ -39,7 +42,6 @@ export default function OrderDetailsPage() {
         method: 'GET',
         credentials: 'include',
       });
-
       const data = await res.json();
 
       if (res.ok) {
@@ -48,7 +50,6 @@ export default function OrderDetailsPage() {
         setError(data.message || 'Error al obtener los detalles de la orden.');
         toast.error(data.message || 'Error al obtener los detalles de la orden.');
         router.push('/');
-
       }
     } catch (err) {
       console.error('Error al obtener los detalles de la orden:', err);
@@ -60,9 +61,12 @@ export default function OrderDetailsPage() {
   };
 
   const openUpdateModal = () => {
+    // Seteamos valores por defecto
+    setTrackingNumber(order?.trackingNumber || '');
+    setCourier(order?.courier || '');
+    setSelectedStatus(order?.orderStatus || 'pendiente');
+
     setIsUpdateModalOpen(true);
-    setTrackingNumber('');
-    setCourier('');
     setUpdateError(null);
   };
 
@@ -75,19 +79,6 @@ export default function OrderDetailsPage() {
 
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
-
-    // Validaciones
-    const trackingRegex = /^[A-Za-z0-9]+$/;
-    if (!trackingRegex.test(trackingNumber)) {
-      setUpdateError('El número de guía solo puede contener letras y números.');
-      return;
-    }
-
-    if (courier.trim() === '') {
-      setUpdateError('La paquetería es requerida.');
-      return;
-    }
-
     setUpdating(true);
     setUpdateError(null);
 
@@ -102,13 +93,14 @@ export default function OrderDetailsPage() {
           orderId: order.id,
           trackingNumber,
           courier,
+          newStatus: selectedStatus,
         }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // Actualizar el estado de la orden en el frontend
+        // Actualizamos localmente
         setOrder({ ...order, ...data.order });
         toast.success('Orden actualizada exitosamente.');
         closeUpdateModal();
@@ -267,14 +259,15 @@ export default function OrderDetailsPage() {
         <h3 className="text-xl font-semibold mb-2">Estado de la Orden</h3>
         <div className="flex items-center space-x-3">
           <span
-            className={`px-4 py-2 inline-flex text-xs font-semibold rounded-full ${order.orderStatus === 'pendiente'
-              ? 'bg-yellow-100 text-yellow-800'
-              : order.orderStatus === 'enviado'
-                ? 'bg-blue-100 text-blue-800'
-                : order.orderStatus === 'entregado'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}
+            className={`px-4 py-2 inline-flex text-xs font-semibold rounded-full ${
+              order.orderStatus === 'pendiente'
+                ? 'bg-yellow-100 text-yellow-800'
+                : order.orderStatus === 'enviado'
+                  ? 'bg-blue-100 text-blue-800'
+                  : order.orderStatus === 'entregado'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+            }`}
           >
             {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
           </span>
@@ -299,7 +292,9 @@ export default function OrderDetailsPage() {
         <div className="space-y-2">
           <p>
             <strong className="font-medium text-gray-700">Número de Guía:</strong>{' '}
-            <span className="text-gray-800">{order.trackingNumber ? order.trackingNumber : 'N/A'}</span>
+            <span className="text-gray-800">
+              {order.trackingNumber ? order.trackingNumber : 'N/A'}
+            </span>
           </p>
           <p>
             <strong className="font-medium text-gray-700">Paquetería:</strong>{' '}
@@ -308,69 +303,31 @@ export default function OrderDetailsPage() {
         </div>
       </div>
 
-      {/* Botón para abrir el modal de envío */}
-      {order.orderStatus === 'pendiente' && (
-        <div className="flex justify-end mb-6">
-          <button
-            onClick={openUpdateModal}
-            className="flex items-center px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-          >
-            <FaEdit className="mr-2" /> Enviar Orden
-          </button>
-        </div>
-      )}
+      {/* Botón para abrir el modal de actualización */}
+      <div className="flex justify-end mb-6">
+        <button
+          onClick={openUpdateModal}
+          className="flex items-center px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+        >
+          <FaEdit className="mr-2" /> Editar Orden
+        </button>
+      </div>
 
-      {/* Modal para Actualizar el Estado de Envío */}
+      {/* Modal para Actualizar la Orden */}
       {isUpdateModalOpen && (
-        <Modal onClose={closeUpdateModal}>
-          <div className="p-4">
-            <h3 className="text-xl font-semibold mb-4">Actualizar Envío de la Orden {order.uniqueID}</h3>
-            <form onSubmit={handleUpdateSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Número de Guía
-                </label>
-                <input
-                  type="text"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Paquetería
-                </label>
-                <input
-                  type="text"
-                  value={courier}
-                  onChange={(e) => setCourier(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-                />
-              </div>
-              {updateError && <p className="text-red-500 mb-4">{updateError}</p>}
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={closeUpdateModal}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition mr-2"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={updating}
-                  className={`px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition ${updating ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                >
-                  {updating ? 'Actualizando...' : 'Actualizar'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </Modal>
+        <UpdateShippingModal
+          order={order}
+          trackingNumber={trackingNumber}
+          setTrackingNumber={setTrackingNumber}
+          courier={courier}
+          setCourier={setCourier}
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+          handleUpdateSubmit={handleUpdateSubmit}
+          updateError={updateError}
+          updating={updating}
+          onClose={closeUpdateModal}
+        />
       )}
     </div>
   );

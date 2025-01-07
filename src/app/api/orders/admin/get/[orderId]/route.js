@@ -1,11 +1,16 @@
 // src/app/api/orders/admin/get/[orderId]/route.js
 //Devuelve la informacion del n usuario de forma individual para el administrador
 import { NextResponse } from 'next/server';
-import { verifySessionCookie, getUserDocument, getRolePermissions, firestore } from '../../../../../../libs/firebaseAdmin';
+import {
+  verifySessionCookie,
+  getUserDocument,
+  getRolePermissions,
+  firestore
+} from '../../../../../../libs/firebaseAdmin';
 import { cookies } from 'next/headers';
 
 export async function GET(request, context) {
- const params = await context.params;
+  const params = await context.params
   const { orderId } = params;
 
   try {
@@ -18,7 +23,6 @@ export async function GET(request, context) {
 
     // Verificar la session cookie
     const decodedToken = await verifySessionCookie(sessionCookie);
-    
     if (!decodedToken) {
       throw new Error('Token decodificado es nulo');
     }
@@ -27,34 +31,30 @@ export async function GET(request, context) {
 
     // Obtener el documento del usuario
     const userData = await getUserDocument(uid);
-    
     if (!userData) {
       throw new Error('Datos de usuario no encontrados');
     }
 
     const rolID = userData.rolID;
-
     if (!rolID) {
       return NextResponse.json({ message: 'Usuario sin rol asignado' }, { status: 403 });
     }
 
-    // Obtener los permisos del rol
+    // Obtener permisos
     const permissions = await getRolePermissions(rolID);
 
-    // Verificar si el usuario tiene el permiso 'admin'
+    // Checar permiso
     if (!permissions.includes('admin')) {
       return NextResponse.json({ message: 'Acción no permitida. Se requiere permiso.' }, { status: 403 });
     }
 
-    // Obtener la orden específica por ID
+    // Buscar orden
     const orderDoc = await firestore.collection('orders').doc(orderId).get();
-
     if (!orderDoc.exists) {
       return NextResponse.json({ message: 'Orden no encontrada' }, { status: 404 });
     }
 
     const orderData = orderDoc.data();
-
     const order = {
       id: orderDoc.id,
       ...orderData,
@@ -66,10 +66,9 @@ export async function GET(request, context) {
   } catch (error) {
     console.error('Error al obtener la orden específica de admin:', error);
     let errorMessage = 'Error interno del servidor';
-    
-    // Manejar errores específicos de Firestore
+
     if (error.code === 'failed-precondition' || error.code === 'unimplemented') {
-      errorMessage = 'Índice requerido no encontrado. Por favor, crea el índice necesario en Firestore.';
+      errorMessage = 'Índice requerido no encontrado en Firestore.';
     } else if (error.message) {
       errorMessage = error.message;
     }

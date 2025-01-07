@@ -1,14 +1,18 @@
-// src/app/profile/user/OrdersTable.js*
+// src/app/profile/user/OrdersTable.js
 'use client';
-
 
 import React, { useState } from 'react';
 import Modal from './Modal';
 import { FaShippingFast } from 'react-icons/fa';
+import ReviewModal from './ReviewModal'; 
 
 export default function OrdersTable({ orders }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Para las reseñas
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewProduct, setReviewProduct] = useState(null);
 
   const handleRowClick = (order) => {
     setSelectedOrder(order);
@@ -20,6 +24,16 @@ export default function OrdersTable({ orders }) {
     setIsModalOpen(false);
   };
 
+  const openReviewModal = (product) => {
+    setReviewProduct(product);
+    setShowReviewModal(true);
+  };
+
+  const closeReviewModal = () => {
+    setReviewProduct(null);
+    setShowReviewModal(false);
+  };
+
   return (
     <>
       {orders.length === 0 ? (
@@ -29,46 +43,25 @@ export default function OrdersTable({ orders }) {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   ID de Orden
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Fecha
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Método de Pago
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Total
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Estado
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Número de Guía
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Paquetería
                 </th>
               </tr>
@@ -102,29 +95,24 @@ export default function OrdersTable({ orders }) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.orderStatus === 'pendiente'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : order.orderStatus === 'enviado'
-                          ? 'bg-blue-100 text-blue-800'
-                          : order.orderStatus === 'entregado'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        order.orderStatus === 'pendiente'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : order.orderStatus === 'enviado'
+                            ? 'bg-blue-100 text-blue-800'
+                            : order.orderStatus === 'entregado'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                      }`}
                     >
                       {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {order.trackingNumber ? (
-                      // Si tienes una URL de seguimiento, puedes hacer que el número de guía sea un enlace
-                      // Por ejemplo: <a href={`https://tracking.courier.com/${order.trackingNumber}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{order.trackingNumber}</a>
-                      order.trackingNumber
-                    ) : (
-                      'N/A'
-                    )}
+                    {order.trackingNumber || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {order.courier ? order.courier : 'N/A'}
+                    {order.courier || 'N/A'}
                   </td>
                 </tr>
               ))}
@@ -136,7 +124,7 @@ export default function OrdersTable({ orders }) {
       {/* Modal de Detalles de la Orden */}
       {isModalOpen && selectedOrder && (
         <Modal onClose={closeModal}>
-          <div className="pb-7   rounded-lg">
+          <div className="pb-7 rounded-lg">
             <h2 className="text-2xl font-semibold mb-4 flex items-center">
               <FaShippingFast className="mr-2 text-blue-500" />
               Detalles de la Orden {selectedOrder.uniqueID}
@@ -169,8 +157,12 @@ export default function OrdersTable({ orders }) {
             <div className="mb-4">
               <h4 className="font-semibold text-lg text-gray-700">Dirección de Envío:</h4>
               <p className="text-gray-600">
-                {selectedOrder.shippingAddress.address}, {selectedOrder.shippingAddress.colonia}, {selectedOrder.shippingAddress.city},
-                {selectedOrder.shippingAddress.state}, C.P. {selectedOrder.shippingAddress.zipcode}, {selectedOrder.shippingAddress.betweenStreets},{selectedOrder.shippingAddress.reference} , {selectedOrder.shippingAddress.country}
+                {selectedOrder.shippingAddress.address}, {selectedOrder.shippingAddress.colonia},{' '}
+                {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state}, C.P.{' '}
+                {selectedOrder.shippingAddress.zipcode},{' '}
+                {selectedOrder.shippingAddress.betweenStreets},{' '}
+                {selectedOrder.shippingAddress.reference},{' '}
+                {selectedOrder.shippingAddress.country}
               </p>
             </div>
 
@@ -178,29 +170,18 @@ export default function OrdersTable({ orders }) {
             <div className="mb-4">
               <h4 className="font-semibold text-lg text-gray-700">Estado de la Orden:</h4>
               <span
-                className={`px-4 py-2 inline-flex text-xs font-semibold rounded-full ${selectedOrder.orderStatus === 'pendiente'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : selectedOrder.orderStatus === 'enviado'
-                    ? 'bg-blue-100 text-blue-800'
-                    : selectedOrder.orderStatus === 'entregado'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}
+                className={`px-4 py-2 inline-flex text-xs font-semibold rounded-full ${
+                  selectedOrder.orderStatus === 'pendiente'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : selectedOrder.orderStatus === 'enviado'
+                      ? 'bg-blue-100 text-blue-800'
+                      : selectedOrder.orderStatus === 'entregado'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                }`}
               >
                 {selectedOrder.orderStatus.charAt(0).toUpperCase() + selectedOrder.orderStatus.slice(1)}
               </span>
-            </div>
-
-            {/* Número de Guía */}
-            <div className="mb-4">
-              <h4 className="font-semibold text-lg text-gray-700">Número de Guía:</h4>
-              <p className="text-gray-600">{selectedOrder.trackingNumber ? selectedOrder.trackingNumber : 'N/A'}</p>
-            </div>
-
-            {/* Paquetería */}
-            <div className="mb-4">
-              <h4 className="font-semibold text-lg text-gray-700">Paquetería:</h4>
-              <p className="text-gray-600">{selectedOrder.courier ? selectedOrder.courier : 'N/A'}</p>
             </div>
 
             {/* Artículos Comprados */}
@@ -208,11 +189,36 @@ export default function OrdersTable({ orders }) {
               <h4 className="font-semibold text-lg text-gray-700">Artículos Comprados:</h4>
               <ul className="list-disc list-inside text-gray-600">
                 {selectedOrder.items.map((item, index) => (
-                  <li key={index}>
-                    <strong>{item.name}</strong> | Cantidad: {item.qty} | Precio unitario: ${item.price.toFixed(2)} | Total: ${item.total.toFixed(2)}
+                  <li key={index} className="my-2">
+                    <strong>{item.name}</strong> | Cantidad: {item.qty} | Precio unitario: $
+                    {item.price.toFixed(2)} | Total: ${item.total.toFixed(2)}
+                    {/* Botón para reseña solo si la orden está entregada */}
+                    {selectedOrder.orderStatus === 'entregado' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation(); // Para que no cierre el modal principal
+                          openReviewModal(item);
+                        }}
+                        className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm"
+                      >
+                        Dejar Reseña
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
+            </div>
+
+            {/* Número de Guía */}
+            <div className="mb-4">
+              <h4 className="font-semibold text-lg text-gray-700">Número de Guía:</h4>
+              <p className="text-gray-600">{selectedOrder.trackingNumber || 'N/A'}</p>
+            </div>
+
+            {/* Paquetería */}
+            <div className="mb-4">
+              <h4 className="font-semibold text-lg text-gray-700">Paquetería:</h4>
+              <p className="text-gray-600">{selectedOrder.courier || 'N/A'}</p>
             </div>
 
             {/* Botón de Cerrar */}
@@ -225,8 +231,16 @@ export default function OrdersTable({ orders }) {
               </button>
             </div>
           </div>
-
         </Modal>
+      )}
+
+      {/* Modal para dejar reseña de un producto específico */}
+      {showReviewModal && reviewProduct && (
+        <ReviewModal
+          product={reviewProduct}
+          orderId={selectedOrder?.uniqueID} // O "selectedOrder.id" para enlazar la reseña con la orden
+          onClose={closeReviewModal}
+        />
       )}
     </>
   );

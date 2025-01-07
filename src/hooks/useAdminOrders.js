@@ -14,6 +14,7 @@ export const useAdminOrders = (filterStatus) => {
     if (!authLoading && currentUser) {
       fetchAdminOrders();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatus, authLoading, currentUser]);
 
   const fetchAdminOrders = async () => {
@@ -30,7 +31,7 @@ export const useAdminOrders = (filterStatus) => {
       if (res.ok) {
         let fetchedOrders = data.orders;
 
-        // Aplicar filtro si es necesario
+        // Aplicar filtro
         if (filterStatus !== 'todos') {
           fetchedOrders = fetchedOrders.filter(order => order.orderStatus === filterStatus);
         }
@@ -49,16 +50,8 @@ export const useAdminOrders = (filterStatus) => {
     }
   };
 
-  const updateOrder = async (orderId, trackingNumber, courier) => {
-    const trackingRegex = /^[A-Za-z0-9]+$/;
-    if (!trackingRegex.test(trackingNumber)) {
-      throw new Error('El número de guía solo puede contener letras y números.');
-    }
-
-    if (courier.trim() === '') {
-      throw new Error('La paquetería es requerida.');
-    }
-
+  // (Opcional) Función para actualizar la orden desde aquí (si la usaras en AdminOrders.js)
+  const updateOrder = async (orderId, trackingNumber, courier, newStatus) => {
     try {
       const res = await fetch('/api/orders/admin/update', {
         method: 'POST',
@@ -70,13 +63,14 @@ export const useAdminOrders = (filterStatus) => {
           orderId,
           trackingNumber,
           courier,
+          newStatus,
         }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // Actualizar el estado de las órdenes en el frontend
+        // Actualizamos en el estado
         setAdminOrders((prevOrders) =>
           prevOrders.map((order) =>
             order.id === orderId ? { ...order, ...data.order } : order
