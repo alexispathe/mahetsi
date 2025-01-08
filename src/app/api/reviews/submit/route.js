@@ -10,11 +10,17 @@ export async function POST(request) {
 
     // Validaciones básicas
     if (!orderId || !productId) {
-      return NextResponse.json({ message: 'Faltan datos requeridos (orderId, productId)' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Faltan datos requeridos (orderId, productId)' },
+        { status: 400 }
+      );
     }
 
     if (!rating || rating < 1 || rating > 5) {
-      return NextResponse.json({ message: 'La calificación (rating) debe ser entre 1 y 5.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'La calificación (rating) debe ser entre 1 y 5.' },
+        { status: 400 }
+      );
     }
 
     // Obtener la session cookie
@@ -40,7 +46,8 @@ export async function POST(request) {
     }
 
     // Verificar si ya existe una reseña para este producto y orden por este usuario
-    const existingReviewSnapshot = await firestore.collection('reviews')
+    const existingReviewSnapshot = await firestore
+      .collection('reviews')
       .where('ownerId', '==', uid)
       .where('orderId', '==', orderId)
       .where('productId', '==', productId)
@@ -48,7 +55,10 @@ export async function POST(request) {
       .get();
 
     if (!existingReviewSnapshot.empty) {
-      return NextResponse.json({ message: 'Ya has dejado una reseña para este producto en esta orden.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Ya has dejado una reseña para este producto en esta orden.' },
+        { status: 400 }
+      );
     }
 
     // Crear el documento en la colección 'reviews'
@@ -63,6 +73,27 @@ export async function POST(request) {
       rating,
       comment: comment || '',
       createdAt: now,
+    });
+
+    // ================================
+    //   Actualizar averageRating y numReviews del producto
+    // ================================
+    // 1. Obtener todas las reseñas del producto
+    const allReviewsSnap = await firestore
+      .collection('reviews')
+      .where('productId', '==', productId)
+      .get();
+
+    const allReviews = allReviewsSnap.docs.map((doc) => doc.data());
+    const newNumReviews = allReviews.length;
+    const sumRatings = allReviews.reduce((acc, review) => acc + review.rating, 0);
+    const newAverageRating = sumRatings / newNumReviews;
+
+    // 2. Actualizar el documento del producto
+    await firestore.collection('products').doc(productId).update({
+      averageRating: newAverageRating,
+      numReviews: newNumReviews,
+      dateModified: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     return NextResponse.json({ message: 'Reseña guardada exitosamente.' }, { status: 200 });
