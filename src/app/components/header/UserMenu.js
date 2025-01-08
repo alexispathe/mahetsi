@@ -38,7 +38,7 @@ export default function UserMenu({ currentUser, isHovered, textColor }) {
       {isMenuOpen && (
         <div ref={menuRef} className="absolute top-10 right-0 w-48 bg-white shadow-lg rounded-lg p-4 mt-2 z-10 border border-gray-200">
           {/* Información del usuario */}
-          <div className="flex flex-col items-center mb-4">
+          <div className="flex flex-col items-center ">
             {/* Inicial del usuario centrada arriba */}
             <div className="w-12 h-12  rounded-full bg-gray-400 flex items-center justify-center text-white mb-2">
               <span className="text-xl">{currentUser?.email[0].toUpperCase()}</span>
