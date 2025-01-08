@@ -1,9 +1,20 @@
 import Link from 'next/link';
+import React from 'react';
+import Logo from './Logo';
 
 export default function MobileMenu({ categories, subcategories, isMenuOpen, toggleMenu, isHovered, textColor }) {
   return (
     isMenuOpen && (
       <nav className="md:hidden bg-white shadow-lg">
+        {/* Logo al inicio del menú móvil */}
+        <div className="p-4 border-b flex items-center justify-between">
+          <Logo isHovered={true} textColor="text-black" />
+          {/* Botón para cerrar el menú */}
+          <button onClick={toggleMenu} className="text-black text-2xl" aria-label="Cerrar menú">
+            &times;
+          </button>
+        </div>
+        
         <ul className="flex flex-col space-y-4 p-4">
           {categories.map((category) => {
             const filteredSubcategories = subcategories[category.uniqueID] || [];
