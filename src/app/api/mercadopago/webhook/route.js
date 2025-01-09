@@ -1,4 +1,5 @@
 // src/app/api/mercadopago/webhook/route.js
+// src/app/api/mercadopago/webhook/route.js
 import { NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { firestore } from '@/libs/firebaseAdmin';
@@ -12,154 +13,197 @@ const client = new MercadoPagoConfig({
 
 export async function POST(request) {
   try {
+    const searchParams = request.nextUrl?.searchParams;
     const body = await request.json();
+    
     console.log('Webhook recibido:', body);
 
-    // Manejo de diferentes tipos de notificaciones
     let paymentId;
     
     if (body.type === 'payment' && body.data?.id) {
-      // Notificación estándar de pago
       paymentId = body.data.id;
-    } else if (body.selectedAddressId) {
-      // Notificación de checkout
-      // Guardar los datos del checkout y retornar
-      await firestore.collection('checkout_data').add({
-        ...body,
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      
-      return NextResponse.json({ 
-        success: true,
-        message: 'Datos de checkout guardados'
-      });
+    } else if (searchParams?.get('topic') === 'payment' && searchParams?.get('id')) {
+      paymentId = searchParams.get('id');
+    } else if (body.topic === 'merchant_order' || body.type === 'merchant_order') {
+      return NextResponse.json({ message: 'Merchant order notification ignored' }, { status: 200 });
     } else {
-      console.log('Tipo de notificación no manejada:', body);
+      console.log('Notificación no reconocida:', body);
+      return NextResponse.json({ message: 'Notificación no reconocida' }, { status: 200 });
+    }
+
+    const payment = new Payment(client);
+    const paymentInfo = await payment.get({ id: paymentId });
+    console.log('Información del pago:', paymentInfo);
+
+    if (paymentInfo.status !== 'approved') {
+      console.log(`Pago no aprobado. Estado: ${paymentInfo.status}`);
       return NextResponse.json({ 
-        message: 'Tipo de notificación no soportada' 
+        message: `Pago no aprobado. Estado: ${paymentInfo.status}` 
       }, { status: 200 });
     }
 
-    try {
-      // Si llegamos aquí, tenemos un paymentId válido
-      const payment = new Payment(client);
-      const paymentInfo = await payment.get({ id: paymentId });
-      console.log('Información del pago:', paymentInfo);
+    const existingPayment = await firestore
+      .collection('processed_payments')
+      .doc(paymentId.toString())
+      .get();
 
-      if (paymentInfo.status !== 'approved') {
-        return NextResponse.json({ 
-          message: `Pago no aprobado. Estado: ${paymentInfo.status}` 
-        }, { status: 200 });
+    if (existingPayment.exists) {
+      console.log('Pago ya procesado:', paymentId);
+      return NextResponse.json({ message: 'Pago ya procesado' }, { status: 200 });
+    }
+
+    // Obtener la preferencia original usando external_reference
+    const preferencesSnapshot = await firestore
+      .collection('payment_preferences')
+      .where('metadata.selectedAddressId', '==', paymentInfo.external_reference)
+      .limit(1)
+      .get();
+
+    if (preferencesSnapshot.empty) {
+      throw new Error(`Preferencia no encontrada para: ${paymentInfo.external_reference}`);
+    }
+
+    const preferenceData = preferencesSnapshot.docs[0].data();
+    const metadata = preferenceData.metadata;
+    const cartItems = JSON.parse(metadata.cartItems);
+
+    // Obtener los detalles de la dirección seleccionada
+    const addressSnapshot = await firestore
+      .collection('addresses')
+      .doc(metadata.selectedAddressId)
+      .get();
+
+    if (!addressSnapshot.exists) {
+      throw new Error('Dirección no encontrada');
+    }
+
+    const address = addressSnapshot.data();
+
+    // Obtener los detalles de los productos
+    const productsSnapshot = await firestore
+      .collection('products')
+      .where('uniqueID', 'in', cartItems.map(item => item.uniqueID))
+      .get();
+
+    const productsMap = {};
+    productsSnapshot.forEach((doc) => {
+      productsMap[doc.data().uniqueID] = doc.data();
+    });
+
+    // Construir los detalles de los ítems
+    const detailedItems = cartItems.map((item) => {
+      const product = productsMap[item.uniqueID];
+      if (!product) {
+        throw new Error(`Producto con ID ${item.uniqueID} no encontrado.`);
       }
-
-      // Extraer metadata
-      const { metadata } = paymentInfo;
-      const selectedAddressId = metadata?.selectedAddressId;
-      let cartItems = [];
-      
-      try {
-        cartItems = metadata?.cartItems ? JSON.parse(metadata.cartItems) : [];
-      } catch (e) {
-        console.error('Error al parsear cartItems:', e);
-        cartItems = [];
-      }
-
-      // Verificar orden existente
-      const existingOrder = await firestore
-        .collection('orders')
-        .where('paymentId', '==', paymentId)
-        .limit(1)
-        .get();
-
-      if (!existingOrder.empty) {
-        return NextResponse.json({ 
-          message: 'Orden ya procesada' 
-        }, { status: 200 });
-      }
-
-      // Crear la orden
-      const orderRef = firestore.collection('orders').doc();
-      const orderData = {
-        uniqueID: orderRef.id,
-        paymentId,
-        userId: metadata?.userId || null,
-        items: cartItems,
-        payment: {
-          method: 'mercadopago',
-          status: paymentInfo.status,
-          transactionAmount: paymentInfo.transaction_amount || 0,
-        },
-        totals: {
-          subtotal: Number(metadata?.total || 0),
-          shipping: Number(metadata?.shipping || 0),
-          tax: Number(metadata?.tax || 0),
-          total: paymentInfo.transaction_amount || 0,
-        },
-        status: 'processing',
-        dateCreated: admin.firestore.FieldValue.serverTimestamp(),
-        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      return {
+        uniqueID: item.uniqueID,
+        name: product.name,
+        price: product.price,
+        qty: item.qty,
+        total: product.price * item.qty,
+        images: product.images[0],
       };
+    });
 
-      // Usar batch para operaciones atómicas
-      const batch = firestore.batch();
-      batch.set(orderRef, orderData);
+    // Calcular totales
+    const subtotal = detailedItems.reduce((acc, item) => acc + item.total, 0);
+    const shipping = subtotal >= 255 ? 0 : 9.99;
+    const salesTax = 45.89;
+    const grandTotal = subtotal + shipping + salesTax;
 
-      // Actualizar inventario si hay items
-      if (cartItems.length > 0) {
-        for (const item of cartItems) {
-          const productRef = firestore.collection('products').doc(item.uniqueID);
-          batch.update(productRef, {
-            stock: admin.firestore.FieldValue.increment(-item.qty),
-            lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-          });
+    // Iniciar batch de operaciones
+    const batch = firestore.batch();
+
+    // 1. Crear la orden con la misma estructura que antes
+    const orderRef = firestore.collection('orders').doc();
+    const orderData = {
+      uniqueID: orderRef.id,
+      ownerId: address.ownerId,
+      shippingAddress: address,
+      items: detailedItems,
+      subtotal,
+      shipping,
+      salesTax,
+      grandTotal,
+      paymentMethod: 'mercadopago',
+      orderStatus: 'confirmado', // Ya está pagado
+      dateCreated: admin.firestore.FieldValue.serverTimestamp(),
+      payment: {
+        id: paymentId,
+        status: paymentInfo.status,
+        details: {
+          method: paymentInfo.payment_method_id,
+          type: paymentInfo.payment_type_id,
+          email: paymentInfo.payer.email
         }
       }
+    };
 
-      await batch.commit();
+    batch.set(orderRef, orderData);
 
-      return NextResponse.json({
-        success: true,
-        message: 'Orden procesada correctamente',
-        orderId: orderRef.id
+    // 2. Marcar el pago como procesado
+    const processedPaymentRef = firestore.collection('processed_payments').doc(paymentId.toString());
+    batch.set(processedPaymentRef, {
+      orderId: orderRef.id,
+      status: paymentInfo.status,
+      processedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    // 3. Actualizar el inventario y las ventas de los productos
+    for (const item of cartItems) {
+      const productRef = firestore.collection('products').doc(item.uniqueID);
+      batch.update(productRef, {
+        stock: admin.firestore.FieldValue.increment(-item.qty),
+        totalSales: admin.firestore.FieldValue.increment(item.qty),
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp()
       });
-
-    } catch (error) {
-      // Registrar error de procesamiento
-      await firestore.collection('webhook_errors').add({
-        type: 'payment_processing_error',
-        paymentId: paymentId || null,
-        error: error.message,
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        details: {
-          name: error.name || null,
-          cause: error.cause || null
-        }
-      });
-      
-      return NextResponse.json({ 
-        success: false,
-        message: 'Error procesando el pago',
-        error: error.message 
-      }, { status: 200 });
     }
+
+    // 4. Limpiar el carrito del usuario
+    const cartItemsRef = firestore
+      .collection('carts')
+      .doc(address.ownerId)
+      .collection('items');
+
+    const cartSnapshot = await cartItemsRef.get();
+    cartSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    // Ejecutar todas las operaciones
+    await batch.commit();
+
+    console.log('Orden creada exitosamente:', orderRef.id);
+    return NextResponse.json({
+      success: true,
+      message: 'Pago procesado correctamente',
+      orderId: orderRef.id
+    });
 
   } catch (error) {
-    // Error general del webhook
     console.error('Error en webhook:', error);
 
-    await firestore.collection('webhook_errors').add({
+    const errorData = {
       type: 'webhook_error',
-      error: error.message,
+      message: error.message || 'Error desconocido',
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
       details: {
-        name: error.name || null,
-        cause: error.cause || null
+        name: error.name || 'Unknown',
+        code: error.code || 'UNKNOWN_ERROR',
+        stack: error.stack || null
       }
-    });
+    };
+
+    try {
+      await firestore.collection('webhook_errors').add(errorData);
+    } catch (dbError) {
+      console.error('Error al guardar el error en Firestore:', dbError);
+    }
 
     return NextResponse.json({ 
       success: false,
-      message: 'Error en webhook',
+      message: 'Error procesando webhook',
       error: error.message 
     }, { status: 200 });
   }
