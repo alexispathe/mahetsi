@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { firestore } from '@/libs/firebaseAdmin';
 
-// Para pruebas, usa el TEST ACCESS TOKEN
+//TEST ACCESS TOKEN
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_TEST_ACCESS_TOKEN, 
 });
@@ -56,12 +56,12 @@ export async function POST(request) {
     const preferenceData = {
       items,
       back_urls: {
-        success: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success`,
+        success: `${process.env.NEXT_PUBLIC_BASE_URL}/profile/user`,
         failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
         pending: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/pending`,
       },
       auto_return: 'approved',
-      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`,
+      // notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`,
       external_reference: selectedAddressId,
       metadata: {
         selectedAddressId,
@@ -74,7 +74,6 @@ export async function POST(request) {
         cost: shippingCost,
         mode: "not_specified",
       },
-      // Configuraciones adicionales para pruebas
       binary_mode: true, // Solo permite pagos aprobados o rechazados
       expires: true,
       expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 horas
@@ -82,17 +81,12 @@ export async function POST(request) {
 
     const preference = new Preference(client);
     const response = await preference.create({
-      body: preferenceData
+      body: preferenceData,
+      test_mode: true
     });
 
-    // Para debugging en pruebas
-    console.log('Preference created:', {
-      id: response.id,
-      init_point: response.init_point,
-      sandbox_init_point: response.sandbox_init_point
-    });
 
-    // En modo prueba, siempre usar sandbox_init_point
+    // En modo prueba,  sandbox_init_point
     return NextResponse.json({
       initPoint: response.sandbox_init_point,
       preferenceId: response.id
