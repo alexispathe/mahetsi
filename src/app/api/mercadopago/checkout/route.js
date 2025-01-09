@@ -1,106 +1,166 @@
 //src/app/api/mercadopago/checkout/route.js
 import { NextResponse } from 'next/server';
-import { MercadoPagoConfig, Preference } from 'mercadopago';
+import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { firestore } from '@/libs/firebaseAdmin';
+import admin from 'firebase-admin';
 
-//TEST ACCESS TOKEN
+// Configurar MercadoPago con el token correcto
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_TEST_ACCESS_TOKEN, 
+  // Usar el token de producción o test según corresponda
+  accessToken: process.env.NODE_ENV === 'production' 
+    ? process.env.MP_ACCESS_TOKEN 
+    : process.env.MP_TEST_ACCESS_TOKEN,
 });
 
 export async function POST(request) {
   try {
+    // Registrar la notificación recibida
     const body = await request.json();
-    const { cartItems, shipping, salesTax, selectedAddressId } = body;
+    console.log('Webhook recibido:', body);
 
-    if (!cartItems || cartItems.length === 0) {
-      return NextResponse.json({ message: 'El carrito está vacío' }, { status: 400 });
+    // Validar la notificación
+    if (!body.data || !body.type) {
+      throw new Error('Payload inválido');
     }
 
-    const productIDs = cartItems.map(item => item.uniqueID);
-    const productSnapshots = await firestore
-      .collection('products')
-      .where('uniqueID', 'in', productIDs)
-      .get();
+    // Solo procesar notificaciones de pago
+    if (body.type !== 'payment') {
+      return NextResponse.json({ message: 'Evento ignorado - no es un pago' }, { status: 200 });
+    }
 
-    const productsMap = {};
-    productSnapshots.forEach(doc => {
-      productsMap[doc.data().uniqueID] = doc.data();
-    });
+    const paymentId = body.data.id;
+    
+    try {
+      // Obtener información del pago usando el SDK
+      const payment = new Payment(client);
+      const paymentInfo = await payment.get({ id: paymentId });
+      console.log('Información del pago:', paymentInfo);
 
-    // Configurar los items para pruebas
-    const items = cartItems.map((item) => {
-      const product = productsMap[item.uniqueID];
-      if (!product) {
-        throw new Error(`Producto con ID ${item.uniqueID} no encontrado.`);
+      // Solo procesar pagos aprobados
+      if (paymentInfo.status !== 'approved') {
+        return NextResponse.json({ 
+          message: `Pago no aprobado. Estado: ${paymentInfo.status}` 
+        }, { status: 200 });
       }
-      return {
-        id: product.uniqueID,
-        title: product.name,
-        unit_price: Number(product.price),
-        quantity: Number(item.qty),
-        currency_id: 'MXN',
-        picture_url: product.images?.[0] || null,
-        description: product.description || product.name,
+
+      // Extraer metadata
+      const { metadata } = paymentInfo;
+      const selectedAddressId = metadata?.selectedAddressId;
+      let cartItems = [];
+      
+      try {
+        cartItems = metadata?.cartItems ? JSON.parse(metadata.cartItems) : [];
+      } catch (e) {
+        console.error('Error al parsear cartItems:', e);
+        throw new Error('Error al parsear los items del carrito');
+      }
+
+      // Validar datos necesarios
+      if (!selectedAddressId || !cartItems.length) {
+        throw new Error('Datos insuficientes en metadata');
+      }
+
+      // Verificar si la orden ya existe
+      const existingOrder = await firestore
+        .collection('orders')
+        .where('paymentId', '==', paymentId)
+        .limit(1)
+        .get();
+
+      if (!existingOrder.empty) {
+        return NextResponse.json({ 
+          message: 'Orden ya procesada' 
+        }, { status: 200 });
+      }
+
+      // Crear la orden
+      const orderRef = firestore.collection('orders').doc();
+      const orderData = {
+        uniqueID: orderRef.id,
+        paymentId: paymentId,
+        userId: metadata.userId || null,
+        items: cartItems,
+        payment: {
+          method: 'mercadopago',
+          status: paymentInfo.status,
+          transactionAmount: paymentInfo.transaction_amount,
+        },
+        totals: {
+          subtotal: Number(metadata.total || 0),
+          shipping: Number(metadata.shipping || 0),
+          tax: Number(metadata.tax || 0),
+          total: paymentInfo.transaction_amount,
+        },
+        status: 'processing',
+        dateCreated: admin.firestore.FieldValue.serverTimestamp(),
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
       };
-    });
 
-    const subtotal = Number(
-      cartItems.reduce((acc, item) => acc + (productsMap[item.uniqueID].price * item.qty), 0)
-    );
-    const shippingCost = Number(shipping);
-    const taxCost = Number(salesTax);
-    const total = subtotal + shippingCost + taxCost;
+      // Usar batch para operaciones atómicas
+      const batch = firestore.batch();
+      batch.set(orderRef, orderData);
 
-    // Configuración específica para pruebas
-    const preferenceData = {
-      items,
-      back_urls: {
-        success: `${process.env.NEXT_PUBLIC_BASE_URL}/profile/user`,
-        failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
-        pending: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/pending`,
-      },
-      auto_return: 'approved',
-      // notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`,
-      external_reference: selectedAddressId,
-      metadata: {
-        selectedAddressId,
-        cartItems: JSON.stringify(cartItems),
-        total: total,
-        shipping: shippingCost,
-        tax: taxCost
-      },
-      shipments: {
-        cost: shippingCost,
-        mode: "not_specified",
-      },
-      binary_mode: true, // Solo permite pagos aprobados o rechazados
-      expires: true,
-      expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 horas
-    };
+      // Actualizar inventario
+      for (const item of cartItems) {
+        const productRef = firestore.collection('products').doc(item.uniqueID);
+        batch.update(productRef, {
+          stock: admin.firestore.FieldValue.increment(-item.qty),
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
 
-    const preference = new Preference(client);
-    const response = await preference.create({
-      body: preferenceData,
-      test_mode: true
-    });
+      await batch.commit();
 
+      return NextResponse.json({
+        success: true,
+        message: 'Orden procesada correctamente',
+        orderId: orderRef.id
+      }, { status: 200 });
 
-    // En modo prueba,  sandbox_init_point
-    return NextResponse.json({
-      initPoint: response.sandbox_init_point,
-      preferenceId: response.id
-    });
+    } catch (error) {
+      // Registrar el error específico de procesamiento
+      const errorData = {
+        type: 'payment_processing_error',
+        paymentId,
+        error: error.message,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        details: {
+          name: error.name,
+          code: error.code,
+          cause: error.cause
+        }
+      };
+
+      await firestore.collection('webhook_errors').add(errorData);
+      
+      // Siempre retornar 200 para que MP no reintente
+      return NextResponse.json({ 
+        success: false,
+        message: 'Error procesando el pago',
+        error: error.message 
+      }, { status: 200 });
+    }
 
   } catch (error) {
-    console.error('Error detallado:', {
-      message: error.message,
-      stack: error.stack,
-      cause: error.cause
-    });
+    // Error general del webhook
+    console.error('Error en webhook:', error);
+
+    const errorData = {
+      type: 'webhook_error',
+      error: error.message,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      details: {
+        name: error.name,
+        code: error.code
+      }
+    };
+
+    await firestore.collection('webhook_errors').add(errorData);
+
     return NextResponse.json({ 
-      message: 'Error al crear la preferencia',
+      success: false,
+      message: 'Error en webhook',
       error: error.message 
-    }, { status: 500 });
+    }, { status: 200 });
   }
 }
