@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useContext, useState } from 'react';
@@ -51,33 +50,31 @@ export default function CartSummary({ selectedAddressId, addresses }) {
     setIsSubmitting(true);
 
     try {
-      // Enviar solicitud al backend para crear la orden
-      const response = await fetch('/api/orders/create', {
+      // Enviar solicitud al backend para crear la preferencia de pago en Mercado Pago
+      const response = await fetch('/api/mercadopago/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({
           selectedAddressId,
           cartItems,
-          paymentMethod: 'credit_card', // Cambiar según el método de pago seleccionado
+          shipping,
+          salesTax,
         }),
       });
 
       const result = await response.json();
 
-      if (response.ok) {
-        alert('Pedido realizado exitosamente');
-        clearCart(); // Limpiar el carrito en el frontend
-        // Redirigir a una página de confirmación si lo deseas
-        // router.push('/order-confirmation');
+      if (response.ok && result.initPoint) {
+        // Redirigir al usuario al checkout de Mercado Pago
+        window.location.href = result.initPoint;
       } else {
-        alert(result.message || 'Error al realizar el pedido');
+        alert(result.message || 'Error al procesar el pago');
       }
     } catch (error) {
       console.error('Error al completar el pedido:', error);
-      alert('Error al completar el pedido');
+      alert('Error al procesar el pago');
     } finally {
       setIsSubmitting(false);
     }
@@ -186,7 +183,7 @@ export default function CartSummary({ selectedAddressId, addresses }) {
               className={`w-full bg-orange-500 text-white py-3 px-6 rounded-md hover:bg-orange-600 transition-colors duration-200 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Procesando...' : 'Completar Pedido'}
+              {isSubmitting ? 'Procesando...' : 'Pagar con Mercado Pago'}
             </button>
           </div>
 
