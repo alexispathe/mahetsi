@@ -1,9 +1,11 @@
+//src/app/api/mercadopago/checkout/route.js
 import { NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { firestore } from '@/libs/firebaseAdmin';
 
+// Para pruebas, usa el TEST ACCESS TOKEN
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_ACCESS_TOKEN,
+  accessToken: process.env.MP_TEST_ACCESS_TOKEN, 
 });
 
 export async function POST(request) {
@@ -15,7 +17,6 @@ export async function POST(request) {
       return NextResponse.json({ message: 'El carrito está vacío' }, { status: 400 });
     }
 
-    // Obtener los detalles de los productos
     const productIDs = cartItems.map(item => item.uniqueID);
     const productSnapshots = await firestore
       .collection('products')
@@ -27,7 +28,7 @@ export async function POST(request) {
       productsMap[doc.data().uniqueID] = doc.data();
     });
 
-    // Construir los items para MP asegurándose de que los valores sean números
+    // Configurar los items para pruebas
     const items = cartItems.map((item) => {
       const product = productsMap[item.uniqueID];
       if (!product) {
@@ -36,15 +37,14 @@ export async function POST(request) {
       return {
         id: product.uniqueID,
         title: product.name,
-        unit_price: Number(product.price), // Asegurarse de que sea número
-        quantity: Number(item.qty), // Asegurarse de que sea número
-        currency_id: 'MXN', // O la moneda que corresponda
+        unit_price: Number(product.price),
+        quantity: Number(item.qty),
+        currency_id: 'MXN',
         picture_url: product.images?.[0] || null,
         description: product.description || product.name,
       };
     });
 
-    // Calcular totales asegurándose de que sean números
     const subtotal = Number(
       cartItems.reduce((acc, item) => acc + (productsMap[item.uniqueID].price * item.qty), 0)
     );
@@ -52,7 +52,7 @@ export async function POST(request) {
     const taxCost = Number(salesTax);
     const total = subtotal + shippingCost + taxCost;
 
-    // Crear el objeto de preferencia
+    // Configuración específica para pruebas
     const preferenceData = {
       items,
       back_urls: {
@@ -65,7 +65,7 @@ export async function POST(request) {
       external_reference: selectedAddressId,
       metadata: {
         selectedAddressId,
-        cartItems: JSON.stringify(cartItems), // Convertir a string para evitar problemas de formato
+        cartItems: JSON.stringify(cartItems),
         total: total,
         shipping: shippingCost,
         tax: taxCost
@@ -73,25 +73,37 @@ export async function POST(request) {
       shipments: {
         cost: shippingCost,
         mode: "not_specified",
-      }
+      },
+      // Configuraciones adicionales para pruebas
+      binary_mode: true, // Solo permite pagos aprobados o rechazados
+      expires: true,
+      expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 horas
     };
 
-    // Crear la preferencia
     const preference = new Preference(client);
     const response = await preference.create({
-      body: preferenceData // Asegúrate de pasar los datos en el campo 'body'
+      body: preferenceData
     });
 
-    // Retornar la respuesta
+    // Para debugging en pruebas
+    console.log('Preference created:', {
+      id: response.id,
+      init_point: response.init_point,
+      sandbox_init_point: response.sandbox_init_point
+    });
+
+    // En modo prueba, siempre usar sandbox_init_point
     return NextResponse.json({
-      initPoint: process.env.NODE_ENV === 'production' 
-        ? response.init_point 
-        : response.sandbox_init_point,
-      preferenceId: response.id,
+      initPoint: response.sandbox_init_point,
+      preferenceId: response.id
     });
 
   } catch (error) {
-    console.error('Error detallado:', error);
+    console.error('Error detallado:', {
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause
+    });
     return NextResponse.json({ 
       message: 'Error al crear la preferencia',
       error: error.message 

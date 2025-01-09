@@ -7,7 +7,7 @@ import admin from 'firebase-admin';
 
 export async function POST(request) {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session')?.value;
 
     if (!sessionCookie) {

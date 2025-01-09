@@ -1,134 +1,159 @@
+//src/app/api/mercadopago/webhook/route.js
 import { NextResponse } from 'next/server';
-import mercadopago from 'mercadopago';
+import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { firestore } from '@/libs/firebaseAdmin';
 import admin from 'firebase-admin';
 
-// Configurar Mercado Pago con el Access Token
-mercadopago.configure({
-  access_token: process.env.MP_ACCESS_TOKEN,
+// Configurar MercadoPago con el nuevo SDK
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN,
 });
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    // Verificar que la solicitud viene de MercadoPago
+    const mpSignature = request.headers.get('x-signature');
+    if (!mpSignature) {
+      console.warn('Intento de acceso sin firma de MercadoPago');
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Validar que la notificación es de tipo "payment"
+    const body = await request.json();
+    console.log('Webhook received:', body);
+
+    // Validar la notificación
     const { action, data, type } = body;
 
-    if (type !== 'payment' || action !== 'payment.created') {
-      return NextResponse.json({ message: 'Notificación no válida' }, { status: 400 });
+    if (type !== 'payment' || !['payment.created', 'payment.updated'].includes(action)) {
+      return NextResponse.json({ message: 'Notificación no procesable' }, { status: 200 });
     }
 
     const paymentId = data.id;
+    
+    // Usar el nuevo SDK para buscar el pago
+    const payment = new Payment(client);
+    const paymentInfo = await payment.get({ id: paymentId });
 
-    // Buscar el pago en Mercado Pago
-    const payment = await mercadopago.payment.findById(paymentId);
-
-    // Verificar que el pago fue aprobado
-    if (payment.body.status !== 'approved') {
-      return NextResponse.json({ message: 'Pago no aprobado' }, { status: 400 });
+    // Verificar el estado del pago
+    if (paymentInfo.status !== 'approved') {
+      console.log(`Pago ${paymentId} no está aprobado. Estado: ${paymentInfo.status}`);
+      return NextResponse.json({ message: 'Pago no aprobado' }, { status: 200 });
     }
 
-    // Obtener los datos de la preferencia (que guardaste en el webhook como metadata)
-    const { metadata } = payment.body;
+    // Obtener y parsear los metadatos
+    const { metadata } = paymentInfo;
     const selectedAddressId = metadata?.selectedAddressId;
+    const cartItems = metadata?.cartItems ? JSON.parse(metadata.cartItems) : [];
 
-    // Buscar la dirección seleccionada
-    const addressSnapshot = await firestore
-      .collection('addresses')
-      .where('uniqueID', '==', selectedAddressId)
+    // Validaciones básicas
+    if (!selectedAddressId || !cartItems.length) {
+      throw new Error('Datos insuficientes en metadata');
+    }
+
+    // Verificar si la orden ya existe para evitar duplicados
+    const existingOrder = await firestore
+      .collection('orders')
+      .where('paymentId', '==', paymentId)
       .limit(1)
       .get();
 
-    if (addressSnapshot.empty) {
-      return NextResponse.json({ message: 'Dirección no encontrada' }, { status: 404 });
+    if (!existingOrder.empty) {
+      console.log(`Orden ya procesada para el pago ${paymentId}`);
+      return NextResponse.json({ message: 'Orden ya procesada' }, { status: 200 });
     }
 
-    const address = addressSnapshot.docs[0].data();
-
-    // Obtener los ítems del carrito, que deben haberse pasado como metadata
-    const cartItems = metadata?.cartItems || [];
-
-    if (!cartItems || cartItems.length === 0) {
-      return NextResponse.json({ message: 'No hay ítems en el carrito' }, { status: 400 });
+    // Obtener la dirección
+    const addressDoc = await firestore.collection('addresses').doc(selectedAddressId).get();
+    if (!addressDoc.exists) {
+      throw new Error('Dirección no encontrada');
     }
+    const address = addressDoc.data();
 
-    // Mapear los ítems del carrito para obtener los detalles de los productos
+    // Obtener productos en una sola consulta
+    const productsRef = firestore.collection('products');
     const productIDs = cartItems.map(item => item.uniqueID);
-    const productsSnapshot = await firestore
-      .collection('products')
+    const productsSnapshot = await productsRef
       .where('uniqueID', 'in', productIDs)
       .get();
 
-    const productsMap = {};
-    productsSnapshot.forEach(doc => {
-      productsMap[doc.data().uniqueID] = doc.data();
-    });
+    const productsMap = Object.fromEntries(
+      productsSnapshot.docs.map(doc => [doc.data().uniqueID, doc.data()])
+    );
 
-    const detailedItems = cartItems.map(item => {
-      const product = productsMap[item.uniqueID];
-      if (!product) {
-        throw new Error(`Producto con ID ${item.uniqueID} no encontrado.`);
-      }
-      return {
-        uniqueID: item.uniqueID,
-        name: product.name,
-        price: product.price,
-        qty: item.qty,
-        total: product.price * item.qty,
-        images: product.images[0],
-      };
-    });
+    // Verificar que todos los productos existen
+    const missingProducts = productIDs.filter(id => !productsMap[id]);
+    if (missingProducts.length > 0) {
+      throw new Error(`Productos no encontrados: ${missingProducts.join(', ')}`);
+    }
 
-    // Calcular los totales (puedes agregar más cálculos dinámicos si es necesario)
-    const subtotal = detailedItems.reduce((acc, item) => acc + item.total, 0);
-    const shipping = subtotal >= 255 ? 0 : 9.99; // Podrías usar alguna lógica más avanzada aquí
-    const salesTax = 45.89; // Esto también puede ser dinámico
-    const grandTotal = subtotal + shipping + salesTax;
-
-    // Crear la nueva orden en Firestore
+    // Crear la orden
+    const batch = firestore.batch();
     const orderRef = firestore.collection('orders').doc();
     const newOrder = {
       uniqueID: orderRef.id,
-      ownerId: payment.body.user_id, // El ID del comprador de Mercado Pago (si es necesario)
+      paymentId: paymentId,
+      userId: metadata.userId || null,
       shippingAddress: address,
-      items: detailedItems,
-      subtotal,
-      shipping,
-      salesTax,
-      grandTotal,
-      paymentMethod: 'mercadopago', // Método de pago
-      orderStatus: 'aprobado', // Puedes modificar el estado según sea necesario
+      items: cartItems.map(item => ({
+        ...item,
+        productDetails: productsMap[item.uniqueID],
+      })),
+      payment: {
+        method: 'mercadopago',
+        status: paymentInfo.status,
+        transactionAmount: paymentInfo.transaction_amount,
+        installments: paymentInfo.installments,
+        paymentMethodId: paymentInfo.payment_method_id,
+      },
+      totals: {
+        subtotal: Number(metadata.total || 0),
+        shipping: Number(metadata.shipping || 0),
+        tax: Number(metadata.tax || 0),
+        total: paymentInfo.transaction_amount,
+      },
+      status: 'processing',
       dateCreated: admin.firestore.FieldValue.serverTimestamp(),
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
     };
 
-    // Guardar la orden en la colección 'orders'
-    await orderRef.set(newOrder);
+    // Guardar la orden
+    batch.set(orderRef, newOrder);
 
-    // Limpiar el carrito de compras, actualizar las ventas de los productos, etc.
-    const cartRef = firestore.collection('carts').doc(payment.body.user_id).collection('items');
-    const writeBatch = firestore.batch();
-
+    // Actualizar inventario y ventas
     cartItems.forEach(item => {
-      // Eliminar el ítem del carrito
-      const itemRef = cartRef.doc(item.uniqueID);
-      writeBatch.delete(itemRef);
-
-      // Actualizar las ventas del producto
-      const productRef = firestore.collection('products').doc(item.uniqueID);
-      writeBatch.update(productRef, {
+      const productRef = productsRef.doc(item.uniqueID);
+      batch.update(productRef, {
+        stock: admin.firestore.FieldValue.increment(-item.qty),
         totalSales: admin.firestore.FieldValue.increment(item.qty),
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
       });
     });
 
-    // Ejecutar todas las operaciones en batch
-    await writeBatch.commit();
+    // Ejecutar todas las operaciones
+    await batch.commit();
 
-    // Confirmación de que el pago se procesó correctamente
-    return NextResponse.json({ message: 'Pedido procesado correctamente', order: newOrder }, { status: 201 });
+    // Enviar confirmación
+    return NextResponse.json({
+      success: true,
+      message: 'Orden procesada correctamente',
+      orderId: orderRef.id
+    }, { status: 200 });
+
   } catch (error) {
-    console.error('Error en webhook de Mercado Pago:', error);
-    return NextResponse.json({ message: 'Error interno del servidor', error: error.message }, { status: 500 });
+    console.error('Error en webhook:', error);
+    
+    // Registrar el error en Firestore para debugging
+    await firestore.collection('webhook_errors').add({
+      error: error.message,
+      stack: error.stack,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // Siempre devolver 200 para que MP no reintente
+    return NextResponse.json({ 
+      success: false,
+      message: 'Error procesando la orden',
+      error: error.message 
+    }, { status: 200 });
   }
 }
-
