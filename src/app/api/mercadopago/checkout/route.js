@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { firestore } from '@/libs/firebaseAdmin';
 
-
 // Configurar MercadoPago
 const client = new MercadoPagoConfig({
   accessToken: process.env.NODE_ENV === 'production' 
@@ -45,6 +44,10 @@ export async function POST(request) {
     // Calcular totales
     const total = items.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
 
+    // Crear referencia única para external_reference
+    const paymentPreferenceRef = firestore.collection('payment_preferences').doc();
+    const uniqueExternalReference = paymentPreferenceRef.id;
+
     // Crear preferencia de pago
     const preference = new Preference(client);
     const preferenceData = {
@@ -57,20 +60,20 @@ export async function POST(request) {
         total: total
       },
       back_urls: {
-        success: `http://localhost:3000/profile/user`,
-        failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
-        pending: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/pending`
+        success: `http://localhost:3000/profile/user`, // Asegúrate de reemplazar con tu dominio real
+        failure: `https://tu-dominio.com/checkout/failure`,
+        pending: `https://tu-dominio.com/checkout/pending`
       },
       auto_return: "approved",
-      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`,
+      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`, // Asegúrate de reemplazar con tu dominio real
       statement_descriptor: "Mahetsi",
-      external_reference: body.selectedAddressId
+      external_reference: uniqueExternalReference // Usar el ID único aquí
     };
 
     const response = await preference.create({ body: preferenceData });
 
-    // Guardar la preferencia en Firestore
-    await firestore.collection('payment_preferences').add({
+    // Guardar la preferencia en Firestore usando el ID único
+    await paymentPreferenceRef.set({
       preferenceId: response.id,
       metadata: preferenceData.metadata,
       status: 'created',

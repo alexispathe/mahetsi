@@ -4,6 +4,14 @@ import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { firestore } from '@/libs/firebaseAdmin';
 import admin from 'firebase-admin';
 
+// Inicializa Firebase Admin si no está ya inicializado
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+    // ... otras configuraciones si es necesario
+  });
+}
+
 const client = new MercadoPagoConfig({
   accessToken: process.env.NODE_ENV === 'production' 
     ? process.env.MP_ACCESS_TOKEN 
@@ -12,18 +20,37 @@ const client = new MercadoPagoConfig({
 
 export async function POST(request) {
   try {
-    const searchParams = request.nextUrl?.searchParams;
-    const body = await request.json();
-    
+    // Extraer los parámetros de consulta
+    const { searchParams } = new URL(request.url);
+    const queryId = searchParams.get('id');
+    const queryTopic = searchParams.get('topic');
+
+    // Extraer el cuerpo de la solicitud
+    let body = {};
+    try {
+      body = await request.json();
+    } catch (e) {
+      console.warn('No se pudo parsear el cuerpo de la solicitud como JSON:', e);
+    }
+
     console.log('Webhook recibido:', body);
 
     let paymentId;
-    
+    let topic;
+
+    // Determinar el tipo de notificación y extraer el ID
     if (body.type === 'payment' && body.data?.id) {
       paymentId = body.data.id;
-    } else if (searchParams?.get('topic') === 'payment' && searchParams?.get('id')) {
-      paymentId = searchParams.get('id');
-    } else if (body.topic === 'merchant_order' || body.type === 'merchant_order') {
+      topic = body.type;
+    } else if (body.topic === 'payment' && body.id) {
+      paymentId = body.id;
+      topic = body.topic;
+    } else if (queryTopic === 'payment' && queryId) {
+      paymentId = queryId;
+      topic = queryTopic;
+    } else if (body.topic === 'merchant_order') {
+      // Ignorar notificaciones de tipo 'merchant_order'
+      console.log('Notificación de tipo merchant_order ignorada.');
       return NextResponse.json({ message: 'Merchant order notification ignored' }, { status: 200 });
     } else {
       console.log('Notificación no reconocida:', body);
@@ -45,6 +72,7 @@ export async function POST(request) {
       }, { status: 200 });
     }
 
+    // Obtener información del pago
     const payment = new Payment(client);
     const paymentInfo = await payment.get({ id: paymentId });
     console.log('Información del pago:', paymentInfo);
@@ -56,18 +84,24 @@ export async function POST(request) {
       }, { status: 200 });
     }
 
+    // Obtener el external_reference del pago
+    const externalReference = paymentInfo.external_reference;
+
+    if (!externalReference) {
+      throw new Error('external_reference no encontrado en la información del pago.');
+    }
+
     // Obtener la preferencia original usando external_reference
     const preferencesSnapshot = await firestore
       .collection('payment_preferences')
-      .where('metadata.selectedAddressId', '==', paymentInfo.external_reference)
-      .limit(1)
+      .doc(externalReference)
       .get();
 
-    if (preferencesSnapshot.empty) {
-      throw new Error(`Preferencia no encontrada para: ${paymentInfo.external_reference}`);
+    if (!preferencesSnapshot.exists) {
+      throw new Error(`Preferencia no encontrada para: ${externalReference}`);
     }
 
-    const preferenceData = preferencesSnapshot.docs[0].data();
+    const preferenceData = preferencesSnapshot.data();
     const metadata = preferenceData.metadata;
     const cartItems = JSON.parse(metadata.cartItems);
 
@@ -113,13 +147,13 @@ export async function POST(request) {
     // Calcular totales
     const subtotal = detailedItems.reduce((acc, item) => acc + item.total, 0);
     const shipping = subtotal >= 255 ? 0 : 9.99;
-    const salesTax = 45.89;
+    const salesTax = metadata.tax || 0; // Utilizar el tax de metadata si está disponible
     const grandTotal = subtotal + shipping + salesTax;
 
     // Iniciar batch de operaciones
     const batch = firestore.batch();
 
-    // 1. Crear la orden con la misma estructura que antes
+    // 1. Crear la orden
     const orderRef = firestore.collection('orders').doc();
     const orderData = {
       uniqueID: orderRef.id,
@@ -169,7 +203,7 @@ export async function POST(request) {
     });
 
     // 4. Marcar el pago como procesado en la preferencia
-    batch.update(preferencesSnapshot.docs[0].ref, {
+    batch.update(preferencesSnapshot.ref, {
       status: 'completed',
       orderId: orderRef.id,
       lastUpdated: admin.firestore.FieldValue.serverTimestamp()
@@ -209,6 +243,6 @@ export async function POST(request) {
       success: false,
       message: 'Error procesando webhook',
       error: error.message 
-    }, { status: 200 });
+    }, { status: 200 }); // Mercado Pago espera un 200 incluso si hubo errores en el procesamiento
   }
 }
