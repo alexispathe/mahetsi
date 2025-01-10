@@ -63,7 +63,10 @@ export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) 
                   Total
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
+                  Pago
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Estado de envio
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Número de Guía
@@ -99,6 +102,21 @@ export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) 
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     ${order.grandTotal.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        order.shippingStatus === 'pendiente'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : order.shippingStatus === 'confirmado'
+                            ? 'bg-blue-100 text-blue-800'
+                            : order.shippingStatus === 'cancelado'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {order.shippingStatus ? order.shippingStatus.charAt(0).toUpperCase() + order.shippingStatus.slice(1) : 'N/A'}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span

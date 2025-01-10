@@ -1,5 +1,4 @@
 // src/app/api/mercadopago/webhook/route.js
-// src/app/api/mercadopago/webhook/route.js
 import { NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { firestore } from '@/libs/firebaseAdmin';
@@ -31,6 +30,21 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Notificación no reconocida' }, { status: 200 });
     }
 
+    // Verificar si ya existe una orden para este pago
+    const existingOrderSnapshot = await firestore
+      .collection('orders')
+      .where('payment.id', '==', paymentId)
+      .limit(1)
+      .get();
+
+    if (!existingOrderSnapshot.empty) {
+      console.log('Ya existe una orden para este pago:', paymentId);
+      return NextResponse.json({ 
+        message: 'Orden ya procesada anteriormente',
+        orderId: existingOrderSnapshot.docs[0].id 
+      }, { status: 200 });
+    }
+
     const payment = new Payment(client);
     const paymentInfo = await payment.get({ id: paymentId });
     console.log('Información del pago:', paymentInfo);
@@ -40,16 +54,6 @@ export async function POST(request) {
       return NextResponse.json({ 
         message: `Pago no aprobado. Estado: ${paymentInfo.status}` 
       }, { status: 200 });
-    }
-
-    const existingPayment = await firestore
-      .collection('processed_payments')
-      .doc(paymentId.toString())
-      .get();
-
-    if (existingPayment.exists) {
-      console.log('Pago ya procesado:', paymentId);
-      return NextResponse.json({ message: 'Pago ya procesado' }, { status: 200 });
     }
 
     // Obtener la preferencia original usando external_reference
@@ -127,7 +131,8 @@ export async function POST(request) {
       salesTax,
       grandTotal,
       paymentMethod: 'mercadopago',
-      orderStatus: 'confirmado', // Ya está pagado
+      shippingStatus: 'confirmado',
+      orderStatus: 'pendiente',
       dateCreated: admin.firestore.FieldValue.serverTimestamp(),
       payment: {
         id: paymentId,
@@ -142,15 +147,7 @@ export async function POST(request) {
 
     batch.set(orderRef, orderData);
 
-    // 2. Marcar el pago como procesado
-    const processedPaymentRef = firestore.collection('processed_payments').doc(paymentId.toString());
-    batch.set(processedPaymentRef, {
-      orderId: orderRef.id,
-      status: paymentInfo.status,
-      processedAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    // 3. Actualizar el inventario y las ventas de los productos
+    // 2. Actualizar el inventario y las ventas de los productos
     for (const item of cartItems) {
       const productRef = firestore.collection('products').doc(item.uniqueID);
       batch.update(productRef, {
@@ -160,7 +157,7 @@ export async function POST(request) {
       });
     }
 
-    // 4. Limpiar el carrito del usuario
+    // 3. Limpiar el carrito del usuario
     const cartItemsRef = firestore
       .collection('carts')
       .doc(address.ownerId)
@@ -169,6 +166,13 @@ export async function POST(request) {
     const cartSnapshot = await cartItemsRef.get();
     cartSnapshot.docs.forEach(doc => {
       batch.delete(doc.ref);
+    });
+
+    // 4. Marcar el pago como procesado en la preferencia
+    batch.update(preferencesSnapshot.docs[0].ref, {
+      status: 'completed',
+      orderId: orderRef.id,
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp()
     });
 
     // Ejecutar todas las operaciones

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { firestore } from '@/libs/firebaseAdmin';
 
+
 // Configurar MercadoPago
 const client = new MercadoPagoConfig({
   accessToken: process.env.NODE_ENV === 'production' 
@@ -37,7 +38,7 @@ export async function POST(request) {
         title: product.name,
         quantity: cartItem.qty,
         unit_price: product.price,
-        currency_id: "MXN" // Asegúrate de usar la moneda correcta para tu país
+        currency_id: "MXN" 
       };
     });
 
@@ -56,7 +57,7 @@ export async function POST(request) {
         total: total
       },
       back_urls: {
-        success: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success`,
+        success: `http://localhost:3000/profile/user`,
         failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
         pending: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/pending`
       },
