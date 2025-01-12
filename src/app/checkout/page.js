@@ -15,13 +15,52 @@ export default function CheckoutPage() {
 
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [addresses, setAddresses] = useState([]);
+  const [shippingCost, setShippingCost] = useState(null); // Aquí guardaremos el costo de envío
+  const [loadingShipping, setLoadingShipping] = useState(false); // Para manejar el estado de carga de la cotización
 
   useEffect(() => {
-    // Redirige al login si no hay usuario autenticado una vez que se completa la carga
     if (!authLoading && !sessionInitializing && !currentUser) {
       router.push('/login?redirect=/checkout');
     }
   }, [authLoading, sessionInitializing, currentUser, router]);
+
+  useEffect(() => {
+    if (selectedAddressId) {
+      const selectedAddress = addresses.find(address => address.uniqueID === selectedAddressId);
+      if (selectedAddress) {
+        setLoadingShipping(true);
+        fetch('/api/cotizar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            direccionDestino: selectedAddress
+          }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              throw new Error(data.error);
+            }
+            setShippingCost(data.shipping_cost);
+            setShippingInfo({
+              carrier: data.carrier,
+              service: data.service,
+              days: data.estimated_days
+            });
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('No se pudo obtener el costo de envío: ' + error.message);
+            setShippingCost(null);
+          })
+          .finally(() => {
+            setLoadingShipping(false);
+          });
+      }
+    }
+  }, [selectedAddressId, addresses]);
 
   if (authLoading || sessionInitializing || !currentUser) {
     return (
@@ -32,7 +71,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className=''>
+    <div>
       <Header position="relative" textColor="text-black" />
       <div className="cart-page container mx-auto pt-20 p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -40,12 +79,14 @@ export default function CheckoutPage() {
             selectedAddressId={selectedAddressId} 
             setSelectedAddressId={setSelectedAddressId} 
             setAddresses={setAddresses} 
-            addresses={addresses} // Asegúrate de pasar 'addresses' como prop
-          />  {/* Sección de dirección y forma de pago */}
+            addresses={addresses}
+          />
           <CartSummary 
             selectedAddressId={selectedAddressId} 
-            addresses={addresses} // Asegúrate de pasar 'addresses' como prop si es necesario
-          /> {/* Sección del resumen de la compra */}
+            addresses={addresses} 
+            shippingCost={shippingCost} // Pasamos el costo de envío
+            loadingShipping={loadingShipping} // Indicamos si estamos cargando el costo de envío
+          />
         </div>
       </div>
     </div>

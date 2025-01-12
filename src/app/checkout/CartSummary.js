@@ -6,16 +6,15 @@ import TermsModal from './TermsModal';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function CartSummary({ selectedAddressId, addresses }) {
+export default function CartSummary({ selectedAddressId, addresses, shippingCost, loadingShipping }) {
   const { cartItems, products, loading, error, clearCart } = useContext(CartContext);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Para deshabilitar el botón de completar pedido
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAccepted, setIsAccepted] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
   const router = useRouter();
 
-  // Mapear los items del carrito con los detalles de los productos
   const detailedCartItems = cartItems.map(cartItem => {
     const product = products.find(p => p.uniqueID === cartItem.uniqueID);
     return {
@@ -27,21 +26,16 @@ export default function CartSummary({ selectedAddressId, addresses }) {
     };
   });
 
-  // Calcular subtotales y totales
   const subtotal = detailedCartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
-  const shipping = subtotal >= 255 ? 0 : 9.99;
-  const salesTax = 45.89; // Esto puede ser dinámico según las reglas de negocio
-  const grandTotal = subtotal + shipping + salesTax;
+  const salesTax = 45.89;
+  const grandTotal = subtotal + (shippingCost || 0) + salesTax;
 
-  // Manejar el clic en "Completar Pedido"
   const handleCompleteOrderClick = async () => {
-    // Validar que se haya seleccionado una dirección
     if (!selectedAddressId) {
       alert('Por favor, selecciona una dirección de envío antes de completar el pedido.');
       return;
     }
 
-    // Validar que se hayan aceptado los términos y condiciones
     if (!isAccepted) {
       setShowAlert(true);
       return;
@@ -50,7 +44,6 @@ export default function CartSummary({ selectedAddressId, addresses }) {
     setIsSubmitting(true);
 
     try {
-      // Enviar solicitud al backend para crear la preferencia de pago en Mercado Pago
       const response = await fetch('/api/mercadopago/checkout', {
         method: 'POST',
         headers: {
@@ -59,7 +52,7 @@ export default function CartSummary({ selectedAddressId, addresses }) {
         body: JSON.stringify({
           selectedAddressId,
           cartItems,
-          shipping,
+          shipping: shippingCost,
           salesTax,
         }),
       });
@@ -67,7 +60,6 @@ export default function CartSummary({ selectedAddressId, addresses }) {
       const result = await response.json();
 
       if (response.ok && result.initPoint) {
-        // Redirigir al usuario al checkout de Mercado Pago
         window.location.href = result.initPoint;
       } else {
         alert(result.message || 'Error al procesar el pago');
@@ -80,24 +72,11 @@ export default function CartSummary({ selectedAddressId, addresses }) {
     }
   };
 
-  // Manejar el cambio en el checkbox de términos y condiciones
-  const handleCheckboxChange = () => {
-    setIsAccepted(!isAccepted);
-    if (!isAccepted) {
-      setShowAlert(false);
-    }
-  };
-
-  // Abrir y cerrar el modal de términos y condiciones
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
   return (
     <section className="py-8 px-4 sm:px-6 lg:px-8 bg-white shadow-lg rounded-xl mb-8 text-[#1c1f28]">
       <h2 className="text-2xl font-bold mb-6 text-center sm:text-left">Resumen del Carrito</h2>
 
       {loading ? (
-        // Indicador de carga (puedes reemplazarlo con un skeleton más elaborado)
         <div className="flex justify-center items-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
         </div>
@@ -114,7 +93,6 @@ export default function CartSummary({ selectedAddressId, addresses }) {
         </div>
       ) : (
         <>
-          {/* Lista de Productos en el Carrito */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold mb-4">Productos en tu Carrito</h3>
             <div className="space-y-4">
@@ -134,7 +112,6 @@ export default function CartSummary({ selectedAddressId, addresses }) {
             </div>
           </div>
 
-          {/* Resumen del pedido */}
           <div className="py-6 px-4 rounded-md bg-gray-50">
             <h3 className="text-xl font-semibold mb-4">Resumen del Pedido</h3>
             <div className="flex justify-between mb-2">
@@ -143,7 +120,7 @@ export default function CartSummary({ selectedAddressId, addresses }) {
             </div>
             <div className="flex justify-between mb-2">
               <p className="text-sm">Envío</p>
-              <p className="font-semibold">${shipping.toFixed(2)}</p>
+              <p className="font-semibold">{loadingShipping ? 'Cargando...' : shippingCost ? `$${shippingCost.toFixed(2)}` : 'Selecciona una dirección'}</p>
             </div>
             <div className="flex justify-between mb-4">
               <p className="text-sm">Total</p>
@@ -153,30 +130,27 @@ export default function CartSummary({ selectedAddressId, addresses }) {
             </div>
           </div>
 
-          {/* Términos y condiciones */}
           <div className="mt-6 flex items-center">
             <input
               type="checkbox"
               className="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               checked={isAccepted}
-              onChange={handleCheckboxChange}
+              onChange={() => setIsAccepted(!isAccepted)}
             />
             <label className="text-sm">
               Acepto los{' '}
-              <button onClick={openModal} className="text-blue-400 hover:underline">
+              <button onClick={() => setIsModalOpen(true)} className="text-blue-400 hover:underline">
                 términos y condiciones
               </button>
             </label>
           </div>
 
-          {/* Alerta de Términos y Condiciones */}
           {showAlert && (
             <div className="text-red-500 mb-4 p-2 bg-red-100 rounded-md">
               Debes aceptar los términos y condiciones antes de completar el pedido.
             </div>
           )}
 
-          {/* Botón para completar pedido */}
           <div className="mt-4">
             <button
               onClick={handleCompleteOrderClick}
@@ -187,8 +161,7 @@ export default function CartSummary({ selectedAddressId, addresses }) {
             </button>
           </div>
 
-          {/* Modal de Términos y Condiciones */}
-          <TermsModal isOpen={isModalOpen} onClose={closeModal} />
+          <TermsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </>
       )}
     </section>
