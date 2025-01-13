@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import { CartContext } from '@/context/CartContext';
 import TermsModal from './TermsModal';
 import Link from 'next/link';
@@ -29,9 +29,8 @@ export default function CartSummary({ selectedAddressId, addresses, allQuotes, s
   });
 
   const subtotal = detailedCartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
-  const salesTax = 45.89;
   const shippingCost = selectedQuote ? parseFloat(selectedQuote.total_price) : 0;
-  const grandTotal = subtotal + shippingCost + salesTax;
+  const grandTotal = subtotal + shippingCost;
 
   const handleCompleteOrderClick = async () => {
     if (!selectedAddressId) {
@@ -61,7 +60,7 @@ export default function CartSummary({ selectedAddressId, addresses, allQuotes, s
           selectedAddressId,
           cartItems,
           shipping: shippingCost,
-          salesTax,
+          // salesTax, // Eliminado
           selectedQuote, // Enviar la cotización seleccionada
         }),
       });
@@ -178,7 +177,7 @@ export default function CartSummary({ selectedAddressId, addresses, allQuotes, s
             <div className="flex justify-between mb-4">
               <p className="text-sm">Total</p>
               <p className="font-semibold">
-                ${grandTotal.toFixed(2)} <span className="text-xs">(Incluye ${salesTax.toFixed(2)} impuestos)</span>
+                ${grandTotal.toFixed(2)}
               </p>
             </div>
           </div>

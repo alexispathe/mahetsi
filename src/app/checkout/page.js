@@ -45,12 +45,14 @@ export default function CheckoutPage() {
               throw new Error(data.error);
             }
             setAllQuotes(data.all_quotes || []);
-            // Opcional: Seleccionar automáticamente la mejor cotización
+            // Opcional: Seleccionar automáticamente la mejor cotización (la más barata)
             if (data.all_quotes && data.all_quotes.length > 0) {
               const mejorCotizacion = data.all_quotes.reduce((prev, current) =>
                 parseFloat(prev.total_price) < parseFloat(current.total_price) ? prev : current
               );
               setSelectedQuote(mejorCotizacion);
+            } else {
+              setSelectedQuote(null);
             }
           })
           .catch(error => {

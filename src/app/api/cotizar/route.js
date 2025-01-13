@@ -146,7 +146,6 @@ export async function POST(request) {
 
     // 2. Crear la primera cotización
     const cotizacionInicial = await createQuotation(bearerToken, datosCotizacion);
-    console.log("datos ", datosCotizacion);
 
     // 3. Sacamos el ID de la cotización
     const quotationId = cotizacionInicial.id;
@@ -156,43 +155,37 @@ export async function POST(request) {
 
     // 4. Esperar hasta que la cotización esté completa
     const cotizacionFinal = await esperarCotizacionCompleta(bearerToken, quotationId);
-    console.log("cotizacion final ", cotizacionFinal);
 
     // 5. Filtrar las cotizaciones con precios disponibles
     const rates = cotizacionFinal.rates || [];
     const cotizacionesConPrecio = rates.filter((r) => r.total !== null && r.total !== undefined);
-
-    // cotizacionesConPrecio.forEach((rate) => {
-    //   console.log(
-    //     `Paquetería: ${rate.provider_name}, ` +
-    //     `Servicio: ${rate.provider_service_name}, ` +
-    //     `Total: ${rate.total}, ` +
-    //     `Días: ${rate.days}`
-    //   );
-    // });
 
     // 6. Verificar si hay cotizaciones con precio
     if (cotizacionesConPrecio.length === 0) {
       throw new Error('No se encontraron cotizaciones disponibles con precios.');
     }
 
-    // 7. Seleccionar la mejor cotización (la más barata)
+    // 7. Preparar todas las cotizaciones para enviarlas al frontend
+    const allQuotesFormatted = cotizacionesConPrecio.map((r) => ({
+      id: r.id,
+      carrier: r.provider_name,
+      service: r.provider_service_name,
+      total_price: r.total,
+      days: r.days
+    }));
+
+    // 8. Seleccionar la mejor (la más barata)
     const mejorCotizacion = cotizacionesConPrecio.reduce((prev, current) =>
       parseFloat(prev.total) < parseFloat(current.total) ? prev : current
     );
 
-    // 8. Respuesta final con la mejor cotización y todas las disponibles
+    // 9. Respuesta final con la mejor cotización y todas
     return NextResponse.json({
       shipping_cost: mejorCotizacion.total,
       carrier: mejorCotizacion.provider_name,
       service: mejorCotizacion.provider_service_name,
       estimated_days: mejorCotizacion.days,
-      all_quotes: cotizacionesConPrecio.map((r) => ({
-        carrier: r.provider_name,
-        service: r.provider_service_name,
-        total_price: r.total,
-        days: r.days
-      }))
+      all_quotes: allQuotesFormatted
     });
   } catch (error) {
     console.error('Error en cotización:', error);
