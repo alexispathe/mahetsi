@@ -13,8 +13,9 @@ const client = new MercadoPagoConfig({
 export async function POST(request) {
   try {
     const body = await request.json();
+
     // Validar el body
-    if (!body.cartItems || !body.selectedAddressId) {
+    if (!body.cartItems || !body.selectedAddressId || !body.selectedQuote) {
       return NextResponse.json({ 
         success: false, 
         message: 'Datos incompletos' 
@@ -27,7 +28,7 @@ export async function POST(request) {
       body.cartItems.map(item => productsRef.doc(item.uniqueID).get())
     );
 
-    // Crear los items para la preferencia de MP
+    // Crear los items para la preferencia de Mercado Pago
     const items = productsSnapshot.map((doc, index) => {
       const product = doc.data();
       const cartItem = body.cartItems[index];
@@ -41,7 +42,17 @@ export async function POST(request) {
       };
     });
 
-    // Calcular totales
+    // Agregar el ítem de envío
+    const shippingItem = {
+      id: 'shipping',
+      title: `${body.selectedQuote.carrier} - ${body.selectedQuote.service}`,
+      quantity: 1,
+      unit_price: parseFloat(body.selectedQuote.total_price),
+      currency_id: "MXN"
+    };
+    items.push(shippingItem);
+
+    // Calcular totales (sin impuestos)
     const total = items.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
 
     // Crear referencia única para external_reference
@@ -55,17 +66,17 @@ export async function POST(request) {
       metadata: {
         selectedAddressId: body.selectedAddressId,
         cartItems: JSON.stringify(body.cartItems),
-        shipping: body.shipping,
-        tax: body.salesTax,
+        shippingType: body.selectedQuote.service, // Tipo de envío
+        shippingCost: parseFloat(body.selectedQuote.total_price), // Costo de envío
         total: total
       },
       back_urls: {
-        success: `http://localhost:3000/profile/user`, // Asegúrate de reemplazar con tu dominio real
+        success: `https://tu-dominio.com/profile/user`, // Reemplaza con tu dominio real
         failure: `https://tu-dominio.com/checkout/failure`,
         pending: `https://tu-dominio.com/checkout/pending`
       },
       auto_return: "approved",
-      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`, // Asegúrate de reemplazar con tu dominio real
+      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`, // Reemplaza con tu dominio real
       statement_descriptor: "Mahetsi",
       external_reference: uniqueExternalReference // Usar el ID único aquí
     };

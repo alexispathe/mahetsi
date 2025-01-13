@@ -104,6 +104,8 @@ export async function POST(request) {
     const preferenceData = preferencesSnapshot.data();
     const metadata = preferenceData.metadata;
     const cartItems = JSON.parse(metadata.cartItems);
+    const shippingType = metadata.shippingType;
+    const shippingCost = metadata.shippingCost;
 
     // Obtener los detalles de la dirección seleccionada
     const addressSnapshot = await firestore
@@ -144,11 +146,9 @@ export async function POST(request) {
       };
     });
 
-    // Calcular totales
+    // Calcular totales (sin impuestos)
     const subtotal = detailedItems.reduce((acc, item) => acc + item.total, 0);
-    const shipping = subtotal >= 255 ? 0 : 9.99;
-    const salesTax = metadata.tax || 0; // Utilizar el tax de metadata si está disponible
-    const grandTotal = subtotal + shipping + salesTax;
+    const grandTotal = subtotal + shippingCost;
 
     // Iniciar batch de operaciones
     const batch = firestore.batch();
@@ -159,10 +159,10 @@ export async function POST(request) {
       uniqueID: orderRef.id,
       ownerId: address.ownerId,
       shippingAddress: address,
+      shippingType: shippingType, // Tipo de envío
+      shippingCost: shippingCost, // Costo de envío
       items: detailedItems,
       subtotal,
-      shipping,
-      salesTax,
       grandTotal,
       paymentMethod: 'mercadopago',
       shippingStatus: 'confirmado',
