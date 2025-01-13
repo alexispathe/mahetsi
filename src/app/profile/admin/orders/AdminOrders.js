@@ -83,7 +83,10 @@ export default function AdminOrders() {
                     Total
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
+                    Pago
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado de envio
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
@@ -115,6 +118,9 @@ export default function AdminOrders() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       ${order.grandTotal.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {order.payment.status}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span

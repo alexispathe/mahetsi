@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
 import { FaShippingFast } from 'react-icons/fa';
-import ReviewModal from './ReviewModal'; 
+import ReviewModal from './ReviewModal';
 
 export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -63,7 +63,10 @@ export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) 
                   Total
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
+                  Pago
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Estado de envio
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Número de Guía
@@ -85,14 +88,11 @@ export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) 
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {new Date(order.dateCreated).toLocaleDateString('es-MX', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true,
+                      year: '2-digit',
+                      month: '2-digit',
+                      day: '2-digit',
                     })}
+
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {order.paymentMethod}
@@ -100,17 +100,19 @@ export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) 
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     ${order.grandTotal.toFixed(2)}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {order.payment.status}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        order.orderStatus === 'pendiente'
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.orderStatus === 'pendiente'
                           ? 'bg-yellow-100 text-yellow-800'
                           : order.orderStatus === 'enviado'
                             ? 'bg-blue-100 text-blue-800'
                             : order.orderStatus === 'entregado'
                               ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
-                      }`}
+                        }`}
                     >
                       {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
                     </span>
@@ -159,6 +161,10 @@ export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) 
               <h4 className="font-semibold text-lg text-gray-700">Método de Pago:</h4>
               <p className="text-gray-600">{selectedOrder.paymentMethod}</p>
             </div>
+            <div className="mb-4">
+              <h4 className="font-semibold text-lg text-gray-700">Estado de pago:</h4>
+              <p className="text-gray-600">{selectedOrder.payment.status}</p>
+            </div>
 
             {/* Dirección de Envío */}
             <div className="mb-4">
@@ -175,17 +181,16 @@ export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) 
 
             {/* Estado de la Orden */}
             <div className="mb-4">
-              <h4 className="font-semibold text-lg text-gray-700">Estado de la Orden:</h4>
+              <h4 className="font-semibold text-lg text-gray-700">Estado de envio:</h4>
               <span
-                className={`px-4 py-2 inline-flex text-xs font-semibold rounded-full ${
-                  selectedOrder.orderStatus === 'pendiente'
+                className={`px-4 py-2 inline-flex text-xs font-semibold rounded-full ${selectedOrder.orderStatus === 'pendiente'
                     ? 'bg-yellow-100 text-yellow-800'
                     : selectedOrder.orderStatus === 'enviado'
                       ? 'bg-blue-100 text-blue-800'
                       : selectedOrder.orderStatus === 'entregado'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
-                }`}
+                  }`}
               >
                 {selectedOrder.orderStatus.charAt(0).toUpperCase() + selectedOrder.orderStatus.slice(1)}
               </span>
@@ -251,7 +256,7 @@ export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) 
       {showReviewModal && reviewProduct && (
         <ReviewModal
           product={reviewProduct}
-          orderId={selectedOrder?.uniqueID} 
+          orderId={selectedOrder?.uniqueID}
           onClose={closeReviewModal}
           onReviewSubmitted={onReviewSubmitted} // Pasa la función para actualizar reseñas
         />
