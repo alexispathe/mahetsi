@@ -1,112 +1,122 @@
-//src/app/api/mercadopago/checkout/route.js
+// src/app/api/mercadopago/checkout/route.js
 import { NextResponse } from 'next/server';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { firestore } from '@/libs/firebaseAdmin';
 
-// Para pruebas, usa el TEST ACCESS TOKEN
+// Configurar MercadoPago
 const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_TEST_ACCESS_TOKEN, 
+  accessToken: process.env.NODE_ENV === 'production' 
+    ? process.env.MP_ACCESS_TOKEN 
+    : process.env.MP_TEST_ACCESS_TOKEN,
 });
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { cartItems, shipping, salesTax, selectedAddressId } = body;
 
-    if (!cartItems || cartItems.length === 0) {
-      return NextResponse.json({ message: 'El carrito está vacío' }, { status: 400 });
+    // Validar el body
+    if (!body.cartItems || !body.selectedAddressId || !body.selectedQuote) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Datos incompletos' 
+      }, { status: 400 });
     }
 
-    const productIDs = cartItems.map(item => item.uniqueID);
-    const productSnapshots = await firestore
-      .collection('products')
-      .where('uniqueID', 'in', productIDs)
-      .get();
+    // Obtener los productos de Firestore para validar precios
+    const productsRef = firestore.collection('products');
+    const productsSnapshot = await Promise.all(
+      body.cartItems.map(item => productsRef.doc(item.uniqueID).get())
+    );
 
-    const productsMap = {};
-    productSnapshots.forEach(doc => {
-      productsMap[doc.data().uniqueID] = doc.data();
-    });
-
-    // Configurar los items para pruebas
-    const items = cartItems.map((item) => {
-      const product = productsMap[item.uniqueID];
-      if (!product) {
-        throw new Error(`Producto con ID ${item.uniqueID} no encontrado.`);
-      }
+    // Crear los items para la preferencia de Mercado Pago
+    const items = productsSnapshot.map((doc, index) => {
+      const product = doc.data();
+      const cartItem = body.cartItems[index];
+      
       return {
-        id: product.uniqueID,
+        id: cartItem.uniqueID,
         title: product.name,
-        unit_price: Number(product.price),
-        quantity: Number(item.qty),
-        currency_id: 'MXN',
-        picture_url: product.images?.[0] || null,
-        description: product.description || product.name,
+        quantity: cartItem.qty,
+        unit_price: product.price,
+        currency_id: "MXN" 
       };
     });
 
-    const subtotal = Number(
-      cartItems.reduce((acc, item) => acc + (productsMap[item.uniqueID].price * item.qty), 0)
-    );
-    const shippingCost = Number(shipping);
-    const taxCost = Number(salesTax);
-    const total = subtotal + shippingCost + taxCost;
+    // Agregar el ítem de envío
+    const shippingItem = {
+      id: 'shipping',
+      title: `${body.selectedQuote.carrier} - ${body.selectedQuote.service}`,
+      quantity: 1,
+      unit_price: parseFloat(body.selectedQuote.total_price),
+      currency_id: "MXN"
+    };
+    items.push(shippingItem);
 
-    // Configuración específica para pruebas
+    // Calcular totales (sin impuestos)
+    const total = items.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+
+    // Crear referencia única para external_reference
+    const paymentPreferenceRef = firestore.collection('payment_preferences').doc();
+    const uniqueExternalReference = paymentPreferenceRef.id;
+
+    // Crear preferencia de pago
+    const preference = new Preference(client);
     const preferenceData = {
-      items,
-      back_urls: {
-        success: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success`,
-        failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
-        pending: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/pending`,
-      },
-      auto_return: 'approved',
-      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`,
-      external_reference: selectedAddressId,
+      items: items,
       metadata: {
-        selectedAddressId,
-        cartItems: JSON.stringify(cartItems),
-        total: total,
-        shipping: shippingCost,
-        tax: taxCost
+        selectedAddressId: body.selectedAddressId,
+        cartItems: JSON.stringify(body.cartItems),
+        shippingType: body.selectedQuote.service, // Tipo de envío
+        shippingCost: parseFloat(body.selectedQuote.total_price), // Costo de envío
+        total: total
       },
-      shipments: {
-        cost: shippingCost,
-        mode: "not_specified",
+      back_urls: {
+        success: `https://tu-dominio.com/profile/user`, // Reemplaza con tu dominio real
+        failure: `https://tu-dominio.com/checkout/failure`,
+        pending: `https://tu-dominio.com/checkout/pending`
       },
-      // Configuraciones adicionales para pruebas
-      binary_mode: true, // Solo permite pagos aprobados o rechazados
-      expires: true,
-      expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 horas
+      auto_return: "approved",
+      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`, // Reemplaza con tu dominio real
+      statement_descriptor: "Mahetsi",
+      external_reference: uniqueExternalReference // Usar el ID único aquí
     };
 
-    const preference = new Preference(client);
-    const response = await preference.create({
-      body: preferenceData
+    const response = await preference.create({ body: preferenceData });
+
+    // Guardar la preferencia en Firestore usando el ID único
+    await paymentPreferenceRef.set({
+      preferenceId: response.id,
+      metadata: preferenceData.metadata,
+      status: 'created',
+      createdAt: new Date(),
+      items: items
     });
 
-    // Para debugging en pruebas
-    console.log('Preference created:', {
-      id: response.id,
-      init_point: response.init_point,
-      sandbox_init_point: response.sandbox_init_point
-    });
-
-    // En modo prueba, siempre usar sandbox_init_point
     return NextResponse.json({
-      initPoint: response.sandbox_init_point,
+      success: true,
+      initPoint: response.init_point,
       preferenceId: response.id
     });
 
   } catch (error) {
-    console.error('Error detallado:', {
-      message: error.message,
-      stack: error.stack,
-      cause: error.cause
-    });
+    console.error('Error en checkout:', error);
+    
+    // Guardar el error en Firestore sin campos undefined
+    const errorData = {
+      type: 'checkout_error',
+      message: error.message || 'Error desconocido',
+      timestamp: new Date(),
+      details: {
+        name: error.name || 'Unknown',
+        code: error.code || 'UNKNOWN_ERROR'
+      }
+    };
+
+    await firestore.collection('checkout_errors').add(errorData);
+
     return NextResponse.json({ 
-      message: 'Error al crear la preferencia',
-      error: error.message 
+      success: false,
+      message: 'Error al crear la preferencia de pago'
     }, { status: 500 });
   }
 }
