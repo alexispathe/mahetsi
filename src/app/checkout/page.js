@@ -15,7 +15,8 @@ export default function CheckoutPage() {
 
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [addresses, setAddresses] = useState([]);
-  const [shippingCost, setShippingCost] = useState(null); // Aquí guardaremos el costo de envío
+  const [allQuotes, setAllQuotes] = useState([]); // Almacena todas las cotizaciones
+  const [selectedQuote, setSelectedQuote] = useState(null); // Cotización seleccionada por el usuario
   const [loadingShipping, setLoadingShipping] = useState(false); // Para manejar el estado de carga de la cotización
 
   useEffect(() => {
@@ -43,17 +44,20 @@ export default function CheckoutPage() {
             if (data.error) {
               throw new Error(data.error);
             }
-            setShippingCost(data.shipping_cost);
-            setShippingInfo({
-              carrier: data.carrier,
-              service: data.service,
-              days: data.estimated_days
-            });
+            setAllQuotes(data.all_quotes || []);
+            // Opcional: Seleccionar automáticamente la mejor cotización
+            if (data.all_quotes && data.all_quotes.length > 0) {
+              const mejorCotizacion = data.all_quotes.reduce((prev, current) =>
+                parseFloat(prev.total_price) < parseFloat(current.total_price) ? prev : current
+              );
+              setSelectedQuote(mejorCotizacion);
+            }
           })
           .catch(error => {
             console.error('Error:', error);
             alert('No se pudo obtener el costo de envío: ' + error.message);
-            setShippingCost(null);
+            setAllQuotes([]);
+            setSelectedQuote(null);
           })
           .finally(() => {
             setLoadingShipping(false);
@@ -84,7 +88,9 @@ export default function CheckoutPage() {
           <CartSummary 
             selectedAddressId={selectedAddressId} 
             addresses={addresses} 
-            shippingCost={shippingCost} // Pasamos el costo de envío
+            allQuotes={allQuotes} // Pasamos todas las cotizaciones
+            selectedQuote={selectedQuote} // Cotización seleccionada
+            setSelectedQuote={setSelectedQuote} // Función para actualizar la selección
             loadingShipping={loadingShipping} // Indicamos si estamos cargando el costo de envío
           />
         </div>

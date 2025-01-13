@@ -1,12 +1,14 @@
+// src/app/checkout/CartSummary.js
+
 'use client';
 
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { CartContext } from '@/context/CartContext';
 import TermsModal from './TermsModal';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function CartSummary({ selectedAddressId, addresses, shippingCost, loadingShipping }) {
+export default function CartSummary({ selectedAddressId, addresses, allQuotes, selectedQuote, setSelectedQuote, loadingShipping }) {
   const { cartItems, products, loading, error, clearCart } = useContext(CartContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +30,8 @@ export default function CartSummary({ selectedAddressId, addresses, shippingCost
 
   const subtotal = detailedCartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
   const salesTax = 45.89;
-  const grandTotal = subtotal + (shippingCost || 0) + salesTax;
+  const shippingCost = selectedQuote ? parseFloat(selectedQuote.total_price) : 0;
+  const grandTotal = subtotal + shippingCost + salesTax;
 
   const handleCompleteOrderClick = async () => {
     if (!selectedAddressId) {
@@ -38,6 +41,11 @@ export default function CartSummary({ selectedAddressId, addresses, shippingCost
 
     if (!isAccepted) {
       setShowAlert(true);
+      return;
+    }
+
+    if (!selectedQuote) {
+      alert('Por favor, selecciona una opción de envío.');
       return;
     }
 
@@ -54,6 +62,7 @@ export default function CartSummary({ selectedAddressId, addresses, shippingCost
           cartItems,
           shipping: shippingCost,
           salesTax,
+          selectedQuote, // Enviar la cotización seleccionada
         }),
       });
 
@@ -70,6 +79,11 @@ export default function CartSummary({ selectedAddressId, addresses, shippingCost
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Manejar la selección de una cotización
+  const handleSelectQuote = (quote) => {
+    setSelectedQuote(quote);
   };
 
   return (
@@ -112,6 +126,39 @@ export default function CartSummary({ selectedAddressId, addresses, shippingCost
             </div>
           </div>
 
+          {/* Mostrar opciones de envío */}
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold mb-4">Opciones de Envío</h3>
+            {loadingShipping ? (
+              <div className="flex justify-center items-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+              </div>
+            ) : allQuotes.length === 0 ? (
+              <p className="text-gray-700">No hay opciones de envío disponibles.</p>
+            ) : (
+              <div className="space-y-4">
+                {allQuotes.map((quote, index) => (
+                  <div key={quote.id || index} className="flex items-center p-4 border rounded-md">
+                    <input
+                      type="radio"
+                      id={`quote-${index}`}
+                      name="shippingQuote"
+                      value={quote.id}
+                      checked={selectedQuote && selectedQuote.id === quote.id}
+                      onChange={() => handleSelectQuote(quote)}
+                      className="mr-4 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <label htmlFor={`quote-${index}`} className="flex flex-col">
+                      <span className="font-semibold">{quote.carrier} - {quote.service}</span>
+                      <span className="text-gray-600">Precio: ${parseFloat(quote.total_price).toFixed(2)}</span>
+                      <span className="text-gray-600">Días estimados: {quote.days}</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="py-6 px-4 rounded-md bg-gray-50">
             <h3 className="text-xl font-semibold mb-4">Resumen del Pedido</h3>
             <div className="flex justify-between mb-2">
@@ -120,7 +167,13 @@ export default function CartSummary({ selectedAddressId, addresses, shippingCost
             </div>
             <div className="flex justify-between mb-2">
               <p className="text-sm">Envío</p>
-              <p className="font-semibold">{loadingShipping ? 'Cargando...' : shippingCost ? `$${shippingCost.toFixed(2)}` : 'Selecciona una dirección'}</p>
+              <p className="font-semibold">
+                {loadingShipping 
+                  ? 'Cargando...' 
+                  : selectedQuote 
+                    ? `$${shippingCost.toFixed(2)} (${selectedQuote.carrier} - ${selectedQuote.service})` 
+                    : 'Selecciona una opción de envío'}
+              </p>
             </div>
             <div className="flex justify-between mb-4">
               <p className="text-sm">Total</p>
