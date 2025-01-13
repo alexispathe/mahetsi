@@ -274,106 +274,141 @@ export default function ProductDetail({ productUrl }) {
 
   // Render principal
   return (
-    <div className="flex justify-center items-center my-12 px-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl">
+    <div className="flex justify-center items-center my-10 px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-6xl">
         {/* Sección de Imágenes */}
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col lg:flex-row gap-4">
           {/* Thumbnails */}
-          <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto max-h-96 lg:max-h-full gap-4">
+          <div className="flex lg:flex-col overflow-x-auto lg:overflow-y-auto max-h-96 lg:max-h-full gap-2">
             {thumbnails.map((image, index) => (
               <div
                 key={index}
-                className={`w-24 h-24 rounded-lg border-2 ${mainImage === image ? 'border-green-600' : 'border-transparent'} ${clickedImage === image ? 'animate-zoomSelected' : ''}`}
+                className={`w-20 h-20 rounded-md border-2 ${mainImage === image ? 'border-gray-800' : 'border-transparent'
+                  } ${clickedImage === image ? 'animate-zoomSelected' : ''}`}
               >
                 <img
                   src={image}
                   alt={`Thumbnail ${index + 1}`}
-                  width={96}
-                  height={96}
-                  className="cursor-pointer object-cover transition-transform transform hover:scale-105"
+                  width={80}
+                  height={80}
+                  className="cursor-pointer object-cover transition"
                   onClick={() => handleThumbnailClick(image)}
                 />
               </div>
             ))}
           </div>
-  
+
           {/* Imagen Principal */}
-          <div className="flex-1 relative flex justify-center items-center">
+          <div
+            className="flex-1 relative flex justify-center items-center"
+            onClick={handleImageClick}
+          >
             <img
               src={mainImage}
               alt="Producto principal"
-              width={600}
-              height={600}
-              className={`w-auto h-full max-h-96 rounded-lg shadow-lg object-contain cursor-pointer transition-transform transform hover:scale-105 ${clickedImage === mainImage ? 'animate-zoomSelected' : ''}`}
+              width={500}
+              height={500}
+              className={`w-auto h-full max-h-96 rounded-md object-contain cursor-pointer transition-transform transform hover:scale-105 ${clickedImage === mainImage ? 'animate-zoomSelected' : ''
+                }`}
             />
           </div>
         </div>
-  
+
         {/* Sección de Información */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           <p className="text-gray-500 text-sm">
             HOME / {brandName.toUpperCase()} / {typeName.toUpperCase()}
           </p>
-          <h1 className="text-4xl font-serif font-semibold text-green-800">{product.name}</h1>
-  
+          <h1 className="text-3xl font-bold">{product.name}</h1>
+
           {/* Rating */}
           <div className="flex items-center space-x-2">
             <div className="flex text-yellow-500 text-lg">
               {[1, 2, 3, 4, 5].map((star) =>
-                star <= product.rating ? <FaStar key={star} /> : <FaRegStar key={star} />
+                star <= product.rating ? (
+                  <FaStar key={star} />
+                ) : (
+                  <FaRegStar key={star} />
+                )
               )}
             </div>
-            <p className="text-sm text-gray-600">({product.numReviews} Reseñas)</p>
+            <p className="text-sm text-gray-600">
+              ({product.numReviews} Reviews)
+            </p>
           </div>
-  
+
           {/* Descripción */}
           <div className="prose prose-sm text-gray-700">
             <h2 className="text-xl font-semibold mt-4">Descripción</h2>
             <p>{product.description}</p>
           </div>
-  
+
           {/* Precio */}
           <div className="flex items-baseline space-x-4">
-            <p className="text-3xl text-red-600 font-semibold">${product.price.toFixed(2)}</p>
-          </div>
-  
-          {/* Categoría */}
-          <div>
-            <p className="text-sm font-medium text-gray-600">
-              CATEGORÍA: {typeName}
+            <p className="text-2xl text-red-600 font-semibold">
+              ${product.price.toFixed(2)}
             </p>
           </div>
-  
+
+          {/* Categoría */}
+          <div>
+            <div className="mb-4">
+              <p className="text-sm font-medium">
+                CATEGORÍA: {typeName}
+              </p>
+            </div>
+          </div>
+
           {/* Botones de acción */}
-          <div className="flex space-x-6">
+          <div className="flex space-x-4">
             <button
               onClick={handleToggleFavorite}
-              className={`flex items-center px-6 py-2 rounded-md transition-all duration-300 ${isTogglingFavorite ? 'cursor-not-allowed opacity-50' : ''} ${isLiked ? 'bg-red-600 text-white' : 'bg-green-100 text-gray-700'}`}
+              className={`flex items-center px-4 py-2 rounded-md hover:bg-red-500 transition-colors duration-300 ${isTogglingFavorite ? 'cursor-not-allowed opacity-50' : ''
+                } ${isLiked ? 'bg-red-600 text-white' : 'bg-gray-200 text-black'}`}
               disabled={isTogglingFavorite}
             >
-              {isTogglingFavorite ? 'Guardando...' : <>{isLiked ? <FaHeart className="mr-2" /> : <FaRegHeart className="mr-2" />} Favorito</>}
+              {isTogglingFavorite ? (
+                'Guardando...'
+              ) : (
+                <>
+                  {isLiked ? (
+                    <FaHeart className="mr-2" />
+                  ) : (
+                    <FaRegHeart className="mr-2" />
+                  )}
+                  Favorito
+                </>
+              )}
             </button>
             <button
+              className={`px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 ${isAddingToCart ? 'cursor-not-allowed opacity-50' : ''
+                } flex items-center`} // Asegura que los elementos estén en la misma fila
               onClick={handleAddToCartClick}
-              className={`px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 ${isAddingToCart ? 'cursor-not-allowed opacity-50' : ''} flex items-center`}
               disabled={isAddingToCart}
             >
-              {isAddingToCart ? 'Agregando...' : <><FaShoppingCart className="mr-2" /> Agregar al carrito</>}
+              {isAddingToCart ? (
+                'Agregando...'
+              ) : (
+                <>
+                  <FaShoppingCart className="mr-2" /> Agregar al carrito
+                </>
+              )}
             </button>
           </div>
-  
+
           {/* Info de envío */}
           <div className="text-sm text-gray-600 flex items-center">
-            <FaBox className="mr-2 text-green-500" />
+            <FaBox className="mr-1" />
             Envío gratis en pedidos superiores a $99. Envío al día siguiente por $9.99
           </div>
         </div>
       </div>
-  
+
       {/* Modal de Imagen Expandida */}
       {visible && (
         <div
-          className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 ${animation} ${isFadingOut ? 'pointer-events-none' : 'pointer-events-auto'}`}
+          className={`fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 ${animation} ${isFadingOut ? 'pointer-events-none' : 'pointer-events-auto'
+            }`}
           onClick={closeModal}
         >
           <div className="relative flex justify-center" ref={modalRef}>
@@ -382,7 +417,7 @@ export default function ProductDetail({ productUrl }) {
               alt="Producto principal expandido"
               width={1000}
               height={1000}
-              className="max-w-full max-h-screen rounded-lg object-contain cursor-pointer"
+              className="max-w-full max-h-screen rounded-md object-contain cursor-pointer"
               onClick={() => setShowModal(false)}
             />
             <button
@@ -397,5 +432,4 @@ export default function ProductDetail({ productUrl }) {
       )}
     </div>
   );
-  
 }

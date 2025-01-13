@@ -2,8 +2,6 @@
 import { NextResponse } from 'next/server';
 
 // Credenciales de la API
-const clientId = '8L2s5LqWExOHNYXeolkrea5A7AD0p2CKB99Z4BSwK3c';
-const apiSecret = 'xHA6rcLBEDqrpl4YsEhmeMqTLk1U82NADBjeNO_Up50';
 const AUTH_URL = 'https://pro.skydropx.com/api/v1/oauth/token';
 const QUOTE_URL = 'https://pro.skydropx.com/api/v1/quotations';
 
@@ -11,8 +9,8 @@ const QUOTE_URL = 'https://pro.skydropx.com/api/v1/quotations';
 async function getAuthToken() {
   const authData = {
     grant_type: 'client_credentials',
-    client_id: clientId,
-    client_secret: apiSecret,
+    client_id: process.env.SKYDROPX_API_KEY,
+    client_secret: process.env.SKYDROPX_API_KEY_SECRET,
     redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
     scope: 'default orders.create'
   };
