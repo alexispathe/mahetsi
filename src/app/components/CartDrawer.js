@@ -8,15 +8,16 @@ import { CartContext } from "@/context/CartContext"; // Importar el contexto del
 import Image from "next/image"; // Importar la etiqueta Image
 import ShippingAddressModal from "./ShippingAddressModal"; // Importar el modal de dirección de envío
 import { FaTrash } from 'react-icons/fa';
+import { FaEdit } from 'react-icons/fa'; // Importar el icono de editar
 import { toast } from 'react-toastify'; // Asegúrate de tener react-toastify instalado y configurado
 
 export default function CartDrawer({ isOpen, onClose }) {
-  const { 
-    cartItems, 
-    products, 
-    loading, 
-    error, 
-    removeItemFromCart, 
+  const {
+    cartItems,
+    products,
+    loading,
+    error,
+    removeItemFromCart,
     addItemToCart,
     shippingAddress,
     fetchShippingQuotes,
@@ -88,10 +89,10 @@ export default function CartDrawer({ isOpen, onClose }) {
   const subtotal = detailedCartItems.reduce((total, item) => total + (item.price * item.qty), 0);
   const shippingThreshold = 699;
   const shippingProgress = (subtotal >= shippingThreshold ? 100 : (subtotal / shippingThreshold) * 100);
-  
+
   // Actualizamos el cálculo del shippingFee
-  const shippingFee = subtotal >= shippingThreshold 
-    ? 0 
+  const shippingFee = subtotal >= shippingThreshold
+    ? 0
     : (selectedQuote ? parseFloat(selectedQuote.total_price) : 0);
 
   const total = subtotal + shippingFee;
@@ -137,6 +138,11 @@ export default function CartDrawer({ isOpen, onClose }) {
     toast.success(`Has seleccionado ${quote.carrier} - ${quote.service} por $${parseFloat(quote.total_price).toFixed(2)}`);
   };
 
+  // Función para editar la dirección de envío
+  const handleEditShippingAddress = () => {
+    setIsModalOpen(true);
+  };
+
   return (
     <>
       <div className={`fixed inset-0 bg-black bg-opacity-50 flex justify-end z-50 transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
@@ -144,14 +150,14 @@ export default function CartDrawer({ isOpen, onClose }) {
           ref={drawerRef} // Asignar la referencia al contenedor del CartDrawer
           className={`relative bg-white w-full sm:w-3/4 md:w-2/3 lg:w-1/3 p-6 overflow-y-auto rounded-xl shadow-lg text-[#1c1f28] ${animation}`}
         >
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="absolute top-4 right-4 text-2xl text-gray-600 hover:text-gray-800 transition-colors duration-300"
             aria-label="Cerrar carrito"
           >
             ❌
           </button>
-          
+
           <h2 className="text-2xl font-bold mb-4">Tu carrito</h2>
 
           {loading ? (
@@ -259,13 +265,12 @@ export default function CartDrawer({ isOpen, onClose }) {
                           <p className="font-semibold text-gray-800 hover:underline">{item.name}</p>
                         </Link>
                         <p className="text-sm text-gray-600">
-                          Cantidad: 
+                          Cantidad:
                           {/* Botón para disminuir cantidad */}
                           <button
                             onClick={() => handleRemoveQuantity(item)}
-                            className={`px-2 py-1 text-sm bg-transparent text-gray-700 hover:text-black transition-colors duration-200 ${
-                              item.qty === 1 ? 'cursor-not-allowed' : 'cursor-pointer'
-                            }`}
+                            className={`px-2 py-1 text-sm bg-transparent text-gray-700 hover:text-black transition-colors duration-200 ${item.qty === 1 ? 'cursor-not-allowed' : 'cursor-pointer'
+                              }`}
                             disabled={item.qty === 1 || isUpdating === item.uniqueID}
                             aria-label={`Disminuir cantidad de ${item.name}`}
                           >
@@ -276,9 +281,8 @@ export default function CartDrawer({ isOpen, onClose }) {
                           {/* Botón para aumentar cantidad */}
                           <button
                             onClick={() => handleAddQuantity(item)}
-                            className={`px-2 py-1 text-sm bg-transparent text-gray-700 hover:text-black transition-colors duration-200 ${
-                              isUpdating === item.uniqueID ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
-                            }`}
+                            className={`px-2 py-1 text-sm bg-transparent text-gray-700 hover:text-black transition-colors duration-200 ${isUpdating === item.uniqueID ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                              }`}
                             disabled={isUpdating === item.uniqueID}
                             aria-label={`Aumentar cantidad de ${item.name}`}
                           >
@@ -306,59 +310,71 @@ export default function CartDrawer({ isOpen, onClose }) {
                 ))}
               </div>
 
-              {/* Botón para Calcular Envío */}
-              {/* Solo mostrar el botón si no hay shippingAddress */}
-              {!shippingAddress && (
-                <div className="mt-6">
-                  <button
-                    onClick={handleCalculateShipping}
-                    className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors duration-300"
-                  >
-                    Calcular Envío
-                  </button>
-                </div>
-              )}
-
-              {/* Mostrar Cotizaciones de Envío */}
-              {shippingAddress && (
-                <>
-                  <div className="mt-6">
-                    <button
-                      onClick={handleCalculateShipping}
-                      className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors duration-300"
-                    >
-                      Calcular Envío
-                    </button>
+              {/* Sección de Envío */}
+              <div className="mt-6">
+                {subtotal >= shippingThreshold ? (
+                  // Mostrar "Envío Gratis" cuando el subtotal supera el umbral
+                  <div className="flex justify-between items-center bg-green-100 p-4 rounded-md">
+                    <span className="font-semibold text-green-700">¡Envío Gratis!</span>
                   </div>
-                  {shippingError && <p className="text-red-500 mt-4">Error: {shippingError}</p>}
-                  {loadingShipping && <p className="text-gray-600 mt-4">Calculando envío...</p>}
-                  {shippingQuotes.length > 0 && (
-                    <div className="mt-4">
-                      <h3 className="text-lg font-semibold mb-2">Opciones de Envío</h3>
-                      <div className="space-y-2">
-                        {shippingQuotes.map((quote, index) => (
-                          <div key={quote.id || index} className="flex items-center p-2 border rounded">
-                            <input
-                              type="radio"
-                              id={`quote-${index}`}
-                              name="shippingQuote"
-                              value={quote.id}
-                              checked={selectedQuote && selectedQuote.id === quote.id}
-                              onChange={() => handleSelectQuote(quote)}
-                              className="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <label htmlFor={`quote-${index}`} className="flex flex-col">
-                              <span className="font-semibold">{quote.carrier} - {quote.service}</span>
-                              <span className="text-gray-600">Precio: ${parseFloat(quote.total_price).toFixed(2)}</span>
-                              <span className="text-gray-600">Días estimados: {quote.days}</span>
-                            </label>
+                ) : (
+                  <>
+
+                    {/* Si hay dirección de envío, mostrar las cotizaciones */}
+                    {shippingAddress && (
+                      <>
+                        <button
+                          onClick={handleCalculateShipping}
+                          className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors duration-300"
+                        >
+                          Recalcular Envío
+                        </button>
+
+                        {/* Mostrar Cotizaciones de Envío */}
+                        {shippingError && <p className="text-red-500 mt-4">Error: {shippingError}</p>}
+                        {loadingShipping && <p className="text-gray-600 mt-4">Calculando envío...</p>}
+                        {shippingQuotes.length > 0 && (
+                          <div className="mt-4">
+                            <h3 className="text-lg font-semibold mb-2">Opciones de Envío</h3>
+                            <div className="space-y-2">
+                              {shippingQuotes.map((quote, index) => (
+                                <div key={quote.id || index} className="flex items-center p-2 border rounded">
+                                  <input
+                                    type="radio"
+                                    id={`quote-${index}`}
+                                    name="shippingQuote"
+                                    value={quote.id}
+                                    checked={selectedQuote && selectedQuote.id === quote.id}
+                                    onChange={() => handleSelectQuote(quote)}
+                                    className="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                  />
+                                  <label htmlFor={`quote-${index}`} className="flex flex-col">
+                                    <span className="font-semibold">{quote.carrier} - {quote.service}</span>
+                                    <span className="text-gray-600">Precio: ${parseFloat(quote.total_price).toFixed(2)}</span>
+                                    <span className="text-gray-600">Días estimados: {quote.days}</span>
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+                        )}
+
+                        {/* Botón para Editar Dirección de Envío */}
+                        {shippingQuotes.length > 0 && (
+                          <div className="mt-4">
+                            <button
+                              onClick={handleEditShippingAddress}
+                              className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition-colors duration-300"
+                            >
+                              Editar Dirección de Envío
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
 
               {/* Subtotal */}
               <div className="flex justify-between mt-4 font-semibold text-lg text-gray-800">
@@ -367,7 +383,21 @@ export default function CartDrawer({ isOpen, onClose }) {
               </div>
 
               {/* Shipping Fee */}
-              {subtotal < shippingThreshold && (
+              {subtotal < shippingThreshold && !shippingAddress && (
+                <div className="flex justify-between mt-2 font-semibold text-lg text-gray-800">
+                  <span>Envío</span>
+                  <div>
+                    <button
+                      onClick={handleCalculateShipping}
+                      className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors duration-300"
+                    >
+                      Calcular Envío
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {subtotal < shippingThreshold && shippingAddress && selectedQuote && (
                 <div className="flex justify-between mt-2 font-semibold text-lg text-gray-800">
                   <span>Envío</span>
                   <span>${shippingFee.toFixed(2)}</span>
@@ -377,7 +407,7 @@ export default function CartDrawer({ isOpen, onClose }) {
               {/* Total */}
               <div className="flex justify-between mt-2 font-bold text-xl text-gray-900">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>${total.toFixed(2)}  {subtotal < shippingThreshold && !shippingAddress && ('+ Envío')} </span>
               </div>
 
               {/* Action Buttons */}

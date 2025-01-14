@@ -2,15 +2,16 @@
 
 'use client';
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { CartContext } from '@/context/CartContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { userAddressSchema } from '@/schemas/userAddressSchema'; // Reutilizamos el esquema de validación existente
+import { userAddressSchema } from '@/schemas/userAddressSchema';
 import { toast } from 'react-toastify';
+import ReactDOM from 'react-dom';
 
 export default function ShippingAddressModal({ isOpen, onClose }) {
-  const { saveShippingAddress } = useContext(CartContext);
+  const { saveShippingAddress, shippingAddress } = useContext(CartContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -18,14 +19,37 @@ export default function ShippingAddressModal({ isOpen, onClose }) {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm({
     resolver: zodResolver(userAddressSchema),
   });
 
+  useEffect(() => {
+    if (isOpen && shippingAddress) {
+      // Si estás editando una dirección existente, prellenar el formulario
+      setValue('firstName', shippingAddress.firstName);
+      setValue('lastName', shippingAddress.lastName);
+      setValue('email', shippingAddress.email);
+      setValue('phone', shippingAddress.phone);
+      setValue('address', shippingAddress.address);
+      setValue('interiorNumber', shippingAddress.interiorNumber);
+      setValue('colonia', shippingAddress.colonia);
+      setValue('city', shippingAddress.city);
+      setValue('state', shippingAddress.state);
+      setValue('zipcode', shippingAddress.zipcode);
+      setValue('reference', shippingAddress.reference);
+      setValue('betweenStreets', shippingAddress.betweenStreets);
+      setValue('country', shippingAddress.country || 'México');
+      setValue('useBilling', shippingAddress.useBilling || false);
+    } else {
+      reset();
+    }
+  }, [isOpen, shippingAddress, setValue, reset]);
+
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      // Puedes agregar lógica adicional aquí si necesitas guardar la dirección en el backend
+      // Guarda la dirección de envío en el contexto
       saveShippingAddress(data);
       toast.success('Dirección de envío guardada exitosamente');
       reset();
@@ -40,10 +64,10 @@ export default function ShippingAddressModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white w-full max-w-lg p-6 rounded-lg shadow-lg overflow-y-auto max-h-screen">
-        <h2 className="text-2xl font-bold mb-4">Agregar Dirección de Envío</h2>
+        <h2 className="text-2xl font-bold mb-4">{shippingAddress ? 'Editar Dirección de Envío' : 'Agregar Dirección de Envío'}</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Nombre */}
           <div>
@@ -241,7 +265,8 @@ export default function ShippingAddressModal({ isOpen, onClose }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

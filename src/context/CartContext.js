@@ -205,60 +205,65 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  const removeItemFromCartHandler = async (uniqueID) => {
+    // Manejador de eliminación externo para evitar conflictos de nombres
+    await removeItemFromCart(uniqueID);
+  };
+
   const removeItemFromCart = async (uniqueID) => {
     if (currentUser) {
       try {
-        const res = await fetch('/api/cart/removeItem', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uniqueID }),
+        const res = await fetch(`/api/cart/removeItem/${uniqueID}`, {
+          method: 'DELETE',
           credentials: 'include'
         });
 
         if (!res.ok) {
-          if (res.status === 401) {
-            // Sesión expirada
-            await auth.signOut();
-            removeFromLocalCart(uniqueID);
-            setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID )));
-            setProducts(prev => prev.filter(product => product.uniqueID !== uniqueID));
-            return;
-          }
-
           const data = await res.json();
           throw new Error(data.error || 'Error al eliminar el producto del carrito.');
         }
 
-        setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID )));
+        setCartItems(prev => prev.filter(item => item.uniqueID !== uniqueID));
         setProducts(prev => prev.filter(product => product.uniqueID !== uniqueID));
       } catch (error) {
         console.error('Error al eliminar del carrito:', error);
         setError(error.message);
       }
     } else {
+      // Usuario no autenticado, usar localStorage
       removeFromLocalCart(uniqueID);
-      setCartItems(prev => prev.filter(item => !(item.uniqueID === uniqueID )));
+      setCartItems(prev => prev.filter(item => item.uniqueID !== uniqueID));
       setProducts(prev => prev.filter(product => product.uniqueID !== uniqueID));
     }
   };
 
   const clearCart = () => {
     if (currentUser) {
-      // Si quisieras limpiar el carrito en Firestore puedes hacerlo aquí
-      // Actualmente, el backend limpia el carrito al crear una orden
-      setCartItems([]);
-      setProducts([]);
+      // Implementa la lógica para limpiar el carrito en el servidor
+      fetch('/api/cart/clear', {
+        method: 'POST',
+        credentials: 'include'
+      })
+      .then(res => {
+        if (res.ok) {
+          setCartItems([]);
+          setProducts([]);
+        } else {
+          return res.json().then(data => {
+            throw new Error(data.error || 'Error al limpiar el carrito.');
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error al limpiar el carrito:', error);
+        setError(error.message);
+      });
     } else {
+      // Usuario no autenticado, limpiar localStorage
       clearLocalCart();
       setCartItems([]);
       setProducts([]);
     }
-
-    // Limpiar información de envío
-    setShippingAddress(null);
-    setShippingQuotes([]);
-    setSelectedQuote(null);
-    localStorage.removeItem('shippingAddress');
   };
 
   // Funciones para manejar la dirección de envío y cotizaciones
@@ -340,7 +345,7 @@ export const CartProvider = ({ children }) => {
         loading,
         error,
         addItemToCart,
-        removeItemFromCart,
+        removeItemFromCart: removeItemFromCartHandler,
         clearCart,
         loadCart, 
         cartCount,
