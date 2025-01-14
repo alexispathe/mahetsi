@@ -6,16 +6,14 @@ import React, { useContext, useState } from 'react';
 import { CartContext } from '@/context/CartContext';
 import TermsModal from './TermsModal';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
-export default function CartSummary({ selectedAddressId, addresses, allQuotes, selectedQuote, setSelectedQuote, loadingShipping }) {
+export default function CartSummary({ selectedAddressId, allQuotes, selectedQuote, setSelectedQuote, loadingShipping }) {
   const { cartItems, products, loading, error, clearCart } = useContext(CartContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAccepted, setIsAccepted] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
-  const router = useRouter();
 
   const detailedCartItems = cartItems.map(cartItem => {
     const product = products.find(p => p.uniqueID === cartItem.uniqueID);

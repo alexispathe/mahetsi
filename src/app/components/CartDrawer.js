@@ -61,7 +61,7 @@ export default function CartDrawer({ isOpen, onClose }) {
   });
 
   const subtotal = detailedCartItems.reduce((total, item) => total + (item.price * item.qty), 0);
-  const shippingThreshold = 255;
+  const shippingThreshold = 699;
   const shippingProgress = (subtotal >= shippingThreshold ? 100 : (subtotal / shippingThreshold) * 100);
   const shippingFee = subtotal >= shippingThreshold ? 0 : 9.99;
 

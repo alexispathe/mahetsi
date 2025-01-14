@@ -60,10 +60,7 @@ async function getQuotationById(bearerToken, quotationId) {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${bearerToken}`
     },
-    // Si la doc de Skydropx te pide pasar "id" en body (POST), descomenta y usa el body:
-    /*
-    body: JSON.stringify({ id: quotationId })
-    */
+   
   });
 
   if (!response.ok) {
