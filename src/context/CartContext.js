@@ -6,6 +6,7 @@ import React, { createContext, useState, useEffect, useContext, useMemo } from '
 import { AuthContext } from './AuthContext';
 import { getLocalCart, addToLocalCart, removeFromLocalCart, clearLocalCart } from '@/app/utils/cartLocalStorage';
 import { auth } from '@/libs/firebaseClient'; // Importar para usar auth.signOut()
+import { toast } from 'react-toastify';
 
 export const CartContext = createContext();
 
@@ -15,6 +16,13 @@ export const CartProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Nuevos estados para envío
+  const [shippingAddress, setShippingAddress] = useState(null);
+  const [shippingQuotes, setShippingQuotes] = useState([]);
+  const [selectedQuote, setSelectedQuote] = useState(null);
+  const [loadingShipping, setLoadingShipping] = useState(false);
+  const [shippingError, setShippingError] = useState(null);
 
   const fetchProductDetails = async (uniqueIDs) => {
     if (uniqueIDs.length === 0) {
@@ -100,6 +108,14 @@ export const CartProvider = ({ children }) => {
         await loadAuthenticatedCart();
       } else {
         loadLocalCart();
+      }
+
+      // Cargar dirección de envío desde localStorage si no está autenticado
+      if (!currentUser) {
+        const savedAddress = localStorage.getItem('shippingAddress');
+        if (savedAddress) {
+          setShippingAddress(JSON.parse(savedAddress));
+        }
       }
     } catch (err) {
       console.error('Error al cargar el carrito:', err);
@@ -237,7 +253,73 @@ export const CartProvider = ({ children }) => {
       setCartItems([]);
       setProducts([]);
     }
+
+    // Limpiar información de envío
+    setShippingAddress(null);
+    setShippingQuotes([]);
+    setSelectedQuote(null);
+    localStorage.removeItem('shippingAddress');
   };
+
+  // Funciones para manejar la dirección de envío y cotizaciones
+  const saveShippingAddress = (address) => {
+    setShippingAddress(address);
+    if (!currentUser) {
+      localStorage.setItem('shippingAddress', JSON.stringify(address));
+    }
+  };
+
+  const fetchShippingQuotes = async () => {
+    if (!shippingAddress) {
+      setShippingError('No hay dirección de envío.');
+      return;
+    }
+
+    setLoadingShipping(true);
+    setShippingError(null);
+    try {
+      const response = await fetch('/api/cotizar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ direccionDestino: shippingAddress }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al obtener las cotizaciones de envío.');
+      }
+
+      setShippingQuotes(data.all_quotes || []);
+      setSelectedQuote(data.all_quotes[0] || null); // Seleccionar automáticamente la primera opción
+    } catch (err) {
+      console.error('Error al obtener cotizaciones de envío:', err);
+      setShippingError(err.message);
+      setShippingQuotes([]);
+      setSelectedQuote(null);
+    } finally {
+      setLoadingShipping(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      // Si el usuario se autentica y hay una dirección de envío en localStorage, puedes manejarla aquí
+      const savedAddress = localStorage.getItem('shippingAddress');
+      if (savedAddress) {
+        // Opcional: Implementar lógica para transferir esta dirección al perfil del usuario
+        // Por ejemplo, mostrar una notificación o un modal preguntando si desea guardar la dirección
+        // Por simplicidad, la dejaremos en localStorage hasta que se sincronice con las direcciones de usuario
+      }
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser) {
+      // Limpiar la dirección de envío almacenada en localStorage al iniciar sesión
+      localStorage.removeItem('shippingAddress');
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -262,6 +344,15 @@ export const CartProvider = ({ children }) => {
         clearCart,
         loadCart, 
         cartCount,
+        // Nuevas propiedades y funciones
+        shippingAddress,
+        saveShippingAddress,
+        shippingQuotes,
+        fetchShippingQuotes,
+        selectedQuote,
+        setSelectedQuote,
+        loadingShipping,
+        shippingError,
       }}
     >
       {children}
