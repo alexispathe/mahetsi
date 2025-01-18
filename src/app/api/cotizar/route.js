@@ -115,13 +115,12 @@ export async function POST(request) {
       "area_level3": direccionDestino.colonia || 'Sin colonia',      // Colonia
       "street1": direccionDestino.address || 'Sin calle',
       "apartment_number": direccionDestino.number || 'SN',           // Si no hay número
-      "reference": direccionDestino.reference || '',
+      "reference": direccionDestino.reference || 'Casa',
       "name": `${direccionDestino.firstName || 'Nombre'} ${direccionDestino.lastName || 'Desconocido'}`,
       "phone":  parseInt(direccionDestino.phone) || parseInt('0000000000'),
       "email": direccionDestino.email || 'email@ejemplo.com',
       "company": direccionDestino.company || 'casa'
     };
-
     const datosCotizacion = {
       "quotation": {
         "address_from": direccionOrigen,
