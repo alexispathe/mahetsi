@@ -1,9 +1,11 @@
+// src/components/ZipCodeModal.jsx
 'use client';
 
 import React, { useContext, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { CartContext } from '@/context/CartContext';
 import { toast } from 'react-toastify';
+import { FaSpinner } from 'react-icons/fa'; // Importamos el spinner
 
 export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
   /**
@@ -14,6 +16,7 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
 
   const { guestZipCode, saveGuestZipCodeAndFetchQuotes } = useContext(CartContext);
   const [localZip, setLocalZip] = useState('');
+  const [isSaving, setIsSaving] = useState(false); // Nuevo estado para rastrear el guardado
 
   useEffect(() => {
     if (isOpen) {
@@ -32,6 +35,8 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
     }
 
     try {
+      setIsSaving(true); // Iniciamos el proceso de guardado
+
       // Guardar el CP en localStorage y en el estado global, y de inmediato cotizar
       await saveGuestZipCodeAndFetchQuotes(localZip);
 
@@ -40,11 +45,16 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
         onZipSaved();
       }
 
+      // Mostrar mensaje de éxito
+      toast.success('Código postal guardado y cotización realizada correctamente.');
+
       // Cerrar modal
       onClose();
     } catch (error) {
       console.error('Error al guardar el CP y cotizar:', error);
       toast.error('Hubo un error al procesar el CP.');
+    } finally {
+      setIsSaving(false); // Finalizamos el proceso de guardado
     }
   };
 
@@ -66,20 +76,32 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
               value={localZip}
               onChange={(e) => setLocalZip(e.target.value)}
               placeholder="Ej. 12345"
+              disabled={isSaving} // Deshabilitar input mientras se guarda
             />
           </div>
 
           <div className="flex space-x-4 mt-4">
             <button
               type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              className={`flex items-center justify-center bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-300 ${
+                isSaving ? 'cursor-not-allowed opacity-50' : ''
+              }`}
+              disabled={isSaving} // Deshabilitar botón mientras se guarda
             >
-              Guardar CP
+              {isSaving ? (
+                <>
+                  <FaSpinner className="animate-spin mr-2" />
+                  Cotizando...
+                </>
+              ) : (
+                'Guardar CP'
+              )}
             </button>
             <button
               type="button"
-              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors duration-300"
               onClick={onClose}
+              disabled={isSaving} // Opcional: deshabilitar cancelar mientras se guarda
             >
               Cancelar
             </button>

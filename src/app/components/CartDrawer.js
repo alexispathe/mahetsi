@@ -1,5 +1,6 @@
 // src/components/CartDrawer.js
 'use client';
+
 import { useContext, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { CartContext } from "@/context/CartContext";
@@ -316,13 +317,11 @@ export default function CartDrawer({ isOpen, onClose }) {
                       Calcular / Recalcular Envío
                     </button>
 
-                    {shippingError && (
-                      <p className="text-red-500 mt-4">Error: {shippingError}</p>
-                    )}
-                    {loadingShipping && (
-                      <p className="text-gray-600 mt-4">Calculando envío...</p>
-                    )}
+                    {/* Mensaje de error o loading en cotización */}
+                    {shippingError && <p className="text-red-500 mt-4">Error: {shippingError}</p>}
+                    {loadingShipping && <p className="text-gray-600 mt-4">Calculando envío...</p>}
 
+                    {/* Mostrar cotizaciones si existen */}
                     {shippingQuotes.length > 0 && (
                       <div className="mt-4">
                         <h3 className="text-lg font-semibold mb-2">Opciones de Envío</h3>
