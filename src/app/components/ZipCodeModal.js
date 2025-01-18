@@ -5,18 +5,12 @@ import React, { useContext, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { CartContext } from '@/context/CartContext';
 import { toast } from 'react-toastify';
-import { FaSpinner } from 'react-icons/fa'; // Importamos el spinner
+import { FaSpinner } from 'react-icons/fa';
 
 export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
-  /**
-   *  - isOpen: boolean -> muestra u oculta el modal
-   *  - onClose: fn -> para cerrar el modal
-   *  - onZipSaved: fn opcional -> callback para notificar que se guardó (y abrir cart o lo que quieras)
-   */
-
   const { guestZipCode, saveGuestZipCodeAndFetchQuotes } = useContext(CartContext);
   const [localZip, setLocalZip] = useState('');
-  const [isSaving, setIsSaving] = useState(false); // Nuevo estado para rastrear el guardado
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -35,26 +29,22 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
     }
 
     try {
-      setIsSaving(true); // Iniciamos el proceso de guardado
+      setIsSaving(true);
 
-      // Guardar el CP en localStorage y en el estado global, y de inmediato cotizar
+      // Guardar CP y de inmediato cotizar
       await saveGuestZipCodeAndFetchQuotes(localZip);
 
-      // Notificar al padre si se desea
       if (onZipSaved) {
         onZipSaved();
       }
 
-      // Mostrar mensaje de éxito
       toast.success('Código postal guardado y cotización realizada correctamente.');
-
-      // Cerrar modal
       onClose();
     } catch (error) {
-      console.error('Error al guardar el CP y cotizar:', error);
+      console.error('Error al guardar CP y cotizar:', error);
       toast.error('Hubo un error al procesar el CP.');
     } finally {
-      setIsSaving(false); // Finalizamos el proceso de guardado
+      setIsSaving(false);
     }
   };
 
@@ -76,7 +66,7 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
               value={localZip}
               onChange={(e) => setLocalZip(e.target.value)}
               placeholder="Ej. 12345"
-              disabled={isSaving} // Deshabilitar input mientras se guarda
+              disabled={isSaving}
             />
           </div>
 
@@ -86,7 +76,7 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
               className={`flex items-center justify-center bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-300 ${
                 isSaving ? 'cursor-not-allowed opacity-50' : ''
               }`}
-              disabled={isSaving} // Deshabilitar botón mientras se guarda
+              disabled={isSaving}
             >
               {isSaving ? (
                 <>
@@ -101,7 +91,7 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
               type="button"
               className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors duration-300"
               onClick={onClose}
-              disabled={isSaving} // Opcional: deshabilitar cancelar mientras se guarda
+              disabled={isSaving}
             >
               Cancelar
             </button>

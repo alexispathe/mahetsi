@@ -13,7 +13,7 @@ import { FaSpinner } from 'react-icons/fa';
 export default function ShippingAddressModal({ isOpen, onClose }) {
   const { 
     shippingAddress, 
-    saveShippingAddress, 
+    saveShippingAddress,
   } = useContext(CartContext);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +31,7 @@ export default function ShippingAddressModal({ isOpen, onClose }) {
   useEffect(() => {
     if (isOpen) {
       if (shippingAddress) {
-        // Si hay una dirección existente, prellenar el formulario
+        // Prellenar con la dirección existente
         setValue('firstName', shippingAddress.firstName);
         setValue('lastName', shippingAddress.lastName);
         setValue('email', shippingAddress.email);
@@ -47,7 +47,6 @@ export default function ShippingAddressModal({ isOpen, onClose }) {
         setValue('country', shippingAddress.country || 'México');
         setValue('useBilling', shippingAddress.useBilling || false);
       } else {
-        // Si no hay dirección, resetear el formulario
         reset();
       }
     }
@@ -118,7 +117,7 @@ export default function ShippingAddressModal({ isOpen, onClose }) {
             {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
           </div>
 
-          {/* Número de Teléfono */}
+          {/* Teléfono */}
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="phone">Número de Teléfono</label>
             <input
@@ -173,7 +172,7 @@ export default function ShippingAddressModal({ isOpen, onClose }) {
             {errors.colonia && <p className="text-red-500 text-sm">{errors.colonia.message}</p>}
           </div>
 
-          {/* Ciudad/Municipio */}
+          {/* Ciudad */}
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="city">Ciudad/Municipio</label>
             <input
@@ -232,7 +231,7 @@ export default function ShippingAddressModal({ isOpen, onClose }) {
             {errors.reference && <p className="text-red-500 text-sm">{errors.reference.message}</p>}
           </div>
 
-          {/* Dirección entre calles (Opcional) */}
+          {/* Entre calles (Opcional) */}
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="betweenStreets">Dirección entre calles (Opcional)</label>
             <input
@@ -264,7 +263,6 @@ export default function ShippingAddressModal({ isOpen, onClose }) {
             </label>
           </div>
 
-          {/* Botones de Acción */}
           <div className="flex space-x-4 mt-4">
             <button
               type="submit"
@@ -297,7 +295,6 @@ export default function ShippingAddressModal({ isOpen, onClose }) {
   );
 }
 
-// Lista de estados de México para el formulario
 const estadosMexico = [
   'Aguascalientes',
   'Baja California',

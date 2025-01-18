@@ -10,7 +10,7 @@ import {
   clearLocalCart,
 } from '@/app/utils/cartLocalStorage';
 import { auth } from '@/libs/firebaseClient';
-import { toast } from 'react-toastify'; // Importación añadida para notificaciones
+import { toast } from 'react-toastify';
 
 export const CartContext = createContext();
 
@@ -34,7 +34,7 @@ export const CartProvider = ({ children }) => {
   const [guestZipCode, setGuestZipCode] = useState('');
 
   // ---------------------------------------------
-  // 1) Cargamos guestZipCode del localStorage, si existe
+  // 1) Cargar guestZipCode del localStorage
   // ---------------------------------------------
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -52,13 +52,9 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Guarda el CP y de inmediato llama fetchShippingQuotes con el zip proporcionado.
-   */
   const saveGuestZipCodeAndFetchQuotes = async (zip) => {
-    // 1) Guardar el CP
     saveGuestZipCode(zip);
-    // 2) Hacer la cotización con el zip proporcionado
+    // Recalcular envío con el CP recién guardado
     await fetchShippingQuotes(zip);
   };
 
@@ -126,8 +122,8 @@ export const CartProvider = ({ children }) => {
       const uniqueIDs = items.map((item) => item.uniqueID);
       await fetchProductDetails(uniqueIDs);
 
-      // ===> AQUÍ buscamos la dirección principal
-      await fetchDefaultAddress(); // <--- llamamos a la nueva función
+      // ===> Obtener dirección por defecto
+      await fetchDefaultAddress();
     } catch (err) {
       console.error('Error al cargar el carrito autenticado:', err);
       setError(err.message);
@@ -145,19 +141,17 @@ export const CartProvider = ({ children }) => {
   };
 
   // ---------------------------------------------
-  // 5) loadCart (elige si es auth o no)
+  // 5) loadCart
   // ---------------------------------------------
   const loadCart = async () => {
     setLoading(true);
     setError(null);
     try {
       if (currentUser && authLoading === false) {
-        // Usuario autenticado
         await loadAuthenticatedCart();
       } else {
         // Invitado
         loadLocalCart();
-        // También podríamos cargar shippingAddress de localStorage si existiera, etc.
         if (!currentUser) {
           const savedAddress = localStorage.getItem('shippingAddress');
           if (savedAddress) {
@@ -174,30 +168,30 @@ export const CartProvider = ({ children }) => {
   };
 
   // ---------------------------------------------
-  // 6) Nueva función: obtener dirección principal
+  // 6) Obtener dirección por defecto (Auth)
   // ---------------------------------------------
   const fetchDefaultAddress = async () => {
     try {
-      // Tu API puede ser: /api/addresses/private/get/list
       const res = await fetch('/api/addresses/private/get/list', {
         credentials: 'include',
       });
       if (!res.ok) {
-        // Si da error, no forzamos nada
         console.error('No se pudo obtener la lista de direcciones');
-        return;
+        return null;
       }
       const data = await res.json();
       const addresses = data.addresses || [];
-      // Buscar la que tenga isDefault = true
-      const defaultAddr = addresses.find((addr) => addr.isDefault === true);
+      // Buscamos la dirección marcada como default
+      const defaultAddr = addresses.find((addr) => addr.isDefault) || null;
       if (defaultAddr) {
         setShippingAddress(defaultAddr);
       } else {
         setShippingAddress(null);
       }
+      return defaultAddr; // Retornamos la dirección
     } catch (error) {
       console.error('Error al obtener dirección por defecto:', error);
+      return null;
     }
   };
 
@@ -227,7 +221,6 @@ export const CartProvider = ({ children }) => {
           const data = await res.json();
           throw new Error(data.error || 'Error al agregar el producto al carrito.');
         }
-        // Actualizar state
         setCartItems((prev) => {
           const existingItem = prev.find((i) => i.uniqueID === item.uniqueID);
           if (existingItem) {
@@ -235,7 +228,9 @@ export const CartProvider = ({ children }) => {
             if (newQty <= 0) {
               return prev.filter((i) => i.uniqueID !== item.uniqueID);
             }
-            return prev.map((i) => (i.uniqueID === item.uniqueID ? { ...i, qty: newQty } : i));
+            return prev.map((i) =>
+              i.uniqueID === item.uniqueID ? { ...i, qty: newQty } : i
+            );
           } else {
             return [...prev, { uniqueID: item.uniqueID, qty: item.qty }];
           }
@@ -248,7 +243,6 @@ export const CartProvider = ({ children }) => {
         setError(error.message);
       }
     } else {
-      // No auth
       addToLocalCart(item);
       setCartItems((prev) => {
         const existingItem = prev.find((i) => i.uniqueID === item.uniqueID);
@@ -257,7 +251,9 @@ export const CartProvider = ({ children }) => {
           if (newQty <= 0) {
             return prev.filter((i) => i.uniqueID !== item.uniqueID);
           }
-          return [...prev.map((i) => (i.uniqueID === item.uniqueID ? { ...i, qty: newQty } : i))];
+          return prev.map((i) =>
+            i.uniqueID === item.uniqueID ? { ...i, qty: newQty } : i
+          );
         } else {
           return [...prev, { uniqueID: item.uniqueID, qty: item.qty }];
         }
@@ -329,38 +325,102 @@ export const CartProvider = ({ children }) => {
   };
 
   // ---------------------------------------------
-  // 10) Guardar Dirección
+  // 10) Crear / Actualizar dirección y guardar en la store
   // ---------------------------------------------
-  const saveShippingAddress = async (addressData) => {
-    if (currentUser) {
-      if (shippingAddress) {
-        // Si ya existe una dirección, actualizarla
-        await updateAddress(shippingAddress.uniqueID, addressData);
+  const createAddress = async (addressData) => {
+    try {
+      const response = await fetch('/api/addresses/private/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addressData),
+        credentials: 'include',
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Dirección creada exitosamente');
+        // Retornamos la dirección por defecto (posiblemente sea la nueva, si se marcó default)
+        const newDefault = await fetchDefaultAddress();
+        return newDefault; // <--- para usarla en fetchShippingQuotes
       } else {
-        // Si no existe, crear una nueva
-        await createAddress(addressData);
+        const errorMessage = data.message || 'Error al crear la dirección';
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
       }
-    } else {
-      // Invitado: ya está manejado previamente
-      setGuestZipCode(addressData.zipcode);
-      if (!currentUser) {
-        localStorage.setItem('shippingAddress', JSON.stringify(addressData));
+    } catch (error) {
+      console.error('Error al crear la dirección:', error);
+      toast.error('Hubo un error al crear la dirección.');
+      throw error;
+    }
+  };
+
+  const updateAddress = async (addressId, addressData) => {
+    try {
+      const response = await fetch(`/api/addresses/private/update/${addressId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addressData),
+        credentials: 'include',
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        // Forzamos a refrescar y retornar la dirección default
+        const newDefault = await fetchDefaultAddress();
+        return newDefault;
+      } else {
+        const errorMessage = data.message || 'Error al actualizar la dirección';
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
       }
-      await fetchShippingQuotes();
+    } catch (error) {
+      console.error('Error al actualizar la dirección:', error);
+      toast.error('Hubo un error al actualizar la dirección.');
+      throw error;
     }
   };
 
   // ---------------------------------------------
-  // 11) Cotizar Envío
+  // 11) Guardar Dirección => recalcular envío
   // ---------------------------------------------
-  const fetchShippingQuotes = async (zip = null) => {
+  const saveShippingAddress = async (addressData) => {
+    if (currentUser) {
+      // Usuario autenticado
+      let updatedDefaultAddress;
+      if (shippingAddress) {
+        // Actualizamos la dirección, retornando la nueva dirección default
+        updatedDefaultAddress = await updateAddress(shippingAddress.uniqueID, addressData);
+      } else {
+        // Creamos una nueva dirección y retornamos la default
+        updatedDefaultAddress = await createAddress(addressData);
+      }
+      // Cotizamos usando la dirección recien actualizada
+      await fetchShippingQuotes(null, updatedDefaultAddress);
+
+    } else {
+      // Invitado
+      setGuestZipCode(addressData.zipcode);
+      localStorage.setItem('shippingAddress', JSON.stringify(addressData));
+      // Cotizar usando addressData como override
+      await fetchShippingQuotes(null, addressData);
+    }
+  };
+
+  // ---------------------------------------------
+  // 12) Cotizar Envío con addressOverride opcional
+  // ---------------------------------------------
+  const fetchShippingQuotes = async (zip = null, addressOverride = null) => {
     setLoadingShipping(true);
-    setShippingError(null); // Limpiar errores previos
+    setShippingError(null);
 
     try {
       let addressToUse;
 
-      if (currentUser) {
+      if (addressOverride) {
+        // Si pasamos una dirección concreta, usarla
+        addressToUse = addressOverride;
+      } else if (currentUser) {
+        // Usuario autenticado, sin override
         if (!shippingAddress) {
           setShippingError('No hay dirección de envío.');
           setLoadingShipping(false);
@@ -404,10 +464,9 @@ export const CartProvider = ({ children }) => {
   };
 
   // ---------------------------------------------
-  // 12) useEffect: cargar Carrito al montar
+  // 13) useEffect para cargar Carrito al montar
   // ---------------------------------------------
   useEffect(() => {
-    // Esperamos a que termine authLoading para no hacer 2 requests
     if (!authLoading) {
       loadCart();
       if (currentUser) {
@@ -418,79 +477,14 @@ export const CartProvider = ({ children }) => {
   }, [currentUser, authLoading]);
 
   // ---------------------------------------------
-  // 13) Contar items en el carrito
+  // 14) Contar items en el carrito
   // ---------------------------------------------
   const cartCount = useMemo(() => {
     return cartItems.reduce((acc, item) => acc + item.qty, 0);
   }, [cartItems]);
 
   // ---------------------------------------------
-  // 14) Crear una nueva dirección (para usuarios autenticados)
-  // ---------------------------------------------
-  const createAddress = async (addressData) => {
-    try {
-      const response = await fetch('/api/addresses/private/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(addressData),
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success('Dirección creada exitosamente');
-        // Después de crear, obtener la dirección por defecto
-        await fetchDefaultAddress();
-      } else {
-        const errorMessage = data.message || 'Error al crear la dirección';
-        toast.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-    } catch (error) {
-      console.error('Error al crear la dirección:', error);
-      toast.error('Hubo un error al crear la dirección.');
-      throw error;
-    }
-  };
-
-  // ---------------------------------------------
-  // 15) Actualizar una dirección existente (para usuarios autenticados)
-  // ---------------------------------------------
-  const updateAddress = async (addressId, addressData) => {
-    try {
-      const response = await fetch(`/api/addresses/private/update/${addressId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(addressData),
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success('Dirección actualizada exitosamente');
-        // Después de actualizar, obtener la dirección por defecto
-        await fetchDefaultAddress();
-      } else {
-        const errorMessage = data.message || 'Error al actualizar la dirección';
-        toast.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-    } catch (error) {
-      console.error('Error al actualizar la dirección:', error);
-      toast.error('Hubo un error al actualizar la dirección.');
-      throw error;
-    }
-  };
-
-  // ---------------------------------------------
-  // 16) Modificar el useEffect para actualizar shippingAddress
-  // ---------------------------------------------
-  // (Este paso ya está cubierto en el useEffect anterior)
-
-  // ---------------------------------------------
-  // 17) Exponer las nuevas funciones en el Provider
+  // 15) Provider
   // ---------------------------------------------
   return (
     <CartContext.Provider
@@ -520,10 +514,10 @@ export const CartProvider = ({ children }) => {
         saveGuestZipCode,
         saveGuestZipCodeAndFetchQuotes,
 
-        // Funciones nuevas para direcciones
+        // Direcciones (Auth)
         createAddress,
         updateAddress,
-        fetchDefaultAddress, // Opcional: si necesitas exponer esta función
+        fetchDefaultAddress,
       }}
     >
       {children}

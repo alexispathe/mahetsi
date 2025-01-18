@@ -37,12 +37,12 @@ export default function CartDrawer({ isOpen, onClose }) {
   const [animation, setAnimation] = useState('');
   const drawerRef = useRef(null);
 
-  // Modal de dirección para usuario Auth
+  // Modal de dirección (usuario autenticado)
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // Modal de CP para usuario Guest
+  // Modal de CP (usuario invitado)
   const [isZipModalOpen, setIsZipModalOpen] = useState(false);
 
-  // --- Al cambiar "isOpen", manejamos la animación del Drawer ---
+  // -- Animación de apertura/cierre del Drawer --
   useEffect(() => {
     if (isOpen) {
       setVisible(true);
@@ -56,7 +56,7 @@ export default function CartDrawer({ isOpen, onClose }) {
     }
   }, [isOpen, visible]);
 
-  // --- Cerrar Drawer al hacer click fuera (si no hay otro modal abierto) ---
+  // -- Cerrar Drawer al hacer click fuera (si no hay otro modal abierto) --
   useEffect(() => {
     if (!visible) return;
     const handleClickOutside = (event) => {
@@ -70,22 +70,22 @@ export default function CartDrawer({ isOpen, onClose }) {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [visible, isModalOpen, isZipModalOpen, onClose]);
 
-  // --- IMPORTANTE: Si el usuario está autenticado y tiene dirección default,
-  //     cotizamos en automático al abrir el Drawer, si no hay cotizaciones todavía.
+  // -- Recalcular envío automáticamente al abrir el Drawer
+  //    (si ya hay dirección Auth o CP invitado) --
   useEffect(() => {
-    if (
-      isOpen &&                   // Drawer está abierto
-      currentUser &&              // usuario autenticado
-      shippingAddress &&          // tenemos dirección principal
-      shippingQuotes.length === 0 // no hay cotizaciones todavía
-      && !loadingShipping         // no estamos en proceso de cargar
-    ) {
-      fetchShippingQuotes();
+    if (!isOpen) return; // Drawer cerrado, no hacemos nada
+    if (!loadingShipping && shippingQuotes.length === 0) {
+      if (currentUser && shippingAddress) {
+        fetchShippingQuotes();
+      } else if (!currentUser && guestZipCode) {
+        fetchShippingQuotes();
+      }
     }
   }, [
     isOpen,
     currentUser,
     shippingAddress,
+    guestZipCode,
     shippingQuotes.length,
     loadingShipping,
     fetchShippingQuotes,
@@ -109,6 +109,7 @@ export default function CartDrawer({ isOpen, onClose }) {
   const shippingThreshold = 699;
   const shippingProgress = (subtotal >= shippingThreshold ? 100 : (subtotal / shippingThreshold) * 100);
 
+  // Si ya aplica envío gratis, shippingFee = 0; si no, se toma de la cotización elegida
   const shippingFee = subtotal >= shippingThreshold
     ? 0
     : (selectedQuote ? parseFloat(selectedQuote.total_price) : 0);
@@ -138,41 +139,20 @@ export default function CartDrawer({ isOpen, onClose }) {
     }
   };
 
-  // Calcular Envío manualmente (botón)
-  const handleCalculateShipping = async () => {
-    if (currentUser) {
-      // Auth: si no hay dirección, abrir modal
-      if (!shippingAddress) {
-        setIsModalOpen(true);
-      } else {
-        await fetchShippingQuotes();
-      }
-    } else {
-      // Invitado: si no hay CP, abrir modal
-      if (!guestZipCode) {
-        setIsZipModalOpen(true);
-      } else {
-        await fetchShippingQuotes();
-      }
-    }
-  };
-
   // Elegir cotización
   const handleSelectQuote = (quote) => {
     setSelectedQuote(quote);
     toast.success(
-      `Has seleccionado ${quote.carrier} - ${quote.service} por $${parseFloat(quote.total_price).toFixed(
-        2
-      )}`
+      `Has seleccionado ${quote.carrier} - ${quote.service} por $${parseFloat(quote.total_price).toFixed(2)}`
     );
   };
 
-  // Editar dirección (auth)
+  // Editar dirección (Auth)
   const handleEditShippingAddress = () => {
     setIsModalOpen(true);
   };
 
-  // Editar CP (guest)
+  // Editar CP (Guest)
   const handleEditGuestZip = () => {
     setIsZipModalOpen(true);
   };
@@ -310,16 +290,13 @@ export default function CartDrawer({ isOpen, onClose }) {
                   </div>
                 ) : (
                   <>
-                    <button
-                      onClick={handleCalculateShipping}
-                      className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors duration-300"
-                    >
-                      Calcular / Recalcular Envío
-                    </button>
-
-                    {/* Mensaje de error o loading en cotización */}
-                    {shippingError && <p className="text-red-500 mt-4">Error: {shippingError}</p>}
-                    {loadingShipping && <p className="text-gray-600 mt-4">Calculando envío...</p>}
+                    {/* Mensajes de estado de la cotización */}
+                    {loadingShipping && (
+                      <p className="text-gray-600 mt-4">Calculando envío...</p>
+                    )}
+                    {shippingError && (
+                      <p className="text-red-500 mt-4">Error: {shippingError}</p>
+                    )}
 
                     {/* Mostrar cotizaciones si existen */}
                     {shippingQuotes.length > 0 && (
@@ -354,7 +331,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                       </div>
                     )}
 
-                    {/* Editar dirección (auth) o CP (guest) */}
+                    {/* Editar dirección (Auth) o CP (guest) */}
                     <div className="mt-4">
                       {currentUser && shippingAddress && (
                         <button
@@ -384,7 +361,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                 <span>${subtotal.toFixed(2)}</span>
               </div>
 
-              {/* Envío si ya se seleccionó */}
+              {/* Envío si no es gratis y tenemos cotización seleccionada */}
               {subtotal < shippingThreshold && selectedQuote && (
                 <div className="flex justify-between mt-2 font-semibold text-lg text-gray-800">
                   <span>Envío</span>
