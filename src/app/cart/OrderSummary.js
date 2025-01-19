@@ -1,5 +1,4 @@
 // src/cart/OrderSummary.js
-
 'use client'
 import React from 'react';
 import Link from 'next/link';
@@ -15,14 +14,13 @@ export default function OrderSummary({ subtotal, shippingFee, grandTotal }) {
           <p className="text-sm">Subtotal</p>
           <p className="font-semibold">${subtotal.toFixed(2)}</p>
         </div>
-
         {/* Envío */}
         <div className="flex justify-between mb-2">
           <p className="text-sm">Envío</p>
           <p className="font-semibold">${shippingFee.toFixed(2)}</p>
         </div>
       </div>
-
+      
       {/* Total */}
       <div className="flex justify-between mb-6">
         <p className="text-lg font-bold">Total</p>

@@ -90,13 +90,13 @@ export async function POST(request) {
   try {
     const { direccionDestino } = await request.json();
 
-    // Dirección de origen (almacén)
+    // Dirección de origen 
     const direccionOrigen = {
       "country_code": 'MX',
-      "postal_code": '76650',
-      "area_level1": 'Queretaro', // Estado
-      "area_level2": 'Queretaro', // Ciudad
-      "area_level3": 'Centro', // Colonia
+      "postal_code": '76000',
+      "area_level1": 'Queretaro',
+      "area_level2": 'Queretaro', 
+      "area_level3": 'Centro', 
       "street1": 'C. Tierras y Aguas 18',
       "apartment_number": '123',
       "reference": 'Almacén principal',
@@ -114,7 +114,7 @@ export async function POST(request) {
       "area_level2": direccionDestino.city || 'Ciudad desconocida',  // Ciudad
       "area_level3": direccionDestino.colonia || 'Sin colonia',      // Colonia
       "street1": direccionDestino.address || 'Sin calle',
-      "apartment_number": direccionDestino.number || 'SN',           // Si no hay número
+      "apartment_number": direccionDestino.number || 'SN',           
       "reference": direccionDestino.reference || 'Casa',
       "name": `${direccionDestino.firstName || 'Nombre'} ${direccionDestino.lastName || 'Desconocido'}`,
       "phone":  parseInt(direccionDestino.phone) || parseInt('0000000000'),
@@ -126,12 +126,12 @@ export async function POST(request) {
         "address_from": direccionOrigen,
         "address_to": destinoFormateado,
         "parcel": {
-          "weight": 5,  // Peso fijo de 5kg
-          "height": 8, // Alto fijo de 8cm
-          "width": 5,  // Ancho fijo de 5cm
-          "length": 1  // Largo fijo de 1cm
+          "weight":5,  // Peso fijo de 5kg
+          "height": 15, // Alto  de 8cm
+          "width": 5,  // Ancho  de 5cm
+          "length": 20  // Largo  de 1cm
         },
-        "requested_carriers": ["dhl", "fedex"] // Ejemplo pidiendo varias paqueterías
+        "requested_carriers": [] // paqueterías
       }
     };
 
