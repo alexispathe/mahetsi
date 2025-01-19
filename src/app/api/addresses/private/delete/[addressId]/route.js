@@ -5,7 +5,7 @@ import { verifySessionCookie, firestore } from '../../../../../../libs/firebaseA
 import { cookies } from 'next/headers';
 
 export async function DELETE(request, context) {
-  const params = context.params;
+  const params = await context.params;
   const { addressId } = params; // Obtener el parámetro dinámico 'addressId'
 
   try {

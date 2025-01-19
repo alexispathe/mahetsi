@@ -4,9 +4,13 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function CartItems({ items, handleRemoveItem, handleAddQuantity, handleRemoveQuantity }) {
+export default function CartItems({
+  items,
+  handleRemoveItem,
+  handleAddQuantity,
+  handleRemoveQuantity
+}) {
   const [isRemoving, setIsRemoving] = useState(null);
-  const [isUpdating, setIsUpdating] = useState(null);
 
   if (items.length === 0) {
     return <p className="text-gray-700 text-center">Tu carrito está vacío</p>;
@@ -18,7 +22,7 @@ export default function CartItems({ items, handleRemoveItem, handleAddQuantity, 
       <div className="space-y-6">
         {items.map((item) => (
           <div key={item.uniqueID} className="flex flex-col sm:flex-row justify-between items-center p-4 rounded-md shadow-sm">
-            {/* Producto */}
+            {/* Imagen y Nombre */}
             <div className="flex items-center w-full sm:w-2/3">
               {item.image ? (
                 <Image
@@ -35,13 +39,17 @@ export default function CartItems({ items, handleRemoveItem, handleAddQuantity, 
                 <Link href={`/product/${item.url}`} className="font-semibold text-lg hover:underline">
                   {item.name}
                 </Link>
-                <p className="text-sm text-gray-500 mt-1">Precio unitario: ${item.price.toFixed(2)}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Precio unitario: ${item.price.toFixed(2)}
+                </p>
               </div>
             </div>
-            {/* Controles de Cantidad y Eliminar */}
+
+            {/* Cantidad y Eliminar */}
             <div className="flex flex-col sm:flex-row items-center w-full sm:w-1/3 mt-4 sm:mt-0 space-y-4 sm:space-y-0 sm:space-x-6">
-              {/* Precio total de este producto */}
-              <p className="font-semibold text-xl">${(item.price * item.qty).toFixed(2)}</p>
+              <p className="font-semibold text-xl">
+                ${(item.price * item.qty).toFixed(2)}
+              </p>
 
               <div className="flex items-center space-x-2">
                 <button
@@ -49,17 +57,14 @@ export default function CartItems({ items, handleRemoveItem, handleAddQuantity, 
                   className={`px-3 py-1 text-lg bg-gray-200 rounded-md hover:bg-gray-300 transition-colors duration-200 ${
                     item.qty === 1 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                   }`}
-                  disabled={item.qty === 1 || isUpdating === item.uniqueID}
+                  disabled={item.qty === 1}
                 >
                   -
                 </button>
                 <span className="text-lg">{item.qty}</span>
                 <button
                   onClick={() => handleAddQuantity(item)}
-                  className={`px-3 py-1 text-lg bg-gray-200 rounded-md hover:bg-gray-300 transition-colors duration-200 ${
-                    isUpdating === item.uniqueID ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
-                  }`}
-                  disabled={isUpdating === item.uniqueID}
+                  className="px-3 py-1 text-lg bg-gray-200 rounded-md hover:bg-gray-300 transition-colors duration-200"
                 >
                   +
                 </button>
