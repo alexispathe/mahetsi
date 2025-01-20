@@ -131,7 +131,7 @@ export async function POST(request) {
           "width": 5,  // Ancho  de 5cm
           "length": 20  // Largo  de 1cm
         },
-        "requested_carriers": [] // paqueterías
+        "requested_carriers": ["dhl", "fedex"] // paqueterías
       }
     };
 

@@ -106,7 +106,7 @@ export default function CartDrawer({ isOpen, onClose }) {
   });
 
   const subtotal = detailedCartItems.reduce((total, item) => total + (item.price * item.qty), 0);
-  const shippingThreshold = 699;
+  const shippingThreshold = 999;
   const shippingProgress = (subtotal >= shippingThreshold ? 100 : (subtotal / shippingThreshold) * 100);
 
   // Si ya aplica envío gratis, shippingFee = 0; si no, se toma de la cotización elegida
@@ -380,16 +380,17 @@ export default function CartDrawer({ isOpen, onClose }) {
 
               {/* Botones de acción */}
               <div className="mt-6 space-y-4">
+              <Link href="/cart">
+                  <button className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition-colors duration-300">
+                    Ver resumen del carrito
+                  </button>
+                </Link>
                 <Link href="/checkout">
-                  <button className="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition-colors duration-300">
+                  <button className="w-full bg-orange-600 text-white  mt-4  py-3 rounded-lg hover:bg-orange-700 transition-colors duration-300">
                     Pagar
                   </button>
                 </Link>
-                <Link href="/cart">
-                  <button className="w-full bg-gray-200 text-gray-700 mt-4 py-3 rounded-lg hover:bg-gray-300 transition-colors duration-300">
-                    Ver Carrito
-                  </button>
-                </Link>
+               
               </div>
             </>
           )}
