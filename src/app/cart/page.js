@@ -8,7 +8,7 @@ import { CartContext } from '@/context/CartContext';
 import { AuthContext } from '@/context/AuthContext';
 
 // Reutilizamos los mismos modales usados en el Drawer
-import ShippingAddressModal from '../components/shippingAddressModal/ShippingAddressModal.js';
+import ShippingAddressModal from '../components/shippingAddressModal/ShippingAddressModal.js.js';
 import ZipCodeModal from '../components/cartDrawer/ZipCodeModal';
 import { toast } from 'react-toastify'; // Si estás usando react-toastify
 

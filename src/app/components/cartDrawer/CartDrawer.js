@@ -12,7 +12,7 @@ import CartSummary from './CartSummary';
 import ActionButtons from './ActionButtons';
 
 // Modales
-import ShippingAddressModal from '../shippingAddressModal/ShippingAddressModal.js';
+import ShippingAddressModal from '../shippingAddressModal/ShippingAddressModal.js.js';
 import ZipCodeModal from './ZipCodeModal';
 
 export default function CartDrawer({ isOpen, onClose }) {
@@ -35,6 +35,7 @@ export default function CartDrawer({ isOpen, onClose }) {
   } = useContext(CartContext);
 
   const { currentUser } = useContext(AuthContext);
+  
 
   // Estados locales
   const [isRemoving, setIsRemoving] = useState(null);

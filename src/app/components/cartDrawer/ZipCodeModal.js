@@ -51,8 +51,14 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+      onClick={onClose} // Cierra el modal al hacer clic fuera del contenido
+    >
+      <div
+        className="bg-white w-full max-w-md p-6 rounded-lg shadow-lg"
+        onClick={(e) => e.stopPropagation()} // Detiene la propagación del clic
+      >
         <h2 className="text-2xl font-bold mb-4">Ingresa o actualiza tu Código Postal</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

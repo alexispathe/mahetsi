@@ -1,6 +1,6 @@
 import localFont from "next/font/local";
 import "./globals.css";
-import ToastProvider from "./components/ToastProvider";
+import ToastProvider from "./components/toastProvider/ToastProvider";
 import { AuthProvider } from "@/context/AuthContext"; // Importa el AuthProvider
 import { CartProvider } from '@/context/CartContext';
 import { FavoritesProvider } from '@/context/FavoritesContext'; // Importar FavoritesProvider

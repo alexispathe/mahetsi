@@ -1,12 +1,12 @@
 'use client';
 import Header from "./components/header/Header";
-import Hero from "./components/Hero";
-import FavoriteProductsCarousel from "./components/FavoriteProductsCarousel";
-import BestProducts from "./components/BestProducts";
-import ProductExtras from "./components/ProductExtras";
-import ReviewSection from "./components/ReviewSection";
-import InstagramSection from "./components/InstagramSection";
-import Footer from "./components/Footer";
+import Hero from "./components/hero/Hero";
+import FavoriteProductsCarousel from "./components/favoriteProductsCarousel/FavoriteProductsCarousel";
+import BestProducts from "./components/BestProducts/BestProducts";
+import ProductExtras from "./components/productExtras/ProductExtras";
+import ReviewSection from "./components/reviewSection/ReviewSection";
+import InstagramSection from "./components/instagramSection/InstagramSection";
+import Footer from "./components/footer/Footer";
 
 export default function HomePage() {
 
