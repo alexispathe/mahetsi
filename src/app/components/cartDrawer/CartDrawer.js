@@ -13,7 +13,7 @@ import ActionButtons from './ActionButtons';
 
 // Modales
 import ShippingAddressModal from '../shippingAddressModal/ShippingAddressModal.js';
-import ZipCodeModal from '../ZipCodeModal';
+import ZipCodeModal from './ZipCodeModal';
 
 export default function CartDrawer({ isOpen, onClose }) {
   // Contextos

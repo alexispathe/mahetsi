@@ -11,7 +11,7 @@ import Image from 'next/image';
 import AdminButton from './AdminButton';
 import OrdersTable from './OrdersTable';
 import AdminOrders from '../admin/orders/AdminOrders';
-import UserAddress from '../../components/UserAddress';
+import UserAddress from '../../components/userAddress/UserAddress';
 import UserReviews from './UserReviews'; 
 
 export default function ProfilePage() {

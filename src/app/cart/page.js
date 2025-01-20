@@ -9,7 +9,7 @@ import { AuthContext } from '@/context/AuthContext';
 
 // Reutilizamos los mismos modales usados en el Drawer
 import ShippingAddressModal from '../components/shippingAddressModal/ShippingAddressModal.js';
-import ZipCodeModal from '../components/ZipCodeModal';
+import ZipCodeModal from '../components/cartDrawer/ZipCodeModal';
 import { toast } from 'react-toastify'; // Si estás usando react-toastify
 
 export default function CartPage() {
