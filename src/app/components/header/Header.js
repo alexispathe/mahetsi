@@ -7,7 +7,7 @@ import Navigation from './Navigation';
 import MobileMenu from './MobileMenu';
 import Icons from './Icons';
 import SearchModal from '../SearchModal';
-import CartDrawer from '../CartDrawer';
+import CartDrawer from '../cartDrawer/cartDrawer';
 import FavoritesModal from '../FavoritesModal';
 import { CartContext } from '@/context/CartContext';
 import { AuthContext } from '@/context/AuthContext';
