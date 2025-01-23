@@ -33,7 +33,7 @@ export default function ShippingOptions({
   if (subtotal >= shippingThreshold) {
     return (
       <div className="flex justify-between items-center bg-green-100 p-4 rounded-md mt-6">
-        <span className="font-semibold text-green-700">¡Envío Gratis!</span>
+        <span className="font-semibold text-green-700">¡Felicidades! Tu envío es gratis.</span>
       </div>
     );
   }

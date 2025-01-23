@@ -195,7 +195,7 @@ export default function CartPage() {
                       </span>
                     </>
                   ) : (
-                    <span className="text-sm text-gray-600">¡Tienes envío gratuito!</span>
+                    <span className="text-sm text-gray-600">¡Felicidades! Tu envío es gratis.</span>
                   )}
                 </div>
                 <div className="h-2 bg-gray-200 rounded-full mt-1">
