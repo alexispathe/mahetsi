@@ -1,6 +1,6 @@
 'use client'
 import { FaEnvelope } from "react-icons/fa"; // Icono para el correo electrónico
-import '../styles/footer.css'
+import '../../styles/footer.css'
 import Image from 'next/image'; // Importamos Image
 
 export default function Footer() {
