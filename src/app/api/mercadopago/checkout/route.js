@@ -55,7 +55,6 @@ export async function POST(request) {
     const uniqueExternalReference = paymentPreferenceRef.id;
 
     // Crear preferencia de pago
-    console.log("envio", shipments)
     const preference = new Preference(client);
     const preferenceData = {
       items: items, //Productos
@@ -68,12 +67,12 @@ export async function POST(request) {
         total: total
       },
       back_urls: {
-        success: `http://localhost:3000/profile/user`, // Reemplaza con tu dominio real
-        failure: `http://localhost:3000/checkout/failure`,
-        pending: `http://localhost:3000/checkout/pending`
+        success: `https://mahetsi.vercel.app/profile/user`, // Reemplaza con tu dominio real
+        failure: `https://mahetsi.vercel.app/checkout/failure`,
+        pending: `https://mahetsi.vercel.app/checkout/pending`
       },
       auto_return: "aprovado",
-      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`, 
+      notification_url: `https://mahetsi.vercel.app/api/mercadopago/webhook`, 
       statement_descriptor: "Mahetsi",
       external_reference: uniqueExternalReference // Usar el ID único aquí
     };
