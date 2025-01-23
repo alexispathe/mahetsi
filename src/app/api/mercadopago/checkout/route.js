@@ -38,36 +38,33 @@ export async function POST(request) {
         title: product.name,
         quantity: cartItem.qty,
         unit_price: product.price,
-        currency_id: "MXN" 
+        currency_id: "MXN"
       };
     });
 
-    // Agregar el ítem de envío
-    const shippingItem = {
-      id: 'shipping',
-      title: `${body.selectedQuote.carrier} - ${body.selectedQuote.service}`,
-      quantity: 1,
-      unit_price: parseFloat(body.selectedQuote.total_price),
-      currency_id: "MXN"
+    // Configurar el costo de envío usando shipments
+    const shipments = {
+      cost: parseFloat(body.selectedQuote.total_price),
     };
-    items.push(shippingItem);
 
     // Calcular totales (sin impuestos)
-    const total = items.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+    const total = items.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0) + shipments.cost;
 
     // Crear referencia única para external_reference
     const paymentPreferenceRef = firestore.collection('payment_preferences').doc();
     const uniqueExternalReference = paymentPreferenceRef.id;
 
     // Crear preferencia de pago
+    console.log("envio", shipments)
     const preference = new Preference(client);
     const preferenceData = {
-      items: items,
+      items: items, //Productos
+      shipments: shipments, // metodo de envio
       metadata: {
-        selectedAddressId: body.selectedAddressId,
+        selectedAddressId: body.selectedAddressId, //Direccion del usuario
         cartItems: JSON.stringify(body.cartItems),
-        shippingType: body.selectedQuote.service, // Tipo de envío
-        shippingCost: parseFloat(body.selectedQuote.total_price), // Costo de envío
+        shippingType: `${body.selectedQuote.carrier} - ${body.selectedQuote.service} - ${body.selectedQuote.days} días`,
+        shippingCost: shipments.cost, // Costo de envío
         total: total
       },
       back_urls: {
@@ -75,8 +72,8 @@ export async function POST(request) {
         failure: `http://localhost:3000/checkout/failure`,
         pending: `http://localhost:3000/checkout/pending`
       },
-      auto_return: "approved",
-      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`, // Reemplaza con tu dominio real
+      auto_return: "aprovado",
+      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`, 
       statement_descriptor: "Mahetsi",
       external_reference: uniqueExternalReference // Usar el ID único aquí
     };
@@ -100,8 +97,7 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Error en checkout:', error);
-    
-    // Guardar el error en Firestore sin campos undefined
+
     const errorData = {
       type: 'checkout_error',
       message: error.message || 'Error desconocido',
