@@ -71,9 +71,9 @@ export async function POST(request) {
         total: total
       },
       back_urls: {
-        success: `${process.env.NEXT_PUBLIC_BASE_URL}/profile/user`, // Reemplaza con tu dominio real
-        failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
-        pending: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/pending`
+        success: `http://localhost:3000/profile/user`, // Reemplaza con tu dominio real
+        failure: `http://localhost:3000/checkout/failure`,
+        pending: `http://localhost:3000/checkout/pending`
       },
       auto_return: "approved",
       notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`, // Reemplaza con tu dominio real
