@@ -35,7 +35,7 @@ export async function POST(request) {
       
       return {
         id: cartItem.uniqueID,
-        title: product.name,
+        title: "Tienda Mahets'i'",
         quantity: cartItem.qty,
         unit_price: product.price,
         currency_id: "MXN"
@@ -67,12 +67,12 @@ export async function POST(request) {
         total: total
       },
       back_urls: {
-        success: `https://mahetsi.vercel.app/profile/user`, // Reemplaza con tu dominio real
-        failure: `https://mahetsi.vercel.app/checkout/failure`,
-        pending: `https://mahetsi.vercel.app/checkout/pending`
+        success: `${process.env.NEXT_PUBLIC_BASE_URL}/profile/user`, // Reemplaza con tu dominio real
+        failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
+        pending: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/pending`
       },
-      auto_return: "aprovado",
-      notification_url: `https://mahetsi.vercel.app/api/mercadopago/webhook`, 
+      auto_return: "approved",
+      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`, 
       statement_descriptor: "Mahetsi",
       external_reference: uniqueExternalReference // Usar el ID único aquí
     };
