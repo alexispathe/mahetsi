@@ -85,7 +85,7 @@ export default function CartItemsList({
                 ? 'Eliminando...'
                 : (
                   <>
-                    <FaTrash className="mr-1" /> Eliminar
+                    <FaTrash className="mr-1" /> 
                   </>
                 )
               }

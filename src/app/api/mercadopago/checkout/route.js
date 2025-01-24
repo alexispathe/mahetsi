@@ -5,8 +5,8 @@ import { firestore } from '@/libs/firebaseAdmin';
 
 // Configurar MercadoPago
 const client = new MercadoPagoConfig({
-  accessToken: process.env.NODE_ENV === 'production' 
-    ? process.env.MP_ACCESS_TOKEN 
+  accessToken: process.env.NODE_ENV === 'production'
+    ? process.env.MP_ACCESS_TOKEN
     : process.env.MP_TEST_ACCESS_TOKEN,
 });
 
@@ -16,9 +16,9 @@ export async function POST(request) {
 
     // Validar el body
     if (!body.cartItems || !body.selectedAddressId || !body.selectedQuote) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Datos incompletos' 
+      return NextResponse.json({
+        success: false,
+        message: 'Datos incompletos'
       }, { status: 400 });
     }
 
@@ -28,28 +28,34 @@ export async function POST(request) {
       body.cartItems.map(item => productsRef.doc(item.uniqueID).get())
     );
 
+  
     // Crear los items para la preferencia de Mercado Pago
     const items = productsSnapshot.map((doc, index) => {
-      const product = doc.data();
       const cartItem = body.cartItems[index];
-      
+      const product = doc.data();
       return {
         id: cartItem.uniqueID,
-        title: "Tienda Mahets'i'",
-        quantity: cartItem.qty,
-        unit_price: product.price,
-        currency_id: "MXN"
+        title: "Tienda Mahets'i'", // Nombre del producto
+        quantity: 1,
+        unit_price: product.price * cartItem.qty,
+        currency_id: "MXN",
       };
     });
+    console.log("precio total ",totalPrice)
+
+    // Verificar si se generaron correctamente los items
+    if (!items || items.length === 0) {
+      throw new Error('No se pudieron generar los items para la preferencia.');
+    }
+
 
     // Configurar el costo de envío usando shipments
     const shipments = {
       cost: parseFloat(body.selectedQuote.total_price),
     };
 
-    // Calcular totales (sin impuestos)
+    // Calcular totales 
     const total = items.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0) + shipments.cost;
-
     // Crear referencia única para external_reference
     const paymentPreferenceRef = firestore.collection('payment_preferences').doc();
     const uniqueExternalReference = paymentPreferenceRef.id;
@@ -67,12 +73,12 @@ export async function POST(request) {
         total: total
       },
       back_urls: {
-        success: `${process.env.NEXT_PUBLIC_BASE_URL}/profile/user`, // Reemplaza con tu dominio real
-        failure: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/failure`,
-        pending: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/pending`
+        success: `${process.env.NEXT_PUBLIC_BASE_URL_LOCAL}/profile/user`, // Reemplaza con tu dominio real
+        failure: `${process.env.NEXT_PUBLIC_BASE_URL_LOCAL}/checkout/failure`,
+        pending: `${process.env.NEXT_PUBLIC_BASE_URL_LOCAL}/checkout/pending`
       },
       auto_return: "approved",
-      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/mercadopago/webhook`, 
+      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL_LOCAL}/api/mercadopago/webhook`,
       statement_descriptor: "Mahetsi",
       external_reference: uniqueExternalReference // Usar el ID único aquí
     };
@@ -109,7 +115,7 @@ export async function POST(request) {
 
     await firestore.collection('checkout_errors').add(errorData);
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: false,
       message: 'Error al crear la preferencia de pago'
     }, { status: 500 });
