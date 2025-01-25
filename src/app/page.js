@@ -13,7 +13,6 @@ export default function HomePage() {
 
   return (
     <div>
-      <Header cartCount={2} textColor={'text-white'} />
       <Hero />
       <FavoriteProductsCarousel />
       <BestProducts />

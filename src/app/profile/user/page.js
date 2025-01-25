@@ -5,7 +5,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
-import Header from '../../components/header/Header';
 import LogoutButton from './LogoutButton';
 import Image from 'next/image';
 import AdminButton from './AdminButton';
@@ -112,7 +111,6 @@ export default function ProfilePage() {
 
   return (
     <>
-      <Header textColor="black" position="relative" />
       <div className="container mx-auto p-4">
         {/* Info del Perfil */}
         <div className="bg-white shadow-md rounded-lg p-6 mb-6">

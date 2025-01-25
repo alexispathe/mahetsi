@@ -4,7 +4,6 @@ import React, { Suspense, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
-import Header from '../components/header/Header';
 import { AuthContext } from '@/context/AuthContext';
 import { useSearchParams } from 'next/navigation';
 
@@ -92,7 +91,6 @@ function LoginContent() {
         </div>
       ) : (
         <>
-          <Header textColor="text-black" />
           <div className="flex justify-center items-center min-h-screen bg-gray-100 py-4">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm">
               <h1 className="text-2xl font-semibold text-center text-gray-700 mb-4">Iniciar Sesión</h1>

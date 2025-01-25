@@ -1,8 +1,6 @@
 // src/cart/CartPage.js
 'use client';
 import { useContext, useState, useEffect } from 'react';
-import Link from 'next/link';
-import Header from '../components/header/Header';
 import OrderSummary from './OrderSummary';
 import CartItems from './CartItems';
 import { CartContext } from '@/context/CartContext';
@@ -130,8 +128,6 @@ export default function CartPage() {
 
   return (
     <>
-      <Header position="relative" textColor="text-black" />
-
       <div className="cart-page mx-auto pt-20 p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* ================== Columna principal: Lista de Carrito ================== */}

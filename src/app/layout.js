@@ -4,7 +4,8 @@ import ToastProvider from "./components/toastProvider/ToastProvider";
 import { AuthProvider } from "@/context/AuthContext"; // Importa el AuthProvider
 import { CartProvider } from '@/context/CartContext';
 import { FavoritesProvider } from '@/context/FavoritesContext'; // Importar FavoritesProvider
-import { FaWhatsapp } from 'react-icons/fa'; 
+import { FaWhatsapp } from 'react-icons/fa';
+import Header from "./components/header/Header";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -33,20 +34,21 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <CartProvider>
             <FavoritesProvider>
+              <Header/>
               {children}
-              <ToastProvider /> 
+              <ToastProvider />
             </FavoritesProvider>
           </CartProvider>
         </AuthProvider>
         {/* Icono de WhatsApp */}
-      <a
-        href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-12 z-50 right-5 bg-green-500 p-3 rounded-full shadow-lg hover:bg-green-600 transition-colors"
-      >
-        <FaWhatsapp size={30} color="white" />
-      </a>
+        <a
+          href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-12 z-50 right-5 bg-green-500 p-3 rounded-full shadow-lg hover:bg-green-600 transition-colors"
+        >
+          <FaWhatsapp size={30} color="white" />
+        </a>
       </body>
     </html>
   );

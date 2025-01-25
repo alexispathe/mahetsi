@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
 import UserAddress from '../components/userAddress/UserAddress';
 import CartSummary from './CartSummary'; 
-import Header from '../components/header/Header';
 
 export default function CheckoutPage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
@@ -70,7 +69,6 @@ export default function CheckoutPage() {
 
   return (
     <div>
-      <Header position="relative" textColor="text-black" />
       <div className="cart-page container mx-auto pt-20 p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <UserAddress 

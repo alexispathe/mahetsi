@@ -4,7 +4,6 @@
 import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/context/AuthContext";
-import Header from "@/app/components/header/Header";
 import useGetData from "@/hooks/useGetData";
 import CollapsibleSection from "./components/CollapsibleSection";
 
@@ -222,7 +221,6 @@ const AdminDashboard = () => {
 
   return (
     <>
-      <Header textColor="black" position="relative" />
       <div className="container mx-auto p-6">
         <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">
           Panel de Administración

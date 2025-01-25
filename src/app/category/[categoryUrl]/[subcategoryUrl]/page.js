@@ -4,7 +4,6 @@
 import { useParams } from 'next/navigation';
 import { FaTimes } from 'react-icons/fa';
 import { IoOptions } from "react-icons/io5";
-import Header from '../../../components/header/Header';
 import HeroSection from '../../HeroSection';
 import CategoryFilter from '../../CategoryFilter';
 import SubcategoryFilter from '../../SubcategoryFilter'; // Asegúrate de la ruta correcta
@@ -107,7 +106,6 @@ export default function CategoryPage() {
 
   return (
     <>
-      <Header textColor={'text-white'} />
       <HeroSection />
       <div className="container mx-auto px-4 py-6">
         {/* Botón para abrir filtros en móviles */}

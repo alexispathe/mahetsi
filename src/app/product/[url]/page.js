@@ -4,7 +4,6 @@
 
 import React from "react";
 import { useParams } from "next/navigation";
-import Header from "../../components/header/Header";
 import ProductDetail from "./ProductDetail";
 
 export default function ProductPage() {
@@ -13,8 +12,6 @@ export default function ProductPage() {
 
   return (
     <>
-      {/* Header separado */}
-      <Header position="relative" textColor="text-black" />
       
       {/* ProductDetail recibe la prop productUrl */}
       <ProductDetail productUrl={productUrl} />

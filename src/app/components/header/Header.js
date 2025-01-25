@@ -13,7 +13,7 @@ import { CartContext } from '@/context/CartContext';
 import { AuthContext } from '@/context/AuthContext';
 import { FaBars } from "react-icons/fa";
 
-export default function Header({ textColor = 'text-white', position = "absolute" }) { 
+export default function Header({ textColor = 'text-black', position = "relative" }) { 
   const [isHovered, setIsHovered] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
   const [isCartOpen, setCartOpen] = useState(false);
