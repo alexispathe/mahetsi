@@ -1,3 +1,5 @@
+// src/app/components/userAddress/UserAddress.js
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -7,12 +9,14 @@ import { toast } from 'react-toastify';
 // Subcomponentes
 import AddressList from './AddressList';
 import AddressForm from './AddressForm';
+import SkeletonUserAddress from './SkeletonUserAddress'; // Nuevo componente de Skeleton
 
 export default function UserAddress({
   addresses,
   setAddresses,
   selectedAddressId,
   setSelectedAddressId,
+  loading, // Nuevo prop
 }) {
   // Estados locales
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -22,9 +26,11 @@ export default function UserAddress({
   const [deletingAddressIds, setDeletingAddressIds] = useState([]);
 
   useEffect(() => {
-    fetchAddresses();
+    if (!loading) {
+      fetchAddresses();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loading]);
 
   // Obtener direcciones del usuario
   const fetchAddresses = async () => {
@@ -159,6 +165,10 @@ export default function UserAddress({
       toast.error('Hubo un error al establecer la dirección principal');
     }
   };
+
+  if (loading) {
+    return <SkeletonUserAddress />; // Mostrar Skeleton mientras carga
+  }
 
   return (
     <div className="user-address-container bg-white p-6 rounded-lg shadow-md">

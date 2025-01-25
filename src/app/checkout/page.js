@@ -68,14 +68,6 @@ export default function CheckoutPage() {
     }
   }, [selectedAddressId, addresses]);
 
-  if (authLoading || sessionInitializing || !currentUser) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <Header position="relative" textColor="text-black" />
@@ -86,6 +78,7 @@ export default function CheckoutPage() {
             setSelectedAddressId={setSelectedAddressId} 
             setAddresses={setAddresses} 
             addresses={addresses}
+            loading={authLoading || sessionInitializing} // Pasar estado de carga
           />
           <CartSummary 
             selectedAddressId={selectedAddressId} 
@@ -94,6 +87,7 @@ export default function CheckoutPage() {
             selectedQuote={selectedQuote} // Cotización seleccionada
             setSelectedQuote={setSelectedQuote} // Función para actualizar la selección
             loadingShipping={loadingShipping} // Indicamos si estamos cargando el costo de envío
+            loading={authLoading || sessionInitializing} // Pasar estado de carga
           />
         </div>
       </div>
