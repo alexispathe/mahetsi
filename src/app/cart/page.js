@@ -1,3 +1,4 @@
+// src/cart/CartPage.js
 'use client';
 import { useContext, useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -7,17 +8,15 @@ import CartItems from './CartItems';
 import { CartContext } from '@/context/CartContext';
 import { AuthContext } from '@/context/AuthContext';
 
-// Reutilizamos los mismos modales usados en el Drawer
 import ShippingAddressModal from '../components/shippingAddressModal/ShippingAddressModal.js.js';
 import ZipCodeModal from '../components/cartDrawer/ZipCodeModal';
-import { toast } from 'react-toastify'; // Si estás usando react-toastify
+import { toast } from 'react-toastify';
 
 export default function CartPage() {
-  // ====== Estados globales (contextos) ======
   const {
     cartItems,
     products,
-    loading,
+    loading,          // Carga del carrito
     error,
     removeItemFromCart,
     addItemToCart,
@@ -28,21 +27,20 @@ export default function CartPage() {
     fetchShippingQuotes,
     selectedQuote,
     setSelectedQuote,
-    loadingShipping,
+    loadingShipping,  // Carga de cotizaciones
     shippingError,
     guestZipCode,
   } = useContext(CartContext);
 
   const { currentUser } = useContext(AuthContext);
 
-  // ====== Estados locales para spinner de cantidad y modales ======
   const [isRemoving, setIsRemoving] = useState(null);
   const [isUpdatingQty, setIsUpdatingQty] = useState(null);
 
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isZipModalOpen, setIsZipModalOpen] = useState(false);
 
-  // ====== Unir detalles del producto con el carrito ======
+  // Unir detalles del producto con el carrito
   const detailedCartItems = cartItems.map(cartItem => {
     const product = products.find(p => p.uniqueID === cartItem.uniqueID);
     return {
@@ -54,13 +52,13 @@ export default function CartPage() {
     };
   });
 
-  // ====== Subtotal ======
+  // Subtotal
   const subtotal = detailedCartItems.reduce(
     (acc, item) => acc + (item.price * item.qty),
     0
   );
 
-  // ====== Threshold y Fee de envío ======
+  // Threshold y Fee de envío
   const shippingThreshold = 999;
   const shippingFee = (subtotal >= shippingThreshold)
     ? 0
@@ -68,17 +66,14 @@ export default function CartPage() {
 
   const grandTotal = subtotal + shippingFee;
 
-  // ====== Determinar si shipping está pendiente ======
+  // Determinar si shipping está pendiente
   const isShippingPending = subtotal < shippingThreshold && (
     (currentUser && !shippingAddress) ||
     (!currentUser && !guestZipCode)
   );
 
-  // ====== useEffect para cargar cotizaciones igual que en CartDrawer ======
+  // Llamamos a fetchShippingQuotes si no está cargando y aún no tenemos shippingQuotes
   useEffect(() => {
-    // Si no hay cotizaciones aún y no estamos en loadingShipping,
-    // y hay dirección (Auth) o CP (Guest),
-    // entonces llamamos a fetchShippingQuotes().
     if (!loadingShipping && shippingQuotes.length === 0) {
       if (currentUser && shippingAddress) {
         fetchShippingQuotes();
@@ -95,7 +90,7 @@ export default function CartPage() {
     fetchShippingQuotes,
   ]);
 
-  // ====== Handlers de cantidad ======
+  // Handlers de cantidad
   const handleRemoveItem = async (uniqueID) => {
     setIsRemoving(uniqueID);
     await removeItemFromCart(uniqueID);
@@ -118,13 +113,15 @@ export default function CartPage() {
     }
   };
 
-  // ====== Selección de cotización ======
+  // Selección de cotización
   const handleSelectQuote = (quote) => {
     setSelectedQuote(quote);
-    toast.success(`Has seleccionado ${quote.carrier} - ${quote.service} por $${parseFloat(quote.total_price).toFixed(2)}`);
+    toast.success(
+      `Has seleccionado ${quote.carrier} - ${quote.service} por $${parseFloat(quote.total_price).toFixed(2)}`
+    );
   };
 
-  // ====== Abrir/Cerrar modales ======
+  // Abrir/Cerrar modales
   const openAddressModal = () => setIsAddressModalOpen(true);
   const closeAddressModal = () => setIsAddressModalOpen(false);
 
@@ -134,15 +131,15 @@ export default function CartPage() {
   return (
     <>
       <Header position="relative" textColor="text-black" />
+
       <div className="cart-page mx-auto pt-20 p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* ================== Columna principal: Lista de Carrito ================== */}
           <div className="lg:col-span-2">
             {loading ? (
-              // Skeleton de carga
+              // Skeleton de carga para "Tu carrito"
               <section className="py-8 px-6 bg-white shadow-lg rounded-xl mb-8 text-[#1c1f28]">
                 <h2 className="text-2xl font-bold mb-6">Tu carrito</h2>
-                {/* Aquí metes placeholders... */}
                 <div className="space-y-4">
                   {Array(3).fill(0).map((_, index) => (
                     <div key={index} className="flex justify-between items-center mb-4">
@@ -178,7 +175,7 @@ export default function CartPage() {
 
           {/* ================== Columna derecha: Cotización de envío + Resumen =============== */}
           <div className="space-y-6">
-            {/* ------ 1) Sección de Cotización de Envío (como en CartDrawer), ARRIBA ------ */}
+            {/* ------ 1) Sección de Cotización de Envío ------ */}
             <section className="bg-white rounded shadow p-4 text-[#1c1f28]">
               <h2 className="text-xl font-bold mb-4">Cotización de Envío</h2>
 
@@ -219,16 +216,27 @@ export default function CartPage() {
                 </div>
               ) : (
                 <>
-                  {/* Mensajes de estado o error */}
-                  {loadingShipping && (
-                    <p className="text-gray-600 mt-2">Calculando envío...</p>
-                  )}
-                  {shippingError && (
+                  {/* Manejamos skeleton o error para el bloque de shippingQuotes */}
+                  {loadingShipping ? (
+                    // Skeleton para las opciones de envío
+                    <div className="mt-4 space-y-4">
+                      {Array(2).fill(0).map((_, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center p-2 border rounded animate-pulse"
+                        >
+                          <div className="bg-gray-300 rounded-full h-4 w-4 mr-2"></div>
+                          <div className="flex flex-col space-y-2 flex-1">
+                            <div className="w-24 h-4 bg-gray-300 rounded-md"></div>
+                            <div className="w-16 h-4 bg-gray-300 rounded-md"></div>
+                            <div className="w-20 h-4 bg-gray-300 rounded-md"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : shippingError ? (
                     <p className="text-red-500 mt-2">Error: {shippingError}</p>
-                  )}
-
-                  {/* Opciones de Envío */}
-                  {shippingQuotes.length > 0 && (
+                  ) : shippingQuotes.length > 0 && (
                     <div className="mt-4">
                       <h3 className="text-lg font-semibold mb-2">Opciones de Envío</h3>
                       <div className="space-y-2">
@@ -263,54 +271,61 @@ export default function CartPage() {
                     </div>
                   )}
 
-                  {/* Botones para agregar/editar CP o Dirección */}
-                  <div className="mt-4 space-y-2">
-                    {/* Invitado sin CP => "Agregar CP" */}
-                    {!currentUser && !guestZipCode && (
-                      <button
-                        onClick={openZipModal}
-                        className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                      >
-                        Agregar Código Postal
-                      </button>
-                    )}
+                  {/* 
+                    Botones para agregar/editar CP o Dirección
+                    Ocultos mientras loading o loadingShipping sea true
+                  */}
+                  {!loading && !loadingShipping && (
+                    <div className="mt-4 space-y-2">
+                      {/* Invitado sin CP => "Agregar CP" */}
+                      {!currentUser && !guestZipCode && (
+                        <button
+                          onClick={openZipModal}
+                          className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                        >
+                          Agregar Código Postal
+                        </button>
+                      )}
 
-                    {/* Invitado con CP => "Editar CP" */}
-                    {!currentUser && guestZipCode && (
-                      <button
-                        onClick={openZipModal}
-                        className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
-                      >
-                        Editar CP (Actualmente: {guestZipCode})
-                      </button>
-                    )}
+                      {/* Invitado con CP => "Editar CP" */}
+                      {!currentUser && guestZipCode && (
+                        <button
+                          onClick={openZipModal}
+                          className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
+                        >
+                          Editar CP (Actualmente: {guestZipCode})
+                        </button>
+                      )}
 
-                    {/* Usuario Auth sin dirección => "Agregar dirección" */}
-                    {currentUser && !shippingAddress && (
-                      <button
-                        onClick={openAddressModal}
-                        className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                      >
-                        Agregar Dirección de Envío
-                      </button>
-                    )}
+                      {/* Usuario Auth sin dirección => "Agregar dirección" */}
+                      {currentUser && !shippingAddress && (
+                        <button
+                          onClick={openAddressModal}
+                          className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                        >
+                          Agregar Dirección de Envío
+                        </button>
+                      )}
 
-                    {/* Usuario Auth con dirección => "Editar dirección" */}
-                    {currentUser && shippingAddress && (
-                      <button
-                        onClick={openAddressModal}
-                        className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
-                      >
-                        Editar Dirección de Envío
-                      </button>
-                    )}
-                  </div>
+                      {/* Usuario Auth con dirección => "Editar dirección" */}
+                      {currentUser && shippingAddress && (
+                        <button
+                          onClick={openAddressModal}
+                          className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
+                        >
+                          Editar Dirección de Envío
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </section>
 
-            {/* ------ 2) Ahora sí, Resumen del Pedido DEBAJO ------ */}
+            {/* ------ 2) Resumen del Pedido ------ */}
             <OrderSummary
+              loading={loading}
+              loadingShipping={loadingShipping}
               subtotal={subtotal}
               shippingFee={shippingFee}
               grandTotal={grandTotal}

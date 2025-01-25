@@ -17,10 +17,10 @@ export const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const { currentUser, authLoading } = useContext(AuthContext);
 
-  // ====== CART ======
+  // ====== Cambiamos este estado inicial a true ======
+  const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // ====== SHIPPING (usuarios autenticados) ======
@@ -54,7 +54,6 @@ export const CartProvider = ({ children }) => {
 
   const saveGuestZipCodeAndFetchQuotes = async (zip) => {
     saveGuestZipCode(zip);
-    // Recalcular envío con el CP recién guardado
     await fetchShippingQuotes(zip);
   };
 
@@ -74,7 +73,9 @@ export const CartProvider = ({ children }) => {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al obtener detalles de productos.');
+        throw new Error(
+          errorData.message || 'Error al obtener detalles de productos.'
+        );
       }
       const enrichedData = await response.json();
       setProducts(enrichedData.products);
@@ -188,7 +189,7 @@ export const CartProvider = ({ children }) => {
       } else {
         setShippingAddress(null);
       }
-      return defaultAddr; // Retornamos la dirección
+      return defaultAddr;
     } catch (error) {
       console.error('Error al obtener dirección por defecto:', error);
       return null;
@@ -212,14 +213,22 @@ export const CartProvider = ({ children }) => {
             // Sesión expirada
             await auth.signOut();
             addToLocalCart(item);
-            setCartItems((prev) => [...prev, { uniqueID: item.uniqueID, qty: item.qty }]);
+            setCartItems((prev) => [
+              ...prev,
+              { uniqueID: item.uniqueID, qty: item.qty },
+            ]);
             if (updateCount) {
-              await fetchProductDetails([...cartItems.map((i) => i.uniqueID), item.uniqueID]);
+              await fetchProductDetails([
+                ...cartItems.map((i) => i.uniqueID),
+                item.uniqueID,
+              ]);
             }
             return;
           }
           const data = await res.json();
-          throw new Error(data.error || 'Error al agregar el producto al carrito.');
+          throw new Error(
+            data.error || 'Error al agregar el producto al carrito.'
+          );
         }
         setCartItems((prev) => {
           const existingItem = prev.find((i) => i.uniqueID === item.uniqueID);
@@ -229,14 +238,19 @@ export const CartProvider = ({ children }) => {
               return prev.filter((i) => i.uniqueID !== item.uniqueID);
             }
             return prev.map((i) =>
-              i.uniqueID === item.uniqueID ? { ...i, qty: newQty } : i
+              i.uniqueID === item.uniqueID
+                ? { ...i, qty: newQty }
+                : i
             );
           } else {
             return [...prev, { uniqueID: item.uniqueID, qty: item.qty }];
           }
         });
         if (updateCount) {
-          await fetchProductDetails([...cartItems.map((i) => i.uniqueID), item.uniqueID]);
+          await fetchProductDetails([
+            ...cartItems.map((i) => i.uniqueID),
+            item.uniqueID,
+          ]);
         }
       } catch (error) {
         console.error('Error al agregar al carrito:', error);
@@ -252,14 +266,19 @@ export const CartProvider = ({ children }) => {
             return prev.filter((i) => i.uniqueID !== item.uniqueID);
           }
           return prev.map((i) =>
-            i.uniqueID === item.uniqueID ? { ...i, qty: newQty } : i
+            i.uniqueID === item.uniqueID
+              ? { ...i, qty: newQty }
+              : i
           );
         } else {
           return [...prev, { uniqueID: item.uniqueID, qty: item.qty }];
         }
       });
       if (updateCount) {
-        await fetchProductDetails([...cartItems.map((i) => i.uniqueID), item.uniqueID]);
+        await fetchProductDetails([
+          ...cartItems.map((i) => i.uniqueID),
+          item.uniqueID,
+        ]);
       }
     }
   };
@@ -276,10 +295,14 @@ export const CartProvider = ({ children }) => {
         });
         if (!res.ok) {
           const data = await res.json();
-          throw new Error(data.error || 'Error al eliminar el producto del carrito.');
+          throw new Error(
+            data.error || 'Error al eliminar el producto del carrito.'
+          );
         }
         setCartItems((prev) => prev.filter((item) => item.uniqueID !== uniqueID));
-        setProducts((prev) => prev.filter((product) => product.uniqueID !== uniqueID));
+        setProducts((prev) =>
+          prev.filter((product) => product.uniqueID !== uniqueID)
+        );
       } catch (error) {
         console.error('Error al eliminar del carrito:', error);
         setError(error.message);
@@ -287,9 +310,12 @@ export const CartProvider = ({ children }) => {
     } else {
       removeFromLocalCart(uniqueID);
       setCartItems((prev) => prev.filter((item) => item.uniqueID !== uniqueID));
-      setProducts((prev) => prev.filter((product) => product.uniqueID !== uniqueID));
+      setProducts((prev) =>
+        prev.filter((product) => product.uniqueID !== uniqueID)
+      );
     }
   };
+
   const removeItemFromCartHandler = async (uniqueID) => {
     await removeItemFromCart(uniqueID);
   };
@@ -339,9 +365,9 @@ export const CartProvider = ({ children }) => {
 
       if (response.ok) {
         toast.success('Dirección creada exitosamente');
-        // Retornamos la dirección por defecto (posiblemente sea la nueva, si se marcó default)
+        // Retornamos la dirección por defecto
         const newDefault = await fetchDefaultAddress();
-        return newDefault; // <--- para usarla en fetchShippingQuotes
+        return newDefault;
       } else {
         const errorMessage = data.message || 'Error al crear la dirección';
         toast.error(errorMessage);
@@ -356,16 +382,18 @@ export const CartProvider = ({ children }) => {
 
   const updateAddress = async (addressId, addressData) => {
     try {
-      const response = await fetch(`/api/addresses/private/update/${addressId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(addressData),
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `/api/addresses/private/update/${addressId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(addressData),
+          credentials: 'include',
+        }
+      );
       const data = await response.json();
 
       if (response.ok) {
-        // Forzamos a refrescar y retornar la dirección default
         const newDefault = await fetchDefaultAddress();
         return newDefault;
       } else {
@@ -385,29 +413,25 @@ export const CartProvider = ({ children }) => {
   // ---------------------------------------------
   const saveShippingAddress = async (addressData) => {
     if (currentUser) {
-      // Usuario autenticado
       let updatedDefaultAddress;
       if (shippingAddress) {
-        // Actualizamos la dirección, retornando la nueva dirección default
-        updatedDefaultAddress = await updateAddress(shippingAddress.uniqueID, addressData);
+        updatedDefaultAddress = await updateAddress(
+          shippingAddress.uniqueID,
+          addressData
+        );
       } else {
-        // Creamos una nueva dirección y retornamos la default
         updatedDefaultAddress = await createAddress(addressData);
       }
-      // Cotizamos usando la dirección recien actualizada
       await fetchShippingQuotes(null, updatedDefaultAddress);
-
     } else {
-      // Invitado
       setGuestZipCode(addressData.zipcode);
       localStorage.setItem('shippingAddress', JSON.stringify(addressData));
-      // Cotizar usando addressData como override
       await fetchShippingQuotes(null, addressData);
     }
   };
 
   // ---------------------------------------------
-  // 12) Cotizar Envío con addressOverride opcional
+  // 12) Cotizar Envío
   // ---------------------------------------------
   const fetchShippingQuotes = async (zip = null, addressOverride = null) => {
     setLoadingShipping(true);
@@ -417,10 +441,8 @@ export const CartProvider = ({ children }) => {
       let addressToUse;
 
       if (addressOverride) {
-        // Si pasamos una dirección concreta, usarla
         addressToUse = addressOverride;
       } else if (currentUser) {
-        // Usuario autenticado, sin override
         if (!shippingAddress) {
           setShippingError('No hay dirección de envío.');
           setLoadingShipping(false);
@@ -428,7 +450,6 @@ export const CartProvider = ({ children }) => {
         }
         addressToUse = shippingAddress;
       } else {
-        // Invitado
         const effectiveZip = zip || guestZipCode;
         if (!effectiveZip) {
           setShippingError('No hay código postal para invitado.');
