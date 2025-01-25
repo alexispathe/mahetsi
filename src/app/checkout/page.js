@@ -6,7 +6,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/AuthContext';
 import UserAddress from '../components/userAddress/UserAddress';
-import CartSummary from './CartSummary'; 
+import CartSummary from './CartSummary';
+import Loader from '../components/Loader';
 
 export default function CheckoutPage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
@@ -14,18 +15,20 @@ export default function CheckoutPage() {
 
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [addresses, setAddresses] = useState([]);
-  const [allQuotes, setAllQuotes] = useState([]); // Almacena todas las cotizaciones
-  const [selectedQuote, setSelectedQuote] = useState(null); // Cotización seleccionada por el usuario
-  const [loadingShipping, setLoadingShipping] = useState(false); // Para manejar el estado de carga de la cotización
+  const [allQuotes, setAllQuotes] = useState([]);
+  const [selectedQuote, setSelectedQuote] = useState(null);
+  const [loadingShipping, setLoadingShipping] = useState(false);
 
+  // Redirección segura
   useEffect(() => {
     if (!authLoading && !sessionInitializing && !currentUser) {
-      router.push('/login?redirect=/checkout');
+      router.replace('/login?redirect=/checkout');
     }
   }, [authLoading, sessionInitializing, currentUser, router]);
 
+  // Efecto para cotización
   useEffect(() => {
-    if (selectedAddressId) {
+    if (selectedAddressId && currentUser) {
       const selectedAddress = addresses.find(address => address.uniqueID === selectedAddressId);
       if (selectedAddress) {
         setLoadingShipping(true);
@@ -33,61 +36,58 @@ export default function CheckoutPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}` // Envío seguro del token
           },
           body: JSON.stringify({
             direccionDestino: selectedAddress
           }),
         })
-          .then(response => response.json())
-          .then(data => {
-            if (data.error) {
-              throw new Error(data.error);
-            }
-            setAllQuotes(data.all_quotes || []);
-            // Opcional: Seleccionar automáticamente la mejor cotización (la más barata)
-            if (data.all_quotes && data.all_quotes.length > 0) {
-              const mejorCotizacion = data.all_quotes.reduce((prev, current) =>
-                parseFloat(prev.total_price) < parseFloat(current.total_price) ? prev : current
-              );
-              setSelectedQuote(mejorCotizacion);
-            } else {
-              setSelectedQuote(null);
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            alert('No se pudo obtener el costo de envío: ' + error.message);
-            setAllQuotes([]);
-            setSelectedQuote(null);
-          })
-          .finally(() => {
-            setLoadingShipping(false);
-          });
+        .then(handleApiResponse)
+        .then(data => {
+          setAllQuotes(data.all_quotes || []);
+          data.all_quotes?.length > 0 && setSelectedQuote(
+            data.all_quotes.reduce((prev, current) => 
+              parseFloat(prev.total_price) < parseFloat(current.total_price) ? prev : current
+            )
+          );
+        })
+        .catch(handleApiError)
+        .finally(() => setLoadingShipping(false));
       }
     }
-  }, [selectedAddressId, addresses]);
+  }, [selectedAddressId, addresses, currentUser]);
+
+  const handleApiResponse = (response) => {
+    if (!response.ok) throw new Error('Error en la respuesta del servidor');
+    return response.json();
+  };
+
+  const handleApiError = (error) => {
+    console.error('Error:', error);
+    alert(error.message || 'Error al procesar la solicitud');
+    setAllQuotes([]);
+    setSelectedQuote(null);
+  };
+
+  if (authLoading || sessionInitializing) return <Loader fullScreen />;
+  if (!currentUser) return null;
 
   return (
-    <div>
-      <div className="cart-page container mx-auto pt-20 p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <UserAddress 
-            selectedAddressId={selectedAddressId} 
-            setSelectedAddressId={setSelectedAddressId} 
-            setAddresses={setAddresses} 
-            addresses={addresses}
-            loading={authLoading || sessionInitializing} // Pasar estado de carga
-          />
-          <CartSummary 
-            selectedAddressId={selectedAddressId} 
-            addresses={addresses} 
-            allQuotes={allQuotes} // Pasamos todas las cotizaciones
-            selectedQuote={selectedQuote} // Cotización seleccionada
-            setSelectedQuote={setSelectedQuote} // Función para actualizar la selección
-            loadingShipping={loadingShipping} // Indicamos si estamos cargando el costo de envío
-            loading={authLoading || sessionInitializing} // Pasar estado de carga
-          />
-        </div>
+    <div className="cart-page container mx-auto pt-20 p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <UserAddress 
+          selectedAddressId={selectedAddressId} 
+          setSelectedAddressId={setSelectedAddressId} 
+          setAddresses={setAddresses} 
+          addresses={addresses}
+        />
+        <CartSummary 
+          selectedAddressId={selectedAddressId}
+          allQuotes={allQuotes}
+          selectedQuote={selectedQuote}
+          setSelectedQuote={setSelectedQuote}
+          loadingShipping={loadingShipping}
+        />
       </div>
     </div>
   );
