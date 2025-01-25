@@ -1,6 +1,7 @@
 // src/lib/firebaseClient.js
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore'; // Importa getFirestore
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,13 +12,19 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+// Evita inicializar múltiples instancias de Firebase
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-const app = initializeApp(firebaseConfig);
+// Inicializa Auth
 const auth = getAuth(app);
 
 // Establece la persistencia a nivel del navegador
 setPersistence(auth, browserLocalPersistence);
 
+// Inicializa el proveedor de Google
 const provider = new GoogleAuthProvider();
 
-export { auth, provider };
+// Inicializa Firestore
+const db = getFirestore(app);
+
+export { auth, provider, db }; // Exporta db junto con auth y provider

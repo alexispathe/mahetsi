@@ -41,8 +41,6 @@ export async function POST(request) {
         currency_id: "MXN",
       };
     });
-    console.log("precio total ",totalPrice)
-
     // Verificar si se generaron correctamente los items
     if (!items || items.length === 0) {
       throw new Error('No se pudieron generar los items para la preferencia.');
@@ -78,7 +76,7 @@ export async function POST(request) {
         pending: `${process.env.NEXT_PUBLIC_BASE_URL_LOCAL}/checkout/pending`
       },
       auto_return: "approved",
-      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL_LOCAL}/api/mercadopago/webhook`,
+      notification_url: `${process.env.NEXT_PUBLIC_BASE_URL_WEB}/api/mercadopago/webhook`,
       statement_descriptor: "Mahetsi",
       external_reference: uniqueExternalReference // Usar el ID único aquí
     };

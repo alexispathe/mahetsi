@@ -1,15 +1,27 @@
 // src/context/CartContext.jsx
 'use client';
 
-import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useMemo,
+} from 'react';
+
 import { AuthContext } from './AuthContext';
 import {
   getLocalCart,
   addToLocalCart,
   removeFromLocalCart,
   clearLocalCart,
+  CART_LOCAL_STORAGE_KEY
 } from '@/app/utils/cartLocalStorage';
-import { auth } from '@/libs/firebaseClient';
+
+// Importa tanto "auth" como "db" si lo tienes definido en tu firebaseClient
+import { auth, db } from '@/libs/firebaseClient';
+import { collection, onSnapshot } from 'firebase/firestore';
+
 import { toast } from 'react-toastify';
 
 export const CartContext = createContext();
@@ -17,7 +29,6 @@ export const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const { currentUser, authLoading } = useContext(AuthContext);
 
-  // ====== Cambiamos este estado inicial a true ======
   const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
   const [products, setProducts] = useState([]);
@@ -86,7 +97,7 @@ export const CartProvider = ({ children }) => {
   };
 
   // ---------------------------------------------
-  // 3) Cargar carrito autenticado
+  // 3) Cargar carrito autenticado (vía API)
   // ---------------------------------------------
   const loadAuthenticatedCart = async () => {
     try {
@@ -110,7 +121,7 @@ export const CartProvider = ({ children }) => {
       const data = await res.json();
       const items = data.cartItems;
 
-      // Sincronizar con localstorage
+      // Sincronizar con localstorage (si hay algo guardado)
       const localCart = getLocalCart();
       if (localCart.length > 0) {
         for (const item of localCart) {
@@ -123,7 +134,7 @@ export const CartProvider = ({ children }) => {
       const uniqueIDs = items.map((item) => item.uniqueID);
       await fetchProductDetails(uniqueIDs);
 
-      // ===> Obtener dirección por defecto
+      // Obtener dirección por defecto
       await fetchDefaultAddress();
     } catch (err) {
       console.error('Error al cargar el carrito autenticado:', err);
@@ -132,7 +143,7 @@ export const CartProvider = ({ children }) => {
   };
 
   // ---------------------------------------------
-  // 4) Cargar carrito local
+  // 4) Cargar carrito local (invitado)
   // ---------------------------------------------
   const loadLocalCart = () => {
     const items = getLocalCart();
@@ -149,6 +160,7 @@ export const CartProvider = ({ children }) => {
     setError(null);
     try {
       if (currentUser && authLoading === false) {
+        // Usuario autenticado
         await loadAuthenticatedCart();
       } else {
         // Invitado
@@ -230,6 +242,7 @@ export const CartProvider = ({ children }) => {
             data.error || 'Error al agregar el producto al carrito.'
           );
         }
+        // Actualizamos en el estado local
         setCartItems((prev) => {
           const existingItem = prev.find((i) => i.uniqueID === item.uniqueID);
           if (existingItem) {
@@ -257,6 +270,7 @@ export const CartProvider = ({ children }) => {
         setError(error.message);
       }
     } else {
+      // Invitado
       addToLocalCart(item);
       setCartItems((prev) => {
         const existingItem = prev.find((i) => i.uniqueID === item.uniqueID);
@@ -299,7 +313,9 @@ export const CartProvider = ({ children }) => {
             data.error || 'Error al eliminar el producto del carrito.'
           );
         }
-        setCartItems((prev) => prev.filter((item) => item.uniqueID !== uniqueID));
+        setCartItems((prev) =>
+          prev.filter((item) => item.uniqueID !== uniqueID)
+        );
         setProducts((prev) =>
           prev.filter((product) => product.uniqueID !== uniqueID)
         );
@@ -309,7 +325,9 @@ export const CartProvider = ({ children }) => {
       }
     } else {
       removeFromLocalCart(uniqueID);
-      setCartItems((prev) => prev.filter((item) => item.uniqueID !== uniqueID));
+      setCartItems((prev) =>
+        prev.filter((item) => item.uniqueID !== uniqueID)
+      );
       setProducts((prev) =>
         prev.filter((product) => product.uniqueID !== uniqueID)
       );
@@ -496,6 +514,55 @@ export const CartProvider = ({ children }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, authLoading]);
+
+  // ---------------------------------------------
+  // (A) Listener de localStorage (para invitados)
+  // ---------------------------------------------
+  useEffect(() => {
+    // Solo escuchar si NO estás autenticado (opcional).
+    // Si quieres que escuche siempre, retira el if.
+    if (!currentUser) {
+      const handleStorageChange = (event) => {
+        if (event.key === CART_LOCAL_STORAGE_KEY) {
+          const newCart = getLocalCart();
+          setCartItems(newCart);
+          const uniqueIDs = newCart.map((item) => item.uniqueID);
+          fetchProductDetails(uniqueIDs);
+        }
+      };
+
+      window.addEventListener('storage', handleStorageChange);
+      return () => {
+        window.removeEventListener('storage', handleStorageChange);
+      };
+    }
+  }, [currentUser]);
+
+  // ---------------------------------------------
+  // (B) Suscripción en tiempo real (Firestore) para usuarios autenticados
+  // ---------------------------------------------
+  useEffect(() => {
+    // Si el usuario está autenticado, nos suscribimos a "carts/{uid}/items"
+    if (currentUser) {
+      const itemsRef = collection(db, 'carts', currentUser.uid, 'items');
+
+      // Suscripción en tiempo real
+      const unsubscribe = onSnapshot(itemsRef, (snapshot) => {
+        const newCartItems = [];
+        snapshot.forEach((doc) => {
+          newCartItems.push(doc.data());
+        });
+        // Actualizamos el estado
+        setCartItems(newCartItems);
+        // Refrescamos también la info de productos
+        const uniqueIDs = newCartItems.map((item) => item.uniqueID);
+        fetchProductDetails(uniqueIDs);
+      });
+
+      // Al desmontar o cambiar de usuario, nos desuscribimos
+      return () => unsubscribe();
+    }
+  }, [currentUser]);
 
   // ---------------------------------------------
   // 14) Contar items en el carrito
