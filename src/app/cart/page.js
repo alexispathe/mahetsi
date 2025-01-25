@@ -3,7 +3,7 @@
 import { useContext, useState, useEffect } from 'react';
 import OrderSummary from './OrderSummary';
 import CartItems from './CartItems';
-import { CartContext } from '@/context/CartContext';
+import { CartContext } from '@/context/CartContext/CartContext';
 import { AuthContext } from '@/context/AuthContext';
 
 import ShippingAddressModal from '../components/shippingAddressModal/ShippingAddressModal.js.js';

@@ -3,7 +3,7 @@
 import React, { useContext, useState } from 'react';
 import ReactDOM from 'react-dom';
 import ShippingAddressForm from './ShippingAddressForm';
-import { CartContext } from '@/context/CartContext';
+import { CartContext } from '@/context/CartContext/CartContext';
 
 export default function ShippingAddressModal({ isOpen, onClose }) {
   const { shippingAddress, saveShippingAddress } = useContext(CartContext);

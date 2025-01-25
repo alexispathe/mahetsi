@@ -3,7 +3,7 @@
 
 import React, { useContext, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { CartContext } from '@/context/CartContext';
+import { CartContext } from '@/context/CartContext/CartContext';
 import { toast } from 'react-toastify';
 import { FaSpinner } from 'react-icons/fa';
 

@@ -1,9 +1,8 @@
 'use client'; 
 
 import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
-import Image from 'next/image';
 import { AuthContext } from "@/context/AuthContext";
-import { CartContext } from "@/context/CartContext";
+import { CartContext } from "@/context/CartContext/CartContext";
 import { FavoritesContext } from "@/context/FavoritesContext";
 import { FaStar, FaRegStar, FaHeart, FaRegHeart, FaTimes, FaBox, FaShoppingCart } from 'react-icons/fa';
 import { toast } from 'react-toastify'; // Importa toast desde react-toastify

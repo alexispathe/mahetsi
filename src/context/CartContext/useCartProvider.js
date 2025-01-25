@@ -1,15 +1,12 @@
-// src/context/CartContext.jsx
 'use client';
 
 import React, {
-  createContext,
   useState,
   useEffect,
   useContext,
   useMemo,
 } from 'react';
-
-import { AuthContext } from './AuthContext';
+import { AuthContext } from '../AuthContext'; // Ajusta la ruta según donde esté tu AuthContext
 import {
   getLocalCart,
   addToLocalCart,
@@ -18,15 +15,11 @@ import {
   CART_LOCAL_STORAGE_KEY
 } from '@/app/utils/cartLocalStorage';
 
-// Importa tanto "auth" como "db" si lo tienes definido en tu firebaseClient
 import { auth, db } from '@/libs/firebaseClient';
 import { collection, onSnapshot } from 'firebase/firestore';
-
 import { toast } from 'react-toastify';
 
-export const CartContext = createContext();
-
-export const CartProvider = ({ children }) => {
+export function useCartProvider() {
   const { currentUser, authLoading } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(true);
@@ -520,7 +513,6 @@ export const CartProvider = ({ children }) => {
   // ---------------------------------------------
   useEffect(() => {
     // Solo escuchar si NO estás autenticado (opcional).
-    // Si quieres que escuche siempre, retira el if.
     if (!currentUser) {
       const handleStorageChange = (event) => {
         if (event.key === CART_LOCAL_STORAGE_KEY) {
@@ -539,10 +531,10 @@ export const CartProvider = ({ children }) => {
   }, [currentUser]);
 
   // ---------------------------------------------
-  // (B) Suscripción en tiempo real (Firestore) para usuarios autenticados
+  // (B) Suscripción en tiempo real (Firestore)
   // ---------------------------------------------
   useEffect(() => {
-    // Si el usuario está autenticado, nos suscribimos a "carts/{uid}/items"
+    // Si el usuario está autenticado, suscribirse a "carts/{uid}/items"
     if (currentUser) {
       const itemsRef = collection(db, 'carts', currentUser.uid, 'items');
 
@@ -552,7 +544,6 @@ export const CartProvider = ({ children }) => {
         snapshot.forEach((doc) => {
           newCartItems.push(doc.data());
         });
-        // Actualizamos el estado
         setCartItems(newCartItems);
         // Refrescamos también la info de productos
         const uniqueIDs = newCartItems.map((item) => item.uniqueID);
@@ -571,44 +562,36 @@ export const CartProvider = ({ children }) => {
     return cartItems.reduce((acc, item) => acc + item.qty, 0);
   }, [cartItems]);
 
-  // ---------------------------------------------
-  // 15) Provider
-  // ---------------------------------------------
-  return (
-    <CartContext.Provider
-      value={{
-        cartItems,
-        products,
-        loading,
-        error,
-        addItemToCart,
-        removeItemFromCart: removeItemFromCartHandler,
-        clearCart,
-        loadCart,
-        cartCount,
+  // Retornamos todo lo que se usará en el Provider
+  return {
+    cartItems,
+    products,
+    loading,
+    error,
+    addItemToCart,
+    removeItemFromCart: removeItemFromCartHandler,
+    clearCart,
+    loadCart,
+    cartCount,
 
-        // Envío
-        shippingAddress,
-        saveShippingAddress,
-        shippingQuotes,
-        fetchShippingQuotes,
-        selectedQuote,
-        setSelectedQuote,
-        loadingShipping,
-        shippingError,
+    // Envío
+    shippingAddress,
+    saveShippingAddress,
+    shippingQuotes,
+    fetchShippingQuotes,
+    selectedQuote,
+    setSelectedQuote,
+    loadingShipping,
+    shippingError,
 
-        // Guest Zip
-        guestZipCode,
-        saveGuestZipCode,
-        saveGuestZipCodeAndFetchQuotes,
+    // Guest Zip
+    guestZipCode,
+    saveGuestZipCode,
+    saveGuestZipCodeAndFetchQuotes,
 
-        // Direcciones (Auth)
-        createAddress,
-        updateAddress,
-        fetchDefaultAddress,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
-};
+    // Direcciones (Auth)
+    createAddress,
+    updateAddress,
+    fetchDefaultAddress,
+  };
+}

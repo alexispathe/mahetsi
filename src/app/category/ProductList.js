@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Pagination from './Pagination';
 import Image from 'next/image';
 import { AuthContext } from '@/context/AuthContext'; 
-import { CartContext } from '@/context/CartContext';
+import { CartContext } from '@/context/CartContext/CartContext';
 import { FavoritesContext } from '@/context/FavoritesContext';
 
 import { toast } from 'react-toastify';

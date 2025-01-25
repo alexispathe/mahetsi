@@ -9,7 +9,7 @@ import Icons from './Icons';
 import SearchModal from '../searchModal/SearchModal';
 import CartDrawer from '../cartDrawer/CartDrawer';
 import FavoritesModal from '../FavoritesModal/FavoritesModal';
-import { CartContext } from '@/context/CartContext';
+import { CartContext } from '@/context/CartContext/CartContext';
 import { AuthContext } from '@/context/AuthContext';
 import { FaBars } from "react-icons/fa";
 

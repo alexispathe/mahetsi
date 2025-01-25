@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext, useState, useEffect, useRef } from 'react';
-import { CartContext } from '@/context/CartContext';
+import { CartContext } from '@/context/CartContext/CartContext';
 import { AuthContext } from '@/context/AuthContext';
 
 // Componentes creados:

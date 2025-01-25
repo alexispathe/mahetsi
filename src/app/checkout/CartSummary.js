@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useContext, useState } from 'react';
-import { CartContext } from '@/context/CartContext';
+import { CartContext } from '@/context/CartContext/CartContext';
 import TermsModal from './TermsModal';
 import Link from 'next/link';
 import SkeletonCartSummary from './SkeletonCartSummary'; // Nuevo componente de Skeleton
