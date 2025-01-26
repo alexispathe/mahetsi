@@ -100,7 +100,6 @@ export default function ProfilePage() {
       </div>
     );
   }
-  console.log("ciurre",  currentUser)
   const { email, name, picture, permissions } = currentUser;
   const isAdmin = permissions?.includes('admin');
 

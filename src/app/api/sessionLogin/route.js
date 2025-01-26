@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { authAdmin, firestore } from '@/libs/firebaseAdmin';
 import { z } from 'zod';
-import admin from 'firebase-admin'
+import admin from 'firebase-admin';
 
 // Definir el esquema de validación
 const sessionLoginSchema = z.object({
@@ -15,10 +15,13 @@ export async function POST(request) {
     const body = await request.json();
     const parsedBody = sessionLoginSchema.safeParse(body);
     if (!parsedBody.success) {
-      return NextResponse.json({ 
-        error: 'Datos de entrada inválidos', 
-        details: parsedBody.error.errors 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'Datos de entrada inválidos',
+          details: parsedBody.error.errors,
+        },
+        { status: 400 }
+      );
     }
 
     const { idToken } = parsedBody.data;
@@ -26,15 +29,18 @@ export async function POST(request) {
     // Verificar el ID token
     const decodedIdToken = await authAdmin.verifyIdToken(idToken);
     if (!decodedIdToken) {
-      return NextResponse.json({ error: 'Token de autenticación inválido' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Token de autenticación inválido' },
+        { status: 401 }
+      );
     }
 
     const uid = decodedIdToken.uid;
 
     // Crear la sesión de usuario con una expiración de 7 días
     const expiresIn = 60 * 60 * 24 * 7 * 1000; // 7 días en milisegundos
-    const sessionCookie = await authAdmin.createSessionCookie(idToken, { 
-      expiresIn 
+    const sessionCookie = await authAdmin.createSessionCookie(idToken, {
+      expiresIn,
     });
 
     if (!sessionCookie) {
@@ -47,7 +53,7 @@ export async function POST(request) {
     const userDoc = await userRef.get();
 
     const timestamp = admin.firestore.FieldValue.serverTimestamp();
-    
+
     if (!userDoc.exists) {
       await userRef.set({
         name: name || '',
@@ -59,15 +65,15 @@ export async function POST(request) {
         ownerId: uid,
       });
     } else {
-      await userRef.update({ 
-        dateModified: timestamp 
+      await userRef.update({
+        dateModified: timestamp,
       });
     }
 
     // Crear y configurar la respuesta sin incluir el sessionCookie en el cuerpo
-    const response = NextResponse.json({ 
+    const response = NextResponse.json({
       status: 'success',
-      uid: uid
+      uid: uid,
     });
 
     // Configurar la cookie de sesión con una expiración de 7 días
@@ -80,43 +86,42 @@ export async function POST(request) {
     });
 
     return response;
-
   } catch (error) {
     console.error('Error en sessionLogin:', error);
-    
+
     // Manejo específico de errores
     if (error.code === 'auth/invalid-id-token') {
-      return NextResponse.json({ 
-        error: 'Token de autenticación inválido' 
-      }, { 
-        status: 401 
-      });
+      return NextResponse.json(
+        { error: 'Token de autenticación inválido' },
+        { status: 401 }
+      );
     }
 
     if (error.code === 'auth/session-cookie-expired') {
-      return NextResponse.json({ 
-        error: 'La sesión ha expirado' 
-      }, { 
-        status: 401 
-      });
+      return NextResponse.json(
+        { error: 'La sesión ha expirado' },
+        { status: 401 }
+      );
     }
 
     // Manejo de validaciones de Zod
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Datos de entrada inválidos',
-        details: error.errors
-      }, { 
-        status: 400 
-      });
+      return NextResponse.json(
+        {
+          error: 'Datos de entrada inválidos',
+          details: error.errors,
+        },
+        { status: 400 }
+      );
     }
 
     // Error general
-    return NextResponse.json({ 
-      error: 'Error interno del servidor',
-      details: error.message 
-    }, { 
-      status: 500 
-    });
+    return NextResponse.json(
+      {
+        error: 'Error interno del servidor',
+        details: error.message,
+      },
+      { status: 500 }
+    );
   }
 }

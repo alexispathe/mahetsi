@@ -1,15 +1,20 @@
 'use client';
 
 import React, { Suspense, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
 import { AuthContext } from '@/context/AuthContext';
-import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center items-center min-h-screen bg-gray-100"><p className="text-gray-600">Cargando...</p></div>}>
+    <Suspense
+      fallback={
+        <div className="flex justify-center items-center min-h-screen bg-gray-100">
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      }
+    >
       <LoginContent />
     </Suspense>
   );
@@ -22,26 +27,16 @@ function LoginContent() {
   const [loginLoading, setLoginLoading] = useState(false);
   const router = useRouter();
 
+  // Si ya estamos autenticados, no tiene caso mostrar el botón de login
   useEffect(() => {
     if (!authLoading && currentUser) {
       if (redirect) {
-        window.location.href= redirect;
+        window.location.href = redirect;
       } else {
-        window.location.href= '/profile/user';
+        window.location.href = '/profile/user';
       }
     }
-  }, [authLoading, currentUser, router, redirect]);
-
-  const waitForCookie = async () => {
-    return new Promise((resolve) => {
-      const interval = setInterval(() => {
-        if (document.cookie.split(';').some((item) => item.trim().startsWith('session='))) {
-          clearInterval(interval);
-          resolve(true);
-        }
-      }, 100); // Verificar cada 100ms
-    });
-  };
+  }, [authLoading, currentUser, redirect]);
 
   const handleGoogleLogin = async () => {
     setLoginLoading(true);
@@ -52,6 +47,7 @@ function LoginContent() {
       if (user) {
         const idToken = await user.getIdToken();
 
+        // Crear la sesión en el server
         const res = await fetch('/api/sessionLogin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -60,14 +56,12 @@ function LoginContent() {
         });
 
         if (res.ok) {
-          // Esperar la creación de la cookie
-          await waitForCookie();
-
-          // Redirigir al perfil después de asegurar que la cookie existe
+          // En este punto, la cookie ya está en el navegador (Set-Cookie).
+          // Redireccionamos sin necesidad de setTimeout.
           if (redirect) {
-            window.location.href= redirect;
+            window.location.href = redirect;
           } else {
-            window.location.href= '/profile/user';
+            window.location.href = '/profile/user';
           }
         } else {
           const errorData = await res.json();
@@ -90,21 +84,23 @@ function LoginContent() {
           <p className="text-gray-600">Verificando sesión...</p>
         </div>
       ) : (
-        <>
-          <div className="flex justify-center items-center min-h-screen bg-gray-100 py-4">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm">
-              <h1 className="text-2xl font-semibold text-center text-gray-700 mb-4">Iniciar Sesión</h1>
-              <p className="text-center text-gray-500 mb-6">Autenticación con Google</p>
-              <button
-                onClick={handleGoogleLogin}
-                disabled={loginLoading}
-                className={`w-full py-2 px-4 rounded-lg text-white font-semibold bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 transition-all duration-200`}
-              >
-                {loginLoading ? 'Iniciando sesión...' : 'Iniciar con Google'}
-              </button>
-            </div>
+        <div className="flex justify-center items-center min-h-screen bg-gray-100 py-4">
+          <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm">
+            <h1 className="text-2xl font-semibold text-center text-gray-700 mb-4">
+              Iniciar Sesión
+            </h1>
+            <p className="text-center text-gray-500 mb-6">
+              Autenticación con Google
+            </p>
+            <button
+              onClick={handleGoogleLogin}
+              disabled={loginLoading}
+              className="w-full py-2 px-4 rounded-lg text-white font-semibold bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 transition-all duration-200"
+            >
+              {loginLoading ? 'Iniciando sesión...' : 'Iniciar con Google'}
+            </button>
           </div>
-        </>
+        </div>
       )}
     </>
   );

@@ -76,7 +76,6 @@ export default function Navigation({
 
                     {/* Sección derecha: imagen o banner */}
                     <div className="absolute right-0 top-0 w-[500px] h-full overflow-hidden">
-                      {console.log(category)}
                       <img
                         src={category.image}
                         alt={`${category.name} banner`}
