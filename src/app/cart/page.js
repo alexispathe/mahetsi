@@ -1,5 +1,6 @@
 // src/cart/CartPage.js
 'use client';
+
 import { useContext, useState, useEffect } from 'react';
 import OrderSummary from './OrderSummary';
 import CartItems from './CartItems';
@@ -9,6 +10,9 @@ import { AuthContext } from '@/context/AuthContext';
 import ShippingAddressModal from '../components/shippingAddressModal/ShippingAddressModal.js';
 import ZipCodeModal from '../components/cartDrawer/ZipCodeModal';
 import { toast } from 'react-toastify';
+
+/** Importamos nuestro nuevo componente de envío */
+import ShippingOptions from '../components/ShippingOptions'; // Ajusta la ruta a la carpeta donde guardaste ShippingOptions.jsx
 
 export default function CartPage() {
   const {
@@ -39,8 +43,8 @@ export default function CartPage() {
   const [isZipModalOpen, setIsZipModalOpen] = useState(false);
 
   // Unir detalles del producto con el carrito
-  const detailedCartItems = cartItems.map(cartItem => {
-    const product = products.find(p => p.uniqueID === cartItem.uniqueID);
+  const detailedCartItems = cartItems.map((cartItem) => {
+    const product = products.find((p) => p.uniqueID === cartItem.uniqueID);
     return {
       ...cartItem,
       name: product ? product.name : 'Producto no encontrado',
@@ -52,25 +56,27 @@ export default function CartPage() {
 
   // Subtotal
   const subtotal = detailedCartItems.reduce(
-    (acc, item) => acc + (item.price * item.qty),
+    (acc, item) => acc + item.price * item.qty,
     0
   );
 
   // Threshold y Fee de envío
   const shippingThreshold = 999;
-  const shippingFee = (subtotal >= shippingThreshold)
-    ? 0
-    : (selectedQuote ? parseFloat(selectedQuote.total_price) : 0);
+  const shippingFee =
+    subtotal >= shippingThreshold
+      ? 0
+      : selectedQuote
+      ? parseFloat(selectedQuote.total_price)
+      : 0;
 
   const grandTotal = subtotal + shippingFee;
 
   // Determinar si shipping está pendiente
-  const isShippingPending = subtotal < shippingThreshold && (
-    (currentUser && !shippingAddress) ||
-    (!currentUser && !guestZipCode)
-  );
+  const isShippingPending =
+    subtotal < shippingThreshold &&
+    ((currentUser && !shippingAddress) || (!currentUser && !guestZipCode));
 
-  // Llamamos a fetchShippingQuotes si no está cargando y aún no tenemos shippingQuotes
+  // Llamar a fetchShippingQuotes si no está cargando y aún no tenemos shippingQuotes
   useEffect(() => {
     if (!loadingShipping && shippingQuotes.length === 0) {
       if (currentUser && shippingAddress) {
@@ -114,9 +120,6 @@ export default function CartPage() {
   // Selección de cotización
   const handleSelectQuote = (quote) => {
     setSelectedQuote(quote);
-    toast.success(
-      `Has seleccionado ${quote.carrier} - ${quote.service} por $${parseFloat(quote.total_price).toFixed(2)}`
-    );
   };
 
   // Abrir/Cerrar modales
@@ -137,21 +140,26 @@ export default function CartPage() {
               <section className="py-8 px-6 bg-white shadow-lg rounded-xl mb-8 text-[#1c1f28]">
                 <h2 className="text-2xl font-bold mb-6">Tu carrito</h2>
                 <div className="space-y-4">
-                  {Array(3).fill(0).map((_, index) => (
-                    <div key={index} className="flex justify-between items-center mb-4">
-                      <div className="flex items-center">
-                        <div className="w-24 h-24 bg-gray-300 rounded-md animate-pulse mr-4"></div>
-                        <div className="space-y-2">
-                          <div className="w-32 h-4 bg-gray-300 rounded-md animate-pulse mb-2"></div>
-                          <div className="w-24 h-4 bg-gray-300 rounded-md animate-pulse mb-2"></div>
+                  {Array(3)
+                    .fill(0)
+                    .map((_, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center mb-4"
+                      >
+                        <div className="flex items-center">
+                          <div className="w-24 h-24 bg-gray-300 rounded-md animate-pulse mr-4"></div>
+                          <div className="space-y-2">
+                            <div className="w-32 h-4 bg-gray-300 rounded-md animate-pulse mb-2"></div>
+                            <div className="w-24 h-4 bg-gray-300 rounded-md animate-pulse mb-2"></div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="w-16 h-4 bg-gray-300 rounded-md animate-pulse"></div>
+                          <div className="w-24 h-4 bg-gray-300 rounded-md animate-pulse"></div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 h-4 bg-gray-300 rounded-md animate-pulse"></div>
-                        <div className="w-24 h-4 bg-gray-300 rounded-md animate-pulse"></div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </section>
             ) : error ? (
@@ -169,7 +177,7 @@ export default function CartPage() {
             )}
           </div>
 
-          {/* ================== Columna derecha: Cotización de envío + Resumen =============== */}
+          {/* ================== Columna derecha: Cotización de envío + Resumen ================== */}
           <div className="space-y-6">
             {/* ------ 1) Sección de Cotización de Envío ------ */}
             <section className="bg-white rounded shadow p-4 text-[#1c1f28]">
@@ -188,7 +196,9 @@ export default function CartPage() {
                       </span>
                     </>
                   ) : (
-                    <span className="text-sm text-gray-600">¡Felicidades! Tu envío es gratis.</span>
+                    <span className="text-sm text-gray-600">
+                      ¡Felicidades! Tu envío es gratis.
+                    </span>
                   )}
                 </div>
                 <div className="h-2 bg-gray-200 rounded-full mt-1">
@@ -199,126 +209,27 @@ export default function CartPage() {
                         subtotal >= shippingThreshold
                           ? 100
                           : (subtotal / shippingThreshold) * 100
-                      }%`
+                      }%`,
                     }}
                   ></div>
                 </div>
               </div>
 
-              {/* Si subtotal >= threshold => Envío Gratis */}
-              {subtotal >= shippingThreshold ? (
-                <div className="flex justify-between items-center bg-green-100 p-3 rounded-md">
-                  <span className="font-semibold text-green-700">¡Envío Gratis!</span>
-                </div>
-              ) : (
-                <>
-                  {/* Manejamos skeleton o error para el bloque de shippingQuotes */}
-                  {loadingShipping ? (
-                    // Skeleton para las opciones de envío
-                    <div className="mt-4 space-y-4">
-                      {Array(2).fill(0).map((_, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center p-2 border rounded animate-pulse"
-                        >
-                          <div className="bg-gray-300 rounded-full h-4 w-4 mr-2"></div>
-                          <div className="flex flex-col space-y-2 flex-1">
-                            <div className="w-24 h-4 bg-gray-300 rounded-md"></div>
-                            <div className="w-16 h-4 bg-gray-300 rounded-md"></div>
-                            <div className="w-20 h-4 bg-gray-300 rounded-md"></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : shippingError ? (
-                    <p className="text-red-500 mt-2">Error: {shippingError}</p>
-                  ) : shippingQuotes.length > 0 && (
-                    <div className="mt-4">
-                      <h3 className="text-lg font-semibold mb-2">Opciones de Envío</h3>
-                      <div className="space-y-2">
-                        {shippingQuotes.map((quote, index) => (
-                          <label
-                            key={quote.id || index}
-                            htmlFor={`quote-${index}`}
-                            className={`flex items-center p-4 border rounded-md cursor-pointer ${
-                              selectedQuote && selectedQuote.id === quote.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              id={`quote-${index}`}
-                              name="shippingQuote"
-                              value={quote.id}
-                              checked={selectedQuote && selectedQuote.id === quote.id}
-                              onChange={() => handleSelectQuote(quote)}
-                              className="mr-4 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <div className="flex flex-col">
-                              <span className="font-semibold">
-                                {quote.carrier} - {quote.service}
-                              </span>
-                              <span className="text-gray-600">
-                                Precio: ${parseFloat(quote.total_price).toFixed(2)}
-                              </span>
-                              <span className="text-gray-600">
-                                Días estimados: {quote.days}
-                              </span>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 
-                    Botones para agregar/editar CP o Dirección
-                    Ocultos mientras loading o loadingShipping sea true
-                  */}
-                  {!loading && !loadingShipping && (
-                    <div className="mt-4 space-y-2">
-                      {/* Invitado sin CP => "Agregar CP" */}
-                      {!currentUser && !guestZipCode && (
-                        <button
-                          onClick={openZipModal}
-                          className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                        >
-                          Agregar Código Postal
-                        </button>
-                      )}
-
-                      {/* Invitado con CP => "Editar CP" */}
-                      {!currentUser && guestZipCode && (
-                        <button
-                          onClick={openZipModal}
-                          className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
-                        >
-                          Editar CP (Actualmente: {guestZipCode})
-                        </button>
-                      )}
-
-                      {/* Usuario Auth sin dirección => "Agregar dirección" */}
-                      {currentUser && !shippingAddress && (
-                        <button
-                          onClick={openAddressModal}
-                          className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                        >
-                          Agregar Dirección de Envío
-                        </button>
-                      )}
-
-                      {/* Usuario Auth con dirección => "Editar dirección" */}
-                      {currentUser && shippingAddress && (
-                        <button
-                          onClick={openAddressModal}
-                          className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
-                        >
-                          Editar Dirección de Envío
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
+              {/* Usamos el nuevo componente para las opciones de envío */}
+              <ShippingOptions
+                subtotal={subtotal}
+                shippingThreshold={shippingThreshold}
+                shippingQuotes={shippingQuotes}
+                selectedQuote={selectedQuote}
+                loadingShipping={loadingShipping}
+                shippingError={shippingError}
+                currentUser={currentUser}
+                shippingAddress={shippingAddress}
+                guestZipCode={guestZipCode}
+                onSelectQuote={handleSelectQuote}
+                onEditAddress={openAddressModal}
+                onEditGuestZip={openZipModal}
+              />
             </section>
 
             {/* ------ 2) Resumen del Pedido ------ */}

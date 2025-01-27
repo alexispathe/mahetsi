@@ -4,20 +4,25 @@ import React from 'react';
 import { toast } from 'react-toastify';
 
 export default function ShippingOptions({
+  /** Datos principales */
   subtotal,
   shippingThreshold,
   shippingQuotes,
   selectedQuote,
   loadingShipping,
   shippingError,
+
+  /** Info de usuario e invitado */
   currentUser,
   shippingAddress,
   guestZipCode,
+
+  /** Callbacks */
   onSelectQuote,
   onEditAddress,
   onEditGuestZip,
 }) {
-  // Handler local para seleccionar una cotización
+  // Handler local para la selección de una cotización
   const handleSelectQuote = (quote) => {
     onSelectQuote(quote);
     toast.success(
@@ -29,7 +34,9 @@ export default function ShippingOptions({
   if (subtotal >= shippingThreshold) {
     return (
       <div className="flex justify-between items-center bg-green-100 p-4 rounded-md mt-6">
-        <span className="font-semibold text-green-700">¡Felicidades! Tu envío es gratis.</span>
+        <span className="font-semibold text-green-700">
+          ¡Felicidades! Tu envío es gratis.
+        </span>
       </div>
     );
   }
@@ -45,7 +52,7 @@ export default function ShippingOptions({
       )}
 
       {/* Mostrar cotizaciones si existen */}
-      {shippingQuotes.length > 0 && (
+      {shippingQuotes.length > 0 && !loadingShipping && (
         <div className="mt-4">
           <h3 className="text-lg font-semibold mb-2">Opciones de Envío</h3>
           <div className="space-y-2">
@@ -54,7 +61,9 @@ export default function ShippingOptions({
                 key={quote.id || index}
                 htmlFor={`quote-${index}`}
                 className={`flex items-center p-4 border rounded-md cursor-pointer ${
-                  selectedQuote && selectedQuote.id === quote.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                  selectedQuote && selectedQuote.id === quote.id
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-300'
                 }`}
               >
                 <input
@@ -83,7 +92,7 @@ export default function ShippingOptions({
         </div>
       )}
 
-      {/* Editar dirección (Auth) o CP (guest) */}
+      {/* Botones para editar dirección o CP */}
       <div className="mt-4">
         {currentUser && shippingAddress && (
           <button

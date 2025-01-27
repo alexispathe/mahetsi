@@ -7,7 +7,7 @@ import { AuthContext } from '@/context/AuthContext';
 // Componentes creados:
 import FreeShippingProgress from './FreeShippingProgress';
 import CartItemsList from './CartItemsList';
-import ShippingOptions from './ShippingOptions';
+import ShippingOptions from '../../components/ShippingOptions';
 import CartSummary from './CartSummary';
 import ActionButtons from './ActionButtons';
 

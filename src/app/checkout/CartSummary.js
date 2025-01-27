@@ -7,6 +7,9 @@ import TermsModal from './TermsModal';
 import Link from 'next/link';
 import SkeletonCartSummary from './SkeletonCartSummary';
 
+/** Importamos el mismo componente */
+import ShippingOptions from '../components/ShippingOptions'; // Ajusta la ruta según tu estructura
+
 export default function CartSummary({
   selectedAddressId,
   allQuotes,
@@ -15,9 +18,10 @@ export default function CartSummary({
   loadingShipping,
   loading,
 }) {
-  const FREE_SHIPPING_THRESHOLD = 999; // Ajusta tu umbral de envío gratis
+  const FREE_SHIPPING_THRESHOLD = 999;
 
   const { cartItems, products, loading: cartLoading, error } = useContext(CartContext);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAccepted, setIsAccepted] = useState(false);
@@ -35,7 +39,10 @@ export default function CartSummary({
     };
   });
 
-  const subtotal = detailedCartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const subtotal = detailedCartItems.reduce(
+    (acc, item) => acc + item.price * item.qty,
+    0
+  );
 
   // ----------- Lógica de costo de envío -----------
   const shippingCost =
@@ -43,25 +50,23 @@ export default function CartSummary({
       ? 0
       : selectedQuote
       ? parseFloat(selectedQuote.total_price)
-      : 0; // si no hay cotización seleccionada y no llegamos a envío gratis, 0 o lo que prefieras
+      : 0;
 
   const grandTotal = subtotal + shippingCost;
 
   // ----------- Manejo de Confirmación de Pedido -----------
   const handleCompleteOrderClick = async () => {
-    // 1) Validar que exista dirección principal (selectedAddressId).
+    // 1) Validar dirección principal
     if (!selectedAddressId) {
-      alert('No hay una dirección principal configurada. Por favor, agrega o marca una dirección como principal.');
+      alert('No hay una dirección principal configurada. Por favor, configura una.');
       return;
     }
-
     // 2) Validar que acepte términos
     if (!isAccepted) {
       setShowAlert(true);
       return;
     }
-
-    // 3) Si no hay envío gratis y no hay cotización elegida, pedimos que seleccione una
+    // 3) Validar cotización si no hay envío gratis
     if (subtotal < FREE_SHIPPING_THRESHOLD && !selectedQuote) {
       alert('Por favor, selecciona una opción de envío.');
       return;
@@ -72,18 +77,15 @@ export default function CartSummary({
     try {
       const response = await fetch('/api/mercadopago/checkout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          selectedAddressId, // La dirección principal
+          selectedAddressId,
           cartItems,
-          selectedQuote, // La cotización seleccionada (si aplica)
+          selectedQuote,
         }),
       });
 
       const result = await response.json();
-
       if (response.ok && result.initPoint) {
         // Redirigir a Mercado Pago
         window.location.href = result.initPoint;
@@ -98,20 +100,18 @@ export default function CartSummary({
     }
   };
 
-  // ----------- Manejar la selección de una cotización de envío -----------
+  // Manejar la selección de una cotización de envío
   const handleSelectQuote = (quote) => {
     setSelectedQuote(quote);
   };
 
   // ----------- Render -----------
   if (loading || cartLoading) {
-    return <SkeletonCartSummary />; // Muestra Skeleton mientras carga
+    return <SkeletonCartSummary />;
   }
-
   if (error) {
     return <p className="text-red-500 mb-6">Error: {error}</p>;
   }
-
   if (detailedCartItems.length === 0) {
     return (
       <div className="text-center">
@@ -127,14 +127,19 @@ export default function CartSummary({
 
   return (
     <section className="py-8 px-4 sm:px-6 lg:px-8 bg-white shadow-lg rounded-xl mb-8 text-[#1c1f28]">
-      <h2 className="text-2xl font-bold mb-6 text-center sm:text-left">Resumen del Carrito</h2>
+      <h2 className="text-2xl font-bold mb-6 text-center sm:text-left">
+        Resumen del Carrito
+      </h2>
 
       {/* Listado de items en el carrito */}
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-4">Productos en tu Carrito</h3>
         <div className="space-y-4">
           {detailedCartItems.map((item) => (
-            <div key={item.uniqueID} className="flex items-center justify-between p-4 border rounded-md">
+            <div
+              key={item.uniqueID}
+              className="flex items-center justify-between p-4 border rounded-md"
+            >
               <div className="flex items-center">
                 <img
                   src={item.image}
@@ -143,7 +148,9 @@ export default function CartSummary({
                 />
                 <div>
                   <h4 className="text-lg font-semibold">{item.name}</h4>
-                  <p className="text-gray-600">Precio por unidad: ${item.price.toFixed(2)}</p>
+                  <p className="text-gray-600">
+                    Precio por unidad: ${item.price.toFixed(2)}
+                  </p>
                   <p className="text-gray-600">Cantidad: {item.qty}</p>
                   <p className="text-gray-800 font-semibold">
                     Total: ${(item.price * item.qty).toFixed(2)}
@@ -158,51 +165,26 @@ export default function CartSummary({
       {/* Opciones de Envío */}
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-4">Opciones de Envío</h3>
-        {subtotal >= FREE_SHIPPING_THRESHOLD ? (
-          <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
-            <p className="font-semibold">¡Felicidades! Tu envío es gratis.</p>
-            <p className="text-sm text-gray-700 mt-1">
-              Aun así, por favor confirma tu dirección principal para procesar tu pedido.
-            </p>
-          </div>
-        ) : loadingShipping ? (
-          <div className="flex justify-center items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
-          </div>
-        ) : allQuotes.length === 0 ? (
-          <p className="text-gray-700">No hay opciones de envío disponibles.</p>
-        ) : (
-          <div className="space-y-4">
-            {allQuotes.map((quote, index) => (
-              <label
-                key={quote.id || index}
-                htmlFor={`quote-${index}`}
-                className={`flex items-center p-4 border rounded-md cursor-pointer ${
-                  selectedQuote && selectedQuote.id === quote.id ? 'border-blue-500' : ''
-                }`}
-              >
-                <input
-                  type="radio"
-                  id={`quote-${index}`}
-                  name="shippingQuote"
-                  value={quote.id}
-                  checked={selectedQuote && selectedQuote.id === quote.id}
-                  onChange={() => handleSelectQuote(quote)}
-                  className="mr-4 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                />
-                <div className="flex flex-col">
-                  <span className="font-semibold">
-                    {quote.carrier} - {quote.service}
-                  </span>
-                  <span className="text-gray-600">
-                    Precio: ${parseFloat(quote.total_price).toFixed(2)}
-                  </span>
-                  <span className="text-gray-600">Días estimados: {quote.days}</span>
-                </div>
-              </label>
-            ))}
-          </div>
-        )}
+
+        {/* Reutilizamos ShippingOptions */}
+        <ShippingOptions
+          subtotal={subtotal}
+          shippingThreshold={FREE_SHIPPING_THRESHOLD}
+          shippingQuotes={allQuotes} // se recibe como prop "allQuotes"
+          selectedQuote={selectedQuote}
+          loadingShipping={loadingShipping}
+          shippingError={''} // si tuvieras algún error para mostrar
+
+          // Si aquí no usas currentUser, address, etc., puedes pasar null
+          currentUser={null}
+          shippingAddress={null}
+          guestZipCode={null}
+
+          onSelectQuote={handleSelectQuote}
+          // No necesitas editar dirección o CP aquí, así que pasas callbacks vacíos
+          onEditAddress={() => {}}
+          onEditGuestZip={() => {}}
+        />
       </div>
 
       {/* Resumen del Pedido */}
@@ -238,7 +220,10 @@ export default function CartSummary({
         />
         <label className="text-sm">
           Acepto los{' '}
-          <button onClick={() => setIsModalOpen(true)} className="text-blue-400 hover:underline">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="text-blue-400 hover:underline"
+          >
             términos y condiciones
           </button>
         </label>
