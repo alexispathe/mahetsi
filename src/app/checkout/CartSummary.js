@@ -1,5 +1,4 @@
 // src/app/checkout/CartSummary.js
-
 'use client';
 
 import React, { useContext, useState } from 'react';
@@ -175,7 +174,13 @@ export default function CartSummary({
         ) : (
           <div className="space-y-4">
             {allQuotes.map((quote, index) => (
-              <div key={quote.id || index} className="flex items-center p-4 border rounded-md">
+              <label
+                key={quote.id || index}
+                htmlFor={`quote-${index}`}
+                className={`flex items-center p-4 border rounded-md cursor-pointer ${
+                  selectedQuote && selectedQuote.id === quote.id ? 'border-blue-500' : ''
+                }`}
+              >
                 <input
                   type="radio"
                   id={`quote-${index}`}
@@ -185,7 +190,7 @@ export default function CartSummary({
                   onChange={() => handleSelectQuote(quote)}
                   className="mr-4 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
-                <label htmlFor={`quote-${index}`} className="flex flex-col">
+                <div className="flex flex-col">
                   <span className="font-semibold">
                     {quote.carrier} - {quote.service}
                   </span>
@@ -193,8 +198,8 @@ export default function CartSummary({
                     Precio: ${parseFloat(quote.total_price).toFixed(2)}
                   </span>
                   <span className="text-gray-600">Días estimados: {quote.days}</span>
-                </label>
-              </div>
+                </div>
+              </label>
             ))}
           </div>
         )}

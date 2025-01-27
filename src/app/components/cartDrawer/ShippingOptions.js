@@ -3,10 +3,6 @@
 import React from 'react';
 import { toast } from 'react-toastify';
 
-/**
- * Sección de envío: muestra si es gratis, o la lista de cotizaciones,
- * y botones para editar dirección (Auth) o CP (Guest).
- */
 export default function ShippingOptions({
   subtotal,
   shippingThreshold,
@@ -54,9 +50,12 @@ export default function ShippingOptions({
           <h3 className="text-lg font-semibold mb-2">Opciones de Envío</h3>
           <div className="space-y-2">
             {shippingQuotes.map((quote, index) => (
-              <div
+              <label
                 key={quote.id || index}
-                className="flex items-center p-2 border rounded"
+                htmlFor={`quote-${index}`}
+                className={`flex items-center p-4 border rounded-md cursor-pointer ${
+                  selectedQuote && selectedQuote.id === quote.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                }`}
               >
                 <input
                   type="radio"
@@ -65,9 +64,9 @@ export default function ShippingOptions({
                   value={quote.id}
                   checked={selectedQuote && selectedQuote.id === quote.id}
                   onChange={() => handleSelectQuote(quote)}
-                  className="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  className="mr-4 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
-                <label htmlFor={`quote-${index}`} className="flex flex-col">
+                <div className="flex flex-col">
                   <span className="font-semibold">
                     {quote.carrier} - {quote.service}
                   </span>
@@ -77,8 +76,8 @@ export default function ShippingOptions({
                   <span className="text-gray-600">
                     Días estimados: {quote.days}
                   </span>
-                </label>
-              </div>
+                </div>
+              </label>
             ))}
           </div>
         </div>
@@ -98,7 +97,7 @@ export default function ShippingOptions({
         {!currentUser && guestZipCode && (
           <button
             onClick={onEditGuestZip}
-            className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition-colors duration-300"
+            className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition-colors duration-300 mt-2"
           >
             Editar CP (Actualmente: {guestZipCode})
           </button>

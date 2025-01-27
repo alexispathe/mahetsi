@@ -6,7 +6,7 @@ import CartItems from './CartItems';
 import { CartContext } from '@/context/CartContext/CartContext';
 import { AuthContext } from '@/context/AuthContext';
 
-import ShippingAddressModal from '../components/shippingAddressModal/ShippingAddressModal.js.js';
+import ShippingAddressModal from '../components/shippingAddressModal/ShippingAddressModal.js';
 import ZipCodeModal from '../components/cartDrawer/ZipCodeModal';
 import { toast } from 'react-toastify';
 
@@ -237,9 +237,12 @@ export default function CartPage() {
                       <h3 className="text-lg font-semibold mb-2">Opciones de Envío</h3>
                       <div className="space-y-2">
                         {shippingQuotes.map((quote, index) => (
-                          <div
+                          <label
                             key={quote.id || index}
-                            className="flex items-center p-2 border rounded"
+                            htmlFor={`quote-${index}`}
+                            className={`flex items-center p-4 border rounded-md cursor-pointer ${
+                              selectedQuote && selectedQuote.id === quote.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                            }`}
                           >
                             <input
                               type="radio"
@@ -248,9 +251,9 @@ export default function CartPage() {
                               value={quote.id}
                               checked={selectedQuote && selectedQuote.id === quote.id}
                               onChange={() => handleSelectQuote(quote)}
-                              className="mr-2 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                              className="mr-4 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                             />
-                            <label htmlFor={`quote-${index}`} className="flex flex-col">
+                            <div className="flex flex-col">
                               <span className="font-semibold">
                                 {quote.carrier} - {quote.service}
                               </span>
@@ -260,8 +263,8 @@ export default function CartPage() {
                               <span className="text-gray-600">
                                 Días estimados: {quote.days}
                               </span>
-                            </label>
-                          </div>
+                            </div>
+                          </label>
                         ))}
                       </div>
                     </div>
