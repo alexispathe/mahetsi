@@ -1,5 +1,3 @@
-// src/app/profile/user/page.js
-
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
@@ -100,6 +98,7 @@ export default function ProfilePage() {
       </div>
     );
   }
+
   const { email, name, picture, permissions } = currentUser;
   const isAdmin = permissions?.includes('admin');
 
@@ -109,10 +108,11 @@ export default function ProfilePage() {
   };
 
   return (
-    <>
-      <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4">
+      {/* Contenedor que agrupa la info del perfil y las direcciones */}
+      <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 mb-6">
         {/* Info del Perfil */}
-        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <div className="bg-white shadow-md rounded-lg p-6 md:w-1/2">
           <div className="flex flex-col md:flex-row items-center">
             {picture && (
               <Image
@@ -135,8 +135,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Sección de Direcciones */}
-        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Mis Direcciones</h2>
+        <div className="bg-white shadow-md rounded-lg p-6 md:w-1/2">
           <UserAddress
             selectedAddressId={selectedAddressId}
             setSelectedAddressId={setSelectedAddressId}
@@ -144,25 +143,33 @@ export default function ProfilePage() {
             addresses={addresses}
           />
         </div>
-
-        {/* Sección de Órdenes de Usuario */}
-        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Mis Compras</h2>
-          {loadingOrders ? (
-            <p>Cargando órdenes...</p>
-          ) : ordersError ? (
-            <p className="text-red-500">{ordersError}</p>
-          ) : (
-            <OrdersTable orders={orders} userReviews={userReviews} onReviewSubmitted={handleReviewSubmitted} />
-          )}
-        </div>
-
-        {/* Sección de Reseñas del Usuario */}
-        <UserReviews reviews={userReviews} loading={loadingReviews} error={reviewsError} />
-
-        {/* Si es admin, mostramos las órdenes de admin */}
-        {isAdmin && <AdminOrders />}
       </div>
-    </>
+
+      {/* Sección de Órdenes de Usuario */}
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Mis Compras</h2>
+        {loadingOrders ? (
+          <p>Cargando órdenes...</p>
+        ) : ordersError ? (
+          <p className="text-red-500">{ordersError}</p>
+        ) : (
+          <OrdersTable
+            orders={orders}
+            userReviews={userReviews}
+            onReviewSubmitted={handleReviewSubmitted}
+          />
+        )}
+      </div>
+
+      {/* Sección de Reseñas del Usuario */}
+      <UserReviews
+        reviews={userReviews}
+        loading={loadingReviews}
+        error={reviewsError}
+      />
+
+      {/* Si es admin, mostramos las órdenes de admin */}
+      {isAdmin && <AdminOrders />}
+    </div>
   );
 }

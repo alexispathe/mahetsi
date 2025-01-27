@@ -6,10 +6,17 @@ import React, { useContext, useState } from 'react';
 import { CartContext } from '@/context/CartContext/CartContext';
 import TermsModal from './TermsModal';
 import Link from 'next/link';
-import SkeletonCartSummary from './SkeletonCartSummary'; // Nuevo componente de Skeleton
+import SkeletonCartSummary from './SkeletonCartSummary';
 
-export default function CartSummary({ selectedAddressId, allQuotes, selectedQuote, setSelectedQuote, loadingShipping, loading }) {
-  const FREE_SHIPPING_THRESHOLD = 999;  // <-- Agrega tu umbral de envío gratis
+export default function CartSummary({
+  selectedAddressId,
+  allQuotes,
+  selectedQuote,
+  setSelectedQuote,
+  loadingShipping,
+  loading,
+}) {
+  const FREE_SHIPPING_THRESHOLD = 999; // Ajusta tu umbral de envío gratis
 
   const { cartItems, products, loading: cartLoading, error } = useContext(CartContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,9 +24,9 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
   const [isAccepted, setIsAccepted] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
-  // ----------- Calculamos el detalle del carrito ----------- 
-  const detailedCartItems = cartItems.map(cartItem => {
-    const product = products.find(p => p.uniqueID === cartItem.uniqueID);
+  // ----------- Detalle del carrito -----------
+  const detailedCartItems = cartItems.map((cartItem) => {
+    const product = products.find((p) => p.uniqueID === cartItem.uniqueID);
     return {
       ...cartItem,
       name: product ? product.name : 'Producto no encontrado',
@@ -29,22 +36,23 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
     };
   });
 
-  const subtotal = detailedCartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+  const subtotal = detailedCartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
 
-  // ----------- Si el subtotal >= FREE_SHIPPING_THRESHOLD, el envío es gratis; de lo contrario, usamos la cotización -----------
-  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD
-    ? 0
-    : selectedQuote
+  // ----------- Lógica de costo de envío -----------
+  const shippingCost =
+    subtotal >= FREE_SHIPPING_THRESHOLD
+      ? 0
+      : selectedQuote
       ? parseFloat(selectedQuote.total_price)
-      : 0; // Si no hay cotización seleccionada y no llegamos a envío gratis, es 0 por defecto (o puedes dejarlo nulo y mostrar mensaje)
+      : 0; // si no hay cotización seleccionada y no llegamos a envío gratis, 0 o lo que prefieras
 
   const grandTotal = subtotal + shippingCost;
 
   // ----------- Manejo de Confirmación de Pedido -----------
   const handleCompleteOrderClick = async () => {
-    // 1) Validar que el usuario tenga una dirección seleccionada
+    // 1) Validar que exista dirección principal (selectedAddressId).
     if (!selectedAddressId) {
-      alert('Por favor, selecciona una dirección de envío antes de completar el pedido.');
+      alert('No hay una dirección principal configurada. Por favor, agrega o marca una dirección como principal.');
       return;
     }
 
@@ -54,7 +62,7 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
       return;
     }
 
-    // 3) Si no se ha alcanzado el envío gratis, forzamos a que seleccione una cotización
+    // 3) Si no hay envío gratis y no hay cotización elegida, pedimos que seleccione una
     if (subtotal < FREE_SHIPPING_THRESHOLD && !selectedQuote) {
       alert('Por favor, selecciona una opción de envío.');
       return;
@@ -69,16 +77,17 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          selectedAddressId,
+          selectedAddressId, // La dirección principal
           cartItems,
-          selectedQuote, // Enviar la cotización seleccionada
+          selectedQuote, // La cotización seleccionada (si aplica)
         }),
       });
 
       const result = await response.json();
 
       if (response.ok && result.initPoint) {
-        window.location.href = result.initPoint; // Redirigir a Mercado Pago
+        // Redirigir a Mercado Pago
+        window.location.href = result.initPoint;
       } else {
         alert(result.message || 'Error al procesar el pago');
       }
@@ -97,7 +106,7 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
 
   // ----------- Render -----------
   if (loading || cartLoading) {
-    return <SkeletonCartSummary />; // Mostrar Skeleton mientras carga
+    return <SkeletonCartSummary />; // Muestra Skeleton mientras carga
   }
 
   if (error) {
@@ -125,10 +134,14 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-4">Productos en tu Carrito</h3>
         <div className="space-y-4">
-          {detailedCartItems.map(item => (
+          {detailedCartItems.map((item) => (
             <div key={item.uniqueID} className="flex items-center justify-between p-4 border rounded-md">
               <div className="flex items-center">
-                <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded mr-4" />
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-16 h-16 object-cover rounded mr-4"
+                />
                 <div>
                   <h4 className="text-lg font-semibold">{item.name}</h4>
                   <p className="text-gray-600">Precio por unidad: ${item.price.toFixed(2)}</p>
@@ -146,13 +159,11 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
       {/* Opciones de Envío */}
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-4">Opciones de Envío</h3>
-
-        {/* Si ya es envío gratis, mostramos un mensaje. Si no, mostramos las cotizaciones */}
         {subtotal >= FREE_SHIPPING_THRESHOLD ? (
           <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
             <p className="font-semibold">¡Felicidades! Tu envío es gratis.</p>
             <p className="text-sm text-gray-700 mt-1">
-              Aun así, por favor confirma tu dirección de envío para procesar tu pedido.
+              Aun así, por favor confirma tu dirección principal para procesar tu pedido.
             </p>
           </div>
         ) : loadingShipping ? (
@@ -164,10 +175,7 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
         ) : (
           <div className="space-y-4">
             {allQuotes.map((quote, index) => (
-              <div
-                key={quote.id || index}
-                className="flex items-center p-4 border rounded-md"
-              >
+              <div key={quote.id || index} className="flex items-center p-4 border rounded-md">
                 <input
                   type="radio"
                   id={`quote-${index}`}
@@ -178,13 +186,13 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
                   className="mr-4 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                 />
                 <label htmlFor={`quote-${index}`} className="flex flex-col">
-                  <span className="font-semibold">{quote.carrier} - {quote.service}</span>
+                  <span className="font-semibold">
+                    {quote.carrier} - {quote.service}
+                  </span>
                   <span className="text-gray-600">
                     Precio: ${parseFloat(quote.total_price).toFixed(2)}
                   </span>
-                  <span className="text-gray-600">
-                    Días estimados: {quote.days}
-                  </span>
+                  <span className="text-gray-600">Días estimados: {quote.days}</span>
                 </label>
               </div>
             ))}
@@ -205,9 +213,8 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
             {subtotal >= FREE_SHIPPING_THRESHOLD
               ? 'Gratis'
               : selectedQuote
-                ? `$${shippingCost.toFixed(2)} (${selectedQuote.carrier} - ${selectedQuote.service})`
-                : 'Selecciona una opción de envío'
-            }
+              ? `$${shippingCost.toFixed(2)} (${selectedQuote.carrier} - ${selectedQuote.service})`
+              : 'Selecciona una opción de envío'}
           </p>
         </div>
         <div className="flex justify-between mb-4">
@@ -241,7 +248,9 @@ export default function CartSummary({ selectedAddressId, allQuotes, selectedQuot
       <div className="mt-4">
         <button
           onClick={handleCompleteOrderClick}
-          className={`w-full bg-orange-500 text-white py-3 px-6 rounded-md hover:bg-orange-600 transition-colors duration-200 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full bg-orange-500 text-white py-3 px-6 rounded-md hover:bg-orange-600 transition-colors duration-200 ${
+            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Procesando...' : 'Pagar con Mercado Pago'}

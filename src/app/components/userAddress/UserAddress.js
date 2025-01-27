@@ -171,17 +171,14 @@ export default function UserAddress({
   }
 
   return (
-    <div className="user-address-container bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Dirección de Envío</h2>
+    <div className="user-address-container">
+      <h2 className="text-2xl font-bold mb-4">Mis Direcciones de Envío</h2>
 
       {/* Si no estamos creando ni editando, mostramos lista y botón de "Agregar" */}
       {!isAddingNew && !isEditing && (
         <>
           {addresses.length > 0 ? (
             <>
-              <h3 className="text-xl font-semibold mb-2">
-                Selecciona una dirección existente:
-              </h3>
               <AddressList
                 addresses={addresses}
                 selectedAddressId={selectedAddressId}
