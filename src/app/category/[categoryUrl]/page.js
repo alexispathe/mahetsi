@@ -6,7 +6,7 @@ import { FaTimes } from 'react-icons/fa';
 import { IoOptions } from "react-icons/io5";
 import HeroSection from '../HeroSection';
 import CategoryFilter from '../CategoryFilter';
-import SubcategoryFilter from '../SubcategoryFilter'; // Asegúrate de la ruta correcta
+import SubcategoryFilter from '../SubcategoryFilter';
 import PriceFilter from '../PriceFilter';
 import BrandFilter from '../BrandFilter';
 import ProductList from '../ProductList';
@@ -23,7 +23,7 @@ export default function CategoryPage() {
   const categoryUrl = params.categoryUrl;
 
   // Utilización de hooks personalizados
-  const {  categories } = useCategories();
+  const { categories } = useCategories();
 
   // Si la categoría no existe, tomar la primera categoría disponible
   const currentCategory = categories.find(cat => cat.url === categoryUrl) || categories[0];
@@ -43,10 +43,8 @@ export default function CategoryPage() {
     setSelectedBrands,
     selectedTypes,
     setSelectedTypes,
-    selectedSizes,
-    setSelectedSizes,
-    selectedSubcategories, // Obtener subcategorías seleccionadas
-    setSelectedSubcategories, // Función para actualizar subcategorías seleccionadas
+    selectedSubcategories,
+    setSelectedSubcategories,
     clearAllFilters,
   } = useFilters();
 
@@ -84,13 +82,10 @@ export default function CategoryPage() {
       // Filtrar por tipos seleccionados
       const matchesType = selectedTypes.length === 0 || selectedTypes.includes(getTypeName(product.typeID));
 
-      // Filtrar por tallas seleccionadas
-      const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size);
-
       // Filtrar por subcategorías seleccionadas
       const matchesSubcategory = selectedSubcategories.length === 0 || selectedSubcategories.includes(product.subcategoryID);
 
-      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize && matchesSubcategory;
+      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSubcategory;
     });
   };
 
@@ -133,8 +128,6 @@ export default function CategoryPage() {
               setSelectedBrands={setSelectedBrands}
               selectedTypes={selectedTypes}
               setSelectedTypes={setSelectedTypes}
-              selectedSizes={selectedSizes}
-              setSelectedSizes={setSelectedSizes}
             />
             <PriceFilter
               minPrice={minPrice}
@@ -152,20 +145,17 @@ export default function CategoryPage() {
               selectedCategories={selectedCategories}
               selectedBrands={selectedBrands}
               selectedTypes={selectedTypes}
-              selectedSizes={selectedSizes}
-              selectedSubcategories={selectedSubcategories} // Pasar subcategorías seleccionadas
+              selectedSubcategories={selectedSubcategories}
               minPrice={minPrice}
               maxPrice={maxPrice}
               clearAllFilters={clearAllFilters}
               setSelectedCategories={setSelectedCategories}
               setSelectedBrands={setSelectedBrands}
               setSelectedTypes={setSelectedTypes}
-              setSelectedSizes={setSelectedSizes}
-              setSelectedSubcategories={setSelectedSubcategories} // Pasar función para actualizar subcategorías
               loading={isLoadingProducts}
               brands={brands}
               types={types}
-              subcategories={subcategories} // Añadir esta línea
+              subcategories={subcategories}
             />
           </main>
         </div>
@@ -202,8 +192,6 @@ export default function CategoryPage() {
                   setSelectedBrands={setSelectedBrands}
                   selectedTypes={selectedTypes}
                   setSelectedTypes={setSelectedTypes}
-                  selectedSizes={selectedSizes}
-                  setSelectedSizes={setSelectedSizes}
                 />
                 <PriceFilter
                   minPrice={minPrice}

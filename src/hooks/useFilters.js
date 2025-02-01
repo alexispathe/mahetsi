@@ -9,7 +9,6 @@ export const useFilters = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
-  const [selectedSizes, setSelectedSizes] = useState([]);
 
   // Nuevo estado para subcategorías
   const [selectedSubcategories, setSelectedSubcategories] = useState([]);
@@ -31,8 +30,7 @@ export const useFilters = () => {
     setSelectedCategories([]);
     setSelectedBrands([]);
     setSelectedTypes([]);
-    setSelectedSizes([]);
-    setSelectedSubcategories([]); // Limpiar subcategorías
+    setSelectedSubcategories([]);
     setMinPrice(0);
     setMaxPrice(1000);
   };
@@ -50,10 +48,8 @@ export const useFilters = () => {
     setSelectedBrands,
     selectedTypes,
     setSelectedTypes,
-    selectedSizes,
-    setSelectedSizes,
-    selectedSubcategories, // Exponer subcategorías seleccionadas
-    setSelectedSubcategories, // Función para actualizar subcategorías
+    selectedSubcategories,
+    setSelectedSubcategories,
     clearAllFilters,
   };
 };

@@ -1,31 +1,27 @@
-'use client';
 // BrandFilter.js
+
+'use client';
 
 import { useState, useEffect } from 'react';
 
 export default function BrandFilter({ 
-  brands, 
-  types, 
-  selectedBrands, 
-  setSelectedBrands, 
-  selectedTypes, 
-  setSelectedTypes, 
-  selectedSizes, 
-  setSelectedSizes 
+  brands = [],
+  types = [],
+  selectedBrands = [],
+  setSelectedBrands = () => {},
+  selectedTypes = [],
+  setSelectedTypes = () => {},
 }) {
   const [searchBrand, setSearchBrand] = useState('');
   const [searchType, setSearchType] = useState('');
   const [loading, setLoading] = useState(true);
-
-  // Si utilizas tallas en tus productos, define las tallas aquí
-  const sizes = ['S', 'M', 'L', 'XL']; // Ejemplo de tallas
 
   useEffect(() => {
     // Cambia el estado de carga cuando las marcas estén disponibles
     if (brands && brands.length > 0) {
       setLoading(false);
     }
-  }, [brands]); // Este hook se activa cuando las marcas cambian
+  }, [brands]);
 
   const toggleBrand = (brandName) => {
     if (selectedBrands.includes(brandName)) {
@@ -40,14 +36,6 @@ export default function BrandFilter({
       setSelectedTypes(selectedTypes.filter(t => t !== typeName));
     } else {
       setSelectedTypes([...selectedTypes, typeName]);
-    }
-  };
-
-  const toggleSize = (size) => {
-    if (selectedSizes.includes(size)) {
-      setSelectedSizes(selectedSizes.filter(s => s !== size));
-    } else {
-      setSelectedSizes([...selectedSizes, size]);
     }
   };
 
@@ -140,34 +128,6 @@ export default function BrandFilter({
                 <label htmlFor={type.uniqueID} className="text-sm text-gray-700 cursor-pointer">{type.name}</label>
               </li>
             ))}
-        </ul>
-      )}
-
-      {/* Tallas */}
-      <h4 className="text-lg font-semibold mb-4">Tallas</h4>
-      {loading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 animate-pulse">
-          {[...Array(4)].map((_, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
-              <div className="w-12 h-4 bg-gray-300 rounded"></div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <ul className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-          {sizes.map((size, index) => (
-            <li key={index} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id={`size-${size}`}
-                onChange={() => toggleSize(size)}
-                checked={selectedSizes.includes(size)}
-                className="form-checkbox h-4 w-4 text-blue-600"
-              />
-              <label htmlFor={`size-${size}`} className="text-sm text-gray-700 cursor-pointer">{size}</label>
-            </li>
-          ))}
         </ul>
       )}
     </div>

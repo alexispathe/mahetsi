@@ -1,6 +1,5 @@
 'use client';
 // CategoryFilter.js
-// components/CategoryFilter.js
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';

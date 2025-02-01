@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useMemo, useContext } from 'react';
 import { FaTimes, FaShoppingCart, FaHeart, FaRegHeart, FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa'; 
 import Link from 'next/link'; 
@@ -16,7 +15,6 @@ export default function ProductList({
   selectedCategories,
   selectedBrands,
   selectedTypes,
-  selectedSizes,
   selectedSubcategories,
   setSelectedSubcategories,
   minPrice,
@@ -25,8 +23,9 @@ export default function ProductList({
   setSelectedCategories,
   setSelectedBrands,
   setSelectedTypes,
-  setSelectedSizes,
   loading,
+  brands,
+  types,
   subcategories,
 }) {
   // Estados generales
@@ -73,10 +72,10 @@ export default function ProductList({
       setSelectedBrands(selectedBrands.filter(item => item !== value));
     } else if (type === 'Type') {
       setSelectedTypes(selectedTypes.filter(item => item !== value));
-    } else if (type === 'Size') {
-      setSelectedSizes(selectedSizes.filter(s => s !== value));
     } else if (type === 'Subcategory') {
       setSelectedSubcategories(selectedSubcategories.filter(item => item !== value));
+    } else if (type === 'Ordenar por') {
+      setSortOption('');
     }
   };
 
@@ -85,14 +84,16 @@ export default function ProductList({
       ...selectedCategories.map(category => ({ type: 'Category', value: category })),
       ...selectedBrands.map(brand => ({ type: 'Brand', value: brand })),
       ...selectedTypes.map(type => ({ type: 'Type', value: type })),
-      ...selectedSizes.map(size => ({ type: 'Size', value: size })),
       ...selectedSubcategories.map(subcategory => ({ type: 'Subcategory', value: subcategory })),
     ];
     if (minPrice > 0 || maxPrice < 1000) {
       filters.push({ type: 'Price', value: `${minPrice} - ${maxPrice}` });
     }
+    if (sortOption) {
+      filters.push({ type: 'Ordenar por', value: sortOption.toUpperCase() });
+    }
     return filters;
-  }, [selectedCategories, selectedBrands, selectedTypes, selectedSizes, selectedSubcategories, minPrice, maxPrice]);
+  }, [selectedCategories, selectedBrands, selectedTypes, selectedSubcategories, minPrice, maxPrice, sortOption]);
 
   // Paginación
   const totalPages = useMemo(() => Math.ceil(sortedProducts.length / productsPerPage), [sortedProducts.length, productsPerPage]);
@@ -115,7 +116,6 @@ export default function ProductList({
     
     try {
       await addItemToCart(cartItem);
-      // -- Lanzamos la notificación --
       const product = products.find((p) => p.uniqueID === productUniqueID);
       if (product) {
         toast.success(
@@ -131,7 +131,7 @@ export default function ProductList({
           </div>,
           {
             theme: "light",
-            icon: false, // Opcional: Oculta el icono predeterminado
+            icon: false,
           }
         );
       }
@@ -149,7 +149,6 @@ export default function ProductList({
     try {
       if (favoriteIDs.includes(productUniqueID)) {
         await removeFavorite(productUniqueID);
-        // Mostrar notificación de eliminación con imagen
         const product = products.find((p) => p.uniqueID === productUniqueID);
         if (product) {
           toast.error(
@@ -165,13 +164,12 @@ export default function ProductList({
             </div>,
             {
               theme: 'light',
-              icon: false, // Opcional: Oculta el icono predeterminado
+              icon: false,
             }
           );
         }
       } else {
         await addFavorite(productUniqueID);
-        // Mostrar notificación de adición con imagen
         const product = products.find((p) => p.uniqueID === productUniqueID);
         if (product) {
           toast.success(
@@ -187,7 +185,7 @@ export default function ProductList({
             </div>,
             {
               theme: 'light',
-              icon: false, // Opcional: Oculta el icono predeterminado
+              icon: false,
             }
           );
         }
@@ -292,7 +290,6 @@ export default function ProductList({
       {/* Lista de Productos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-4 gap-6">
         {loading ? (
-          // Skeleton screen
           Array(productsPerPage).fill(0).map((_, index) => (
             <div key={index} className="bg-gray-200 p-4 rounded-lg shadow-md">
               <div className="animate-pulse">
@@ -307,7 +304,6 @@ export default function ProductList({
           currentProducts.length > 0 ? (
             currentProducts.map((product) => (
               <div key={product.uniqueID} className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 relative">
-                {/* Imagen, Reseñas y Título dentro del Link */}
                 <Link href={`/product/${product.url}`} className="block">
                   <Image 
                     src={product.images[0]} 
@@ -316,19 +312,15 @@ export default function ProductList({
                     height={500} 
                     className="w-full h-48 object-cover mb-4 rounded-md"
                   />
-                  {/* Estrellas y Reseñas */}
                   <div className="flex justify-center mt-2">
                     <div className="flex">{renderStars(product.averageRating)}</div>
                     <span className="text-xs text-gray-600 ml-2">({product.numReviews})</span>
                   </div>
                   <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
                 </Link>
-
-                {/* Precio y Botones */}
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
                   <div className="flex space-x-2">
-                    {/* Agregar a Favoritos */}
                     <button 
                       onClick={() => handleToggleFavorite(product.uniqueID)}
                       className="text-red-500 hover:text-red-700 transition-colors duration-300"
@@ -343,7 +335,6 @@ export default function ProductList({
                           <FaRegHeart className="h-5 w-5" />
                       )}
                     </button>
-                    {/* Agregar al Carrito */}
                     <button 
                       onClick={() => handleAddToCart(product.uniqueID)}
                       className="text-gray-800 hover:text-gray-600 transition-colors duration-300"
@@ -366,7 +357,6 @@ export default function ProductList({
         )}
       </div>
 
-      {/* Paginación */}
       {!loading && totalPages > 1 && (
         <Pagination 
           currentPage={currentPage} 
