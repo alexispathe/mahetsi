@@ -9,7 +9,7 @@ export default function SubcategoryFilter({
   selectedSubcategories, 
   setSelectedSubcategories, 
   isLoadingSubcategories,
-  linkMode = false, // Nuevo prop para activar el modo link
+  linkMode = false, // activar el modo link
   catURL = ''       // Se usa para construir la URL
 }) {
   // Si no estamos en modo link, se usa la lógica de selección con checkboxes

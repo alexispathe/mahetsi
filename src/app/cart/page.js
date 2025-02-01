@@ -9,7 +9,6 @@ import { AuthContext } from '@/context/AuthContext';
 
 import ShippingAddressModal from '../components/shippingAddressModal/ShippingAddressModal.js';
 import ZipCodeModal from '../components/cartDrawer/ZipCodeModal';
-import { toast } from 'react-toastify';
 
 /** Importamos nuestro nuevo componente de envío */
 import ShippingOptions from '../components/ShippingOptions'; // Ajusta la ruta a la carpeta donde guardaste ShippingOptions.jsx
