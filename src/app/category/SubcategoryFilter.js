@@ -1,14 +1,18 @@
-// components/SubcategoryFilter.js
+// category/SubcategoryFilter.js
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 
 export default function SubcategoryFilter({ 
   subcategories, 
   selectedSubcategories, 
   setSelectedSubcategories, 
-  isLoadingSubcategories 
+  isLoadingSubcategories,
+  linkMode = false, // Nuevo prop para activar el modo link
+  catURL = ''       // Se usa para construir la URL
 }) {
+  // Si no estamos en modo link, se usa la lógica de selección con checkboxes
   const handleSubcategoryChange = (subcategoryID) => {
     if (selectedSubcategories.includes(subcategoryID)) {
       setSelectedSubcategories(selectedSubcategories.filter(id => id !== subcategoryID));
@@ -36,17 +40,29 @@ export default function SubcategoryFilter({
         <ul className="space-y-2">
           {subcategories.map((subcategory) => (
             <li key={subcategory.uniqueID} className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id={subcategory.uniqueID}
-                name="subcategory"
-                className="form-checkbox h-4 w-4 text-blue-600"
-                checked={selectedSubcategories.includes(subcategory.uniqueID)}
-                onChange={() => handleSubcategoryChange(subcategory.uniqueID)}
-              />
-              <label htmlFor={subcategory.uniqueID} className="text-sm text-gray-700 cursor-pointer">
-                {subcategory.name}
-              </label>
+              {linkMode ? (
+                <Link 
+                  href={`/category/${catURL}/${subcategory.url}`}
+                  className="text-sm text-gray-700 hover:text-yellow-500"
+                  aria-label={`Subcategoría ${subcategory.name}`}
+                >
+                  {subcategory.name}
+                </Link>
+              ) : (
+                <>
+                  <input
+                    type="checkbox"
+                    id={subcategory.uniqueID}
+                    name="subcategory"
+                    className="form-checkbox h-4 w-4 text-blue-600"
+                    checked={selectedSubcategories.includes(subcategory.uniqueID)}
+                    onChange={() => handleSubcategoryChange(subcategory.uniqueID)}
+                  />
+                  <label htmlFor={subcategory.uniqueID} className="text-sm text-gray-700 cursor-pointer">
+                    {subcategory.name}
+                  </label>
+                </>
+              )}
             </li>
           ))}
         </ul>

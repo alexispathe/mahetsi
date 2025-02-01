@@ -1,12 +1,12 @@
-// components/Category/[categoryURL]/[subcategoryURL]/page.js
+//Category/[categoryURL]/[subcategoryURL]/page.js
 'use client';
 
 import { useParams } from 'next/navigation';
 import { FaTimes } from 'react-icons/fa';
-import { IoOptions } from "react-icons/io5";
+import { IoOptions } from 'react-icons/io5';
 import HeroSection from '../../HeroSection';
 import CategoryFilter from '../../CategoryFilter';
-import SubcategoryFilter from '../../SubcategoryFilter'; // Asegúrate de la ruta correcta
+import SubcategoryFilter from '../../SubcategoryFilter';
 import PriceFilter from '../../PriceFilter';
 import BrandFilter from '../../BrandFilter';
 import ProductList from '../../ProductList';
@@ -17,28 +17,31 @@ import { useBrandsAndTypes } from '../../../../hooks/useBrandsAndTypes';
 import { useProducts } from '../../../../hooks/useProductsBySubcategory';
 import { useFilters } from '../../../../hooks/useFilters';
 import { useSubcategories } from '../../../../hooks/useSubcategories';
-import { useSubcategoryByURL } from '../../../../hooks/useSubcategoryByURL'; // Importar el nuevo hook
+import { useSubcategoryByURL } from '../../../../hooks/useSubcategoryByURL'; // Nuevo hook
 
 export default function CategoryPage() {
   const params = useParams();
   const categoryUrl = params.categoryUrl;
   const subcategoryURL = params.subcategoryURL; // Obtener subcategoryURL de los params
 
-  // Utilización de hooks personalizados
-  const {categories } = useCategories();
+  // Obtener las categorías
+  const { categories } = useCategories();
 
-  // Si la categoría no existe, tomar la primera categoría disponible
+  // Si la categoría no existe, se toma la primera disponible
   const currentCategory = categories.find(cat => cat.url === categoryUrl) || categories[0];
 
   const { brands, types } = useBrandsAndTypes(currentCategory);
   
-  // Usar el nuevo hook para obtener subcategoryID
-  const {  subcategory } =  useSubcategoryByURL(currentCategory?.uniqueID, subcategoryURL);
+  // Usamos el hook para obtener la subcategoría según la URL (se espera un arreglo; usamos el primer elemento si existe)
+  const { subcategory } = useSubcategoryByURL(currentCategory?.uniqueID, subcategoryURL);
  
-  const { isLoadingProducts, products } = useProducts(currentCategory,  subcategory && subcategory.length>=1? subcategory[0]?.subcategoryID : null);
+  // Se pasa el subcategoryID (si existe) al hook que obtiene los productos filtrados por subcategoría
+  const { isLoadingProducts, products } = useProducts(
+    currentCategory,
+    subcategory && subcategory.length >= 1 ? subcategory[0]?.subcategoryID : null
+  );
 
-  // Pasar el subcategoryID obtenido al hook de producto
-  
+  // Los filtros (ya sin tallas)
   const {
     minPrice,
     maxPrice,
@@ -52,16 +55,15 @@ export default function CategoryPage() {
     setSelectedBrands,
     selectedTypes,
     setSelectedTypes,
-    selectedSizes,
-    setSelectedSizes,
-    selectedSubcategories, // Obtener subcategorías seleccionadas
-    setSelectedSubcategories, // Función para actualizar subcategorías seleccionadas
+    selectedSubcategories,
+    setSelectedSubcategories,
     clearAllFilters,
   } = useFilters();
-  // Obtener subcategorías usando el hook existente
+
+  // Obtener todas las subcategorías de la categoría actual (para mostrarlas en la lista lateral)
   const { isLoadingSubcategories, subcategories } = useSubcategories(currentCategory?.uniqueID);
 
-  // Funciones auxiliares para obtener nombres
+  // Funciones auxiliares para obtener nombres (para filtrar en cliente)
   const getCategoryName = (categoryID) => {
     const category = categories.find(cat => cat.uniqueID === categoryID);
     return category ? category.name : '';
@@ -77,28 +79,20 @@ export default function CategoryPage() {
     return type ? type.name : '';
   };
 
-  // Función de filtrado en el cliente
+  // Función de filtrado en el cliente (se han eliminado los filtros por tallas)
   const filterProducts = () => {
     return products.filter(product => {
-      // Filtrar por rango de precio
       const withinPrice = product.price >= minPrice && product.price <= maxPrice;
+      const matchesCategory =
+        selectedCategories.length === 0 || selectedCategories.includes(getCategoryName(product.categoryID));
+      const matchesBrand =
+        selectedBrands.length === 0 || selectedBrands.includes(getBrandName(product.brandID));
+      const matchesType =
+        selectedTypes.length === 0 || selectedTypes.includes(getTypeName(product.typeID));
+      const matchesSubcategory =
+        selectedSubcategories.length === 0 || selectedSubcategories.includes(product.subcategoryID);
 
-      // Filtrar por categorías seleccionadas
-      const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(getCategoryName(product.categoryID));
-
-      // Filtrar por marcas seleccionadas
-      const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(getBrandName(product.brandID));
-
-      // Filtrar por tipos seleccionados
-      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(getTypeName(product.typeID));
-
-      // Filtrar por tallas seleccionadas
-      const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(product.size);
-
-      // Filtrar por subcategorías seleccionadas
-      const matchesSubcategory = selectedSubcategories.length === 0 || selectedSubcategories.includes(product.subcategoryID);
-
-      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSize && matchesSubcategory;
+      return withinPrice && matchesCategory && matchesBrand && matchesType && matchesSubcategory;
     });
   };
 
@@ -128,11 +122,14 @@ export default function CategoryPage() {
               setSelectedCategories={setSelectedCategories}
               catURL={categoryUrl}
             />
+            {/* Se activa el modo "link" para que cada subcategoría redirija a la URL correspondiente */}
             <SubcategoryFilter
               subcategories={subcategories}
               selectedSubcategories={selectedSubcategories}
               setSelectedSubcategories={setSelectedSubcategories}
               isLoadingSubcategories={isLoadingSubcategories}
+              linkMode={true}   // Habilitamos el modo link
+              catURL={categoryUrl} // Se necesita para construir la URL
             />
             <BrandFilter
               brands={brands}
@@ -141,8 +138,6 @@ export default function CategoryPage() {
               setSelectedBrands={setSelectedBrands}
               selectedTypes={selectedTypes}
               setSelectedTypes={setSelectedTypes}
-              selectedSizes={selectedSizes}
-              setSelectedSizes={setSelectedSizes}
             />
             <PriceFilter
               minPrice={minPrice}
@@ -160,20 +155,18 @@ export default function CategoryPage() {
               selectedCategories={selectedCategories}
               selectedBrands={selectedBrands}
               selectedTypes={selectedTypes}
-              selectedSizes={selectedSizes}
-              selectedSubcategories={selectedSubcategories} // Pasar subcategorías seleccionadas
+              selectedSubcategories={selectedSubcategories}
               minPrice={minPrice}
               maxPrice={maxPrice}
               clearAllFilters={clearAllFilters}
               setSelectedCategories={setSelectedCategories}
               setSelectedBrands={setSelectedBrands}
               setSelectedTypes={setSelectedTypes}
-              setSelectedSizes={setSelectedSizes}
-              setSelectedSubcategories={setSelectedSubcategories} // Pasar función para actualizar subcategorías
+              setSelectedSubcategories={setSelectedSubcategories}
               loading={isLoadingProducts}
               brands={brands}
               types={types}
-              subcategories={subcategories} // Añadir esta línea
+              subcategories={subcategories}
             />
           </main>
         </div>
@@ -202,6 +195,8 @@ export default function CategoryPage() {
                   selectedSubcategories={selectedSubcategories}
                   setSelectedSubcategories={setSelectedSubcategories}
                   isLoadingSubcategories={isLoadingSubcategories}
+                  linkMode={true}
+                  catURL={categoryUrl}
                 />
                 <BrandFilter
                   brands={brands}
@@ -210,8 +205,6 @@ export default function CategoryPage() {
                   setSelectedBrands={setSelectedBrands}
                   selectedTypes={selectedTypes}
                   setSelectedTypes={setSelectedTypes}
-                  selectedSizes={selectedSizes}
-                  setSelectedSizes={setSelectedSizes}
                 />
                 <PriceFilter
                   minPrice={minPrice}
