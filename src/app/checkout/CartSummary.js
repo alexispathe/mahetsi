@@ -6,9 +6,7 @@ import { CartContext } from '@/context/CartContext/CartContext';
 import TermsModal from './TermsModal';
 import Link from 'next/link';
 import SkeletonCartSummary from './SkeletonCartSummary';
-
-/** Importamos el mismo componente */
-import ShippingOptions from '../components/ShippingOptions'; // Ajusta la ruta según tu estructura
+import ShippingOptions from '../components/ShippingOptions';
 
 export default function CartSummary({
   selectedAddressId,
@@ -16,10 +14,13 @@ export default function CartSummary({
   selectedQuote,
   setSelectedQuote,
   loadingShipping,
-  loading,
+  currentUser,
+  shippingAddress,
+  loading, // si se pasa algún loading extra
 }) {
   const FREE_SHIPPING_THRESHOLD = 999;
 
+  // Obtener datos del carrito desde el contexto
   const { cartItems, products, loading: cartLoading, error } = useContext(CartContext);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,7 +28,7 @@ export default function CartSummary({
   const [isAccepted, setIsAccepted] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
-  // ----------- Detalle del carrito -----------
+  // Combinar detalles de productos con los items del carrito
   const detailedCartItems = cartItems.map((cartItem) => {
     const product = products.find((p) => p.uniqueID === cartItem.uniqueID);
     return {
@@ -44,7 +45,6 @@ export default function CartSummary({
     0
   );
 
-  // ----------- Lógica de costo de envío -----------
   const shippingCost =
     subtotal >= FREE_SHIPPING_THRESHOLD
       ? 0
@@ -54,19 +54,16 @@ export default function CartSummary({
 
   const grandTotal = subtotal + shippingCost;
 
-  // ----------- Manejo de Confirmación de Pedido -----------
+  // Manejo de la confirmación de pedido
   const handleCompleteOrderClick = async () => {
-    // 1) Validar dirección principal
     if (!selectedAddressId) {
       alert('No hay una dirección principal configurada. Por favor, configura una.');
       return;
     }
-    // 2) Validar que acepte términos
     if (!isAccepted) {
       setShowAlert(true);
       return;
     }
-    // 3) Validar cotización si no hay envío gratis
     if (subtotal < FREE_SHIPPING_THRESHOLD && !selectedQuote) {
       alert('Por favor, selecciona una opción de envío.');
       return;
@@ -100,12 +97,10 @@ export default function CartSummary({
     }
   };
 
-  // Manejar la selección de una cotización de envío
   const handleSelectQuote = (quote) => {
     setSelectedQuote(quote);
   };
 
-  // ----------- Render -----------
   if (loading || cartLoading) {
     return <SkeletonCartSummary />;
   }
@@ -131,7 +126,7 @@ export default function CartSummary({
         Resumen del Carrito
       </h2>
 
-      {/* Listado de items en el carrito */}
+      {/* Listado de productos en el carrito */}
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-4">Productos en tu Carrito</h3>
         <div className="space-y-4">
@@ -162,32 +157,26 @@ export default function CartSummary({
         </div>
       </div>
 
-      {/* Opciones de Envío */}
+      {/* Opciones de envío */}
       <div className="mb-6">
         <h3 className="text-xl font-semibold mb-4">Opciones de Envío</h3>
-
-        {/* Reutilizamos ShippingOptions */}
         <ShippingOptions
           subtotal={subtotal}
           shippingThreshold={FREE_SHIPPING_THRESHOLD}
-          shippingQuotes={allQuotes} // se recibe como prop "allQuotes"
+          shippingQuotes={allQuotes}
           selectedQuote={selectedQuote}
           loadingShipping={loadingShipping}
-          shippingError={''} // si tuvieras algún error para mostrar
-
-          // Si aquí no usas currentUser, address, etc., puedes pasar null
-          currentUser={null}
-          shippingAddress={null}
+          shippingError={''}
+          currentUser={currentUser}
+          shippingAddress={shippingAddress}
           guestZipCode={null}
-
           onSelectQuote={handleSelectQuote}
-          // No necesitas editar dirección o CP aquí, así que pasas callbacks vacíos
           onEditAddress={() => {}}
           onEditGuestZip={() => {}}
         />
       </div>
 
-      {/* Resumen del Pedido */}
+      {/* Resumen del pedido */}
       <div className="py-6 px-4 rounded-md bg-gray-50">
         <h3 className="text-xl font-semibold mb-4">Resumen del Pedido</h3>
         <div className="flex justify-between mb-2">
@@ -210,7 +199,7 @@ export default function CartSummary({
         </div>
       </div>
 
-      {/* Aceptación de Términos y Botón de Pago */}
+      {/* Aceptación de términos y botón de pago */}
       <div className="mt-6 flex items-center">
         <input
           type="checkbox"
@@ -247,7 +236,6 @@ export default function CartSummary({
         </button>
       </div>
 
-      {/* Modal de Términos */}
       <TermsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );

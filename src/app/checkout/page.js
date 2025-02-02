@@ -12,36 +12,36 @@ export default function CheckoutPage() {
   const { currentUser, authLoading, sessionInitializing } = useContext(AuthContext);
   const router = useRouter();
 
-  // Ya no le pedimos al usuario que escoja la dirección
+  // Estado para la dirección seleccionada y la lista de direcciones
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [addresses, setAddresses] = useState([]);
+  
+  // Estados para cotización de envío
   const [allQuotes, setAllQuotes] = useState([]);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
 
-  // Redirección segura
+  // Redirección si el usuario no está autenticado
   useEffect(() => {
     if (!authLoading && !sessionInitializing && !currentUser) {
       router.replace('/login?redirect=/checkout');
     }
   }, [authLoading, sessionInitializing, currentUser, router]);
 
-  // Cada vez que `addresses` cambie, detectamos la principal
+  // Cada vez que cambie la lista de direcciones, se busca la dirección principal
   useEffect(() => {
     if (addresses.length > 0) {
       const defaultAddress = addresses.find(addr => addr.isDefault);
-      // Si existe, la usamos
       if (defaultAddress) {
         setSelectedAddressId(defaultAddress.uniqueID);
       } else {
-        setSelectedAddressId(null); // o podrías forzar a que agregue/setee una como principal
+        setSelectedAddressId(null);
       }
     }
   }, [addresses]);
 
-  // Efecto para cotizar
+  // Efecto para cotizar el envío cuando se tenga una dirección seleccionada y el usuario esté autenticado
   useEffect(() => {
-    // Solo cotizamos si hay un currentUser y si se encontró una dirección principal
     if (selectedAddressId && currentUser) {
       const selectedAddress = addresses.find(
         (address) => address.uniqueID === selectedAddressId
@@ -62,7 +62,7 @@ export default function CheckoutPage() {
           .then((data) => {
             setAllQuotes(data.all_quotes || []);
             if (data.all_quotes?.length > 0) {
-              // Tomar la cotización de menor precio (por ejemplo)
+              // Por ejemplo, se toma la cotización de menor precio
               const cheapest = data.all_quotes.reduce((prev, current) =>
                 parseFloat(prev.total_price) < parseFloat(current.total_price)
                   ? prev
@@ -101,20 +101,23 @@ export default function CheckoutPage() {
   return (
     <div className="cart-page container mx-auto pt-20 p-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Columna izquierda: Gestión de direcciones */}
         <UserAddress 
-         loadingShipping={loadingShipping}
+          loadingShipping={loadingShipping}
           selectedAddressId={selectedAddressId}
           setSelectedAddressId={setSelectedAddressId}
           setAddresses={setAddresses}
           addresses={addresses}
         />
+        {/* Columna derecha: Resumen del carrito y cotización de envío */}
         <CartSummary 
-          // Solo pasamos selectedAddressId para enviar al backend si se ocupa
           selectedAddressId={selectedAddressId}
           allQuotes={allQuotes}
           selectedQuote={selectedQuote}
           setSelectedQuote={setSelectedQuote}
           loadingShipping={loadingShipping}
+          currentUser={currentUser}
+          shippingAddress={addresses.find(addr => addr.uniqueID === selectedAddressId)}
         />
       </div>
     </div>
