@@ -165,6 +165,14 @@ export default function OrdersTable({ orders, userReviews, onReviewSubmitted }) 
               <h4 className="font-semibold text-lg text-gray-700">Estado de pago:</h4>
               <p className="text-gray-600">{selectedOrder.payment.status}</p>
             </div>
+            <div className="mb-4">
+              <h4 className="font-semibold text-lg text-gray-700">Metodo de envio:</h4>
+              <p className="text-gray-600">{selectedOrder.shippingType}</p>
+            </div>
+            <div className="mb-4">
+              <h4 className="font-semibold text-lg text-gray-700">Costo de envio:</h4>
+              <p className="text-gray-600">${selectedOrder.shippingCost}</p>
+            </div>
 
             {/* Dirección de Envío */}
             <div className="mb-4">

@@ -218,7 +218,11 @@ export default function OrderDetailsPage() {
             <tbody>
             <tr className="border-b">
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Tipo de envio</th>
-                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingType}</td>
+                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingType} - Costo de envio ${order.shippingCost}</td>
+              </tr>
+              <tr className="border-b">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Costo de envio </th>
+                <td className="px-6 py-4 text-sm text-gray-700">${order.shippingCost}</td>
               </tr>
               <tr className="border-b">
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Calle</th>
