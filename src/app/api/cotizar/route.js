@@ -107,6 +107,7 @@ export async function POST(request) {
     };
 
     // Dirección de destino
+    console.log("Codigo postal ",direccionDestino.zipcode)
     const destinoFormateado = {
       "country_code": 'MX',
       "postal_code": direccionDestino.zipcode || '00000',

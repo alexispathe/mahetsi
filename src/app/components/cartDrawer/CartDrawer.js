@@ -1,4 +1,5 @@
 // src/app/components/cartDrawer/CartDrawer.js
+// src/app/components/cartDrawer/CartDrawer.js
 'use client';
 
 import { useContext, useState, useEffect, useRef } from 'react';
@@ -37,7 +38,6 @@ export default function CartDrawer({ isOpen, onClose }) {
 
   const { currentUser } = useContext(AuthContext);
   
-
   // Estados locales
   const [isRemoving, setIsRemoving] = useState(null);
   const [isUpdating, setIsUpdating] = useState(null);
@@ -49,6 +49,9 @@ export default function CartDrawer({ isOpen, onClose }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Modal de CP (usuario invitado)
   const [isZipModalOpen, setIsZipModalOpen] = useState(false);
+  
+  // Flag para evitar llamadas infinitas a cotizar
+  const [hasFetchedShippingQuotes, setHasFetchedShippingQuotes] = useState(false);
 
   // -- Animación de apertura/cierre del Drawer --
   useEffect(() => {
@@ -78,15 +81,16 @@ export default function CartDrawer({ isOpen, onClose }) {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [visible, isModalOpen, isZipModalOpen, onClose]);
 
-  // -- Recalcular envío automáticamente al abrir el Drawer
-  //    (si ya hay dirección Auth o CP invitado) --
+  // -- Recalcular envío automáticamente al abrir el Drawer (si ya hay dirección Auth o CP invitado) --
   useEffect(() => {
-    if (!isOpen) return; // Drawer cerrado, no hacemos nada
-    if (!loadingShipping && shippingQuotes.length === 0) {
-      if (currentUser && shippingAddress) {
+    if (!isOpen) {
+      setHasFetchedShippingQuotes(false); // reiniciamos la bandera al cerrar
+      return;
+    }
+    if (!hasFetchedShippingQuotes && !loadingShipping && shippingQuotes.length === 0) {
+      if ((currentUser && shippingAddress) || (!currentUser && guestZipCode)) {
         fetchShippingQuotes();
-      } else if (!currentUser && guestZipCode) {
-        fetchShippingQuotes();
+        setHasFetchedShippingQuotes(true);
       }
     }
   }, [
@@ -97,6 +101,7 @@ export default function CartDrawer({ isOpen, onClose }) {
     shippingQuotes.length,
     loadingShipping,
     fetchShippingQuotes,
+    hasFetchedShippingQuotes,
   ]);
 
   if (!visible) return null;

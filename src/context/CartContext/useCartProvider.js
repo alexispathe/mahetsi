@@ -1,3 +1,4 @@
+// src/context/CartContext/useCartProvider.js
 'use client';
 
 import React, {
@@ -5,8 +6,9 @@ import React, {
   useEffect,
   useContext,
   useMemo,
+  useCallback,
 } from 'react';
-import { AuthContext } from '../AuthContext'; // Ajusta la ruta según donde esté tu AuthContext
+import { AuthContext } from '../AuthContext'; // Ajusta la ruta según corresponda
 import {
   getLocalCart,
   addToLocalCart,
@@ -442,9 +444,9 @@ export function useCartProvider() {
   };
 
   // ---------------------------------------------
-  // 12) Cotizar Envío
+  // 12) Cotizar Envío (usamos useCallback para evitar recrearla en cada render)
   // ---------------------------------------------
-  const fetchShippingQuotes = async (zip = null, addressOverride = null) => {
+  const fetchShippingQuotes = useCallback(async (zip = null, addressOverride = null) => {
     setLoadingShipping(true);
     setShippingError(null);
 
@@ -493,7 +495,7 @@ export function useCartProvider() {
     } finally {
       setLoadingShipping(false);
     }
-  };
+  }, [currentUser, shippingAddress, guestZipCode]);
 
   // ---------------------------------------------
   // 13) useEffect para cargar Carrito al montar

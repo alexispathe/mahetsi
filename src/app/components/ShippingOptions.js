@@ -1,117 +1,95 @@
 'use client';
 
 import React from 'react';
-import { toast } from 'react-toastify';
 
 export default function ShippingOptions({
-  /** Datos principales */
   subtotal,
   shippingThreshold,
   shippingQuotes,
   selectedQuote,
   loadingShipping,
   shippingError,
-
-  /** Info de usuario e invitado */
   currentUser,
   shippingAddress,
   guestZipCode,
-
-  /** Callbacks */
   onSelectQuote,
   onEditAddress,
   onEditGuestZip,
 }) {
-  // Handler local para la selección de una cotización
-  const handleSelectQuote = (quote) => {
-    onSelectQuote(quote);
-    toast.success(
-      `Has seleccionado ${quote.carrier} - ${quote.service} por $${parseFloat(quote.total_price).toFixed(2)}`
-    );
-  };
-
-  // Si ya aplica envío gratis
-  if (subtotal >= shippingThreshold) {
+  // Para usuarios invitados sin código postal guardado, mostramos un mensaje con el botón para agregar CP.
+  if (!currentUser && !guestZipCode) {
     return (
-      <div className="flex justify-between items-center bg-green-100 p-4 rounded-md mt-6">
-        <span className="font-semibold text-green-700">
-          ¡Felicidades! Tu envío es gratis.
-        </span>
+      <div className="p-4 bg-gray-100 rounded">
+        <p className="text-sm text-gray-600 mb-2">
+          Ingresa tu código postal para cotizar el envío.
+        </p>
+        <button
+          onClick={onEditGuestZip}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-300"
+        >
+          Agregar Código Postal
+        </button>
       </div>
     );
   }
 
-  return (
-    <div className="mt-6">
-      {/* Mensajes de estado */}
-      {loadingShipping && (
-        <p className="text-gray-600 mt-4">Calculando envío...</p>
-      )}
-      {shippingError && (
-        <p className="text-red-500 mt-4">Error: {shippingError}</p>
-      )}
+  // Mientras se está cargando la cotización
+  if (loadingShipping) {
+    return (
+      <div className="p-4">
+        <p className="text-sm text-gray-600">Cotizando envío...</p>
+      </div>
+    );
+  }
 
-      {/* Mostrar cotizaciones si existen */}
-      {shippingQuotes.length > 0 && !loadingShipping && (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-2">Opciones de Envío</h3>
-          <div className="space-y-2">
-            {shippingQuotes.map((quote, index) => (
-              <label
-                key={quote.id || index}
-                htmlFor={`quote-${index}`}
-                className={`flex items-center p-4 border rounded-md cursor-pointer ${
+  // Si ocurrió un error al cotizar
+  if (shippingError) {
+    return (
+      <div className="p-4">
+        <p className="text-sm text-red-500">{shippingError}</p>
+      </div>
+    );
+  }
+
+  // Si se encontraron cotizaciones, se muestran las diferentes paqueterías (manteniendo el diseño original)
+  if (shippingQuotes.length > 0) {
+    return (
+      <div>
+        <p className="text-sm text-gray-600 mb-2">Selecciona una opción de envío:</p>
+        <ul className="space-y-2">
+          {shippingQuotes.map((quote) => (
+            <li key={quote.id}>
+              <button
+                onClick={() => onSelectQuote(quote)}
+                className={`w-full text-left px-4 py-2 rounded border transition-colors duration-300 ${
                   selectedQuote && selectedQuote.id === quote.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300'
+                    ? 'bg-blue-500 text-white border-blue-500'
+                    : 'bg-white text-gray-700 border-gray-300'
                 }`}
               >
-                <input
-                  type="radio"
-                  id={`quote-${index}`}
-                  name="shippingQuote"
-                  value={quote.id}
-                  checked={selectedQuote && selectedQuote.id === quote.id}
-                  onChange={() => handleSelectQuote(quote)}
-                  className="mr-4 h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                />
-                <div className="flex flex-col">
-                  <span className="font-semibold">
-                    {quote.carrier} - {quote.service}
-                  </span>
-                  <span className="text-gray-600">
-                    Precio: ${parseFloat(quote.total_price).toFixed(2)}
-                  </span>
-                  <span className="text-gray-600">
-                    Días estimados: {quote.days}
-                  </span>
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
+                {quote.service} - ${parseFloat(quote.total_price).toFixed(2)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
 
-      {/* Botones para editar dirección o CP */}
-      <div className="mt-4">
-        {currentUser && shippingAddress && (
+  // Si no se encontraron cotizaciones, se muestra un mensaje informativo.
+  return (
+    <div className="p-4">
+      <p className="text-sm text-gray-600">No se encontraron opciones de envío.</p>
+      {currentUser && !shippingAddress && (
+        <div className="mt-2">
           <button
             onClick={onEditAddress}
-            className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition-colors duration-300"
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-300"
           >
-            Editar Dirección de Envío
+            Agregar Dirección de Envío
           </button>
-        )}
-
-        {!currentUser && guestZipCode && (
-          <button
-            onClick={onEditGuestZip}
-            className="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition-colors duration-300 mt-2"
-          >
-            Editar CP (Actualmente: {guestZipCode})
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
