@@ -8,24 +8,23 @@ import admin from 'firebase-admin';
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.applicationDefault(),
-    // ... otras configuraciones si es necesario
   });
 }
 
 const client = new MercadoPagoConfig({
-  accessToken: process.env.NODE_ENV === 'production' 
-    ? process.env.MP_ACCESS_TOKEN 
+  accessToken: process.env.NODE_ENV === 'production'
+    ? process.env.MP_ACCESS_TOKEN
     : process.env.MP_TEST_ACCESS_TOKEN,
 });
 
 export async function POST(request) {
   try {
-    // Extraer los parámetros de consulta
+    // Extraer parámetros de la URL (por si vienen en la query string)
     const { searchParams } = new URL(request.url);
     const queryId = searchParams.get('id');
     const queryTopic = searchParams.get('topic');
 
-    // Extraer el cuerpo de la solicitud
+    // Intentar parsear el cuerpo de la solicitud
     let body = {};
     try {
       body = await request.json();
@@ -33,12 +32,10 @@ export async function POST(request) {
       console.warn('No se pudo parsear el cuerpo de la solicitud como JSON:', e);
     }
 
-    console.log('Webhook recibido:', body);
-
     let paymentId;
     let topic;
 
-    // Determinar el tipo de notificación y extraer el ID
+    // Determinar el tipo de notificación y extraer el paymentId
     if (body.type === 'payment' && body.data?.id) {
       paymentId = body.data.id;
       topic = body.type;
@@ -49,54 +46,56 @@ export async function POST(request) {
       paymentId = queryId;
       topic = queryTopic;
     } else if (body.topic === 'merchant_order') {
-      // Ignorar notificaciones de tipo 'merchant_order'
-      console.log('Notificación de tipo merchant_order ignorada.');
-      return NextResponse.json({ message: 'Merchant order notification ignored' }, { status: 200 });
+      return NextResponse.json(
+        { message: 'Merchant order notification ignored' },
+        { status: 200 }
+      );
     } else {
-      console.log('Notificación no reconocida:', body);
-      return NextResponse.json({ message: 'Notificación no reconocida' }, { status: 200 });
+      return NextResponse.json(
+        { message: 'Notificación no reconocida' },
+        { status: 200 }
+      );
     }
 
-    // Verificar si ya existe una orden para este pago
-    const existingOrderSnapshot = await firestore
-      .collection('orders')
-      .where('payment.id', '==', paymentId)
-      .limit(1)
-      .get();
-
-    if (!existingOrderSnapshot.empty) {
-      console.log('Ya existe una orden para este pago:', paymentId);
-      return NextResponse.json({ 
-        message: 'Orden ya procesada anteriormente',
-        orderId: existingOrderSnapshot.docs[0].id 
-      }, { status: 200 });
-    }
-
-    // Obtener información del pago
+    // Obtener información del pago desde Mercado Pago
     const payment = new Payment(client);
-    const paymentInfo = await payment.get({ id: paymentId });
-    console.log('Información del pago:', paymentInfo);
+    const paymentResponse = await payment.get({ id: paymentId });
+    
+    // Extraer la información del pago de la respuesta, probando distintas propiedades
+    const paymentInfo = paymentResponse.response || paymentResponse.data || paymentResponse;
+    if (!paymentInfo) {
+      throw new Error('No se pudo obtener la información del pago');
+    }
+    
 
+    // Solo procesamos pagos aprobados
     if (paymentInfo.status !== 'approved') {
-      console.log(`Pago no aprobado. Estado: ${paymentInfo.status}`);
-      return NextResponse.json({ 
-        message: `Pago no aprobado. Estado: ${paymentInfo.status}` 
+      return NextResponse.json({
+        message: `Pago no aprobado. Estado: ${paymentInfo.status}`
       }, { status: 200 });
     }
 
-    // Obtener el external_reference del pago
+    // Usar external_reference como identificador único
     const externalReference = paymentInfo.external_reference;
-
     if (!externalReference) {
       throw new Error('external_reference no encontrado en la información del pago.');
     }
 
-    // Obtener la preferencia original usando external_reference
+    // Verificar si ya existe una orden con este external_reference
+    const orderRef = firestore.collection('orders').doc(externalReference);
+    const orderSnapshot = await orderRef.get();
+    if (orderSnapshot.exists) {
+      return NextResponse.json({
+        message: 'Orden ya procesada anteriormente',
+        orderId: orderRef.id,
+      }, { status: 200 });
+    }
+
+    // Obtener la preferencia de pago usando external_reference como id
     const preferencesSnapshot = await firestore
       .collection('payment_preferences')
       .doc(externalReference)
       .get();
-
     if (!preferencesSnapshot.exists) {
       throw new Error(`Preferencia no encontrada para: ${externalReference}`);
     }
@@ -107,16 +106,14 @@ export async function POST(request) {
     const shippingType = metadata.shippingType;
     const shippingCost = metadata.shippingCost;
 
-    // Obtener los detalles de la dirección seleccionada
+    // Obtener la dirección seleccionada
     const addressSnapshot = await firestore
       .collection('addresses')
       .doc(metadata.selectedAddressId)
       .get();
-
     if (!addressSnapshot.exists) {
       throw new Error('Dirección no encontrada');
     }
-
     const address = addressSnapshot.data();
 
     // Obtener los detalles de los productos
@@ -146,21 +143,20 @@ export async function POST(request) {
       };
     });
 
-    // Calcular totales (sin impuestos)
-    const subtotal = detailedItems.reduce((acc, item) => acc + item.total, 0);
+    // Calcular totales 
+    const subtotal = detailedItems.reduce((sum, item) => sum + item.total, 0);
     const grandTotal = subtotal + shippingCost;
 
     // Iniciar batch de operaciones
     const batch = firestore.batch();
 
-    // 1. Crear la orden
-    const orderRef = firestore.collection('orders').doc();
+    // 1. Crear la orden usando external_reference como ID fijo
     const orderData = {
       uniqueID: orderRef.id,
       ownerId: address.ownerId,
       shippingAddress: address,
-      shippingType: shippingType, // Tipo de envío
-      shippingCost: shippingCost, // Costo de envío
+      shippingType: shippingType,
+      shippingCost: shippingCost,
       items: detailedItems,
       subtotal,
       grandTotal,
@@ -212,7 +208,6 @@ export async function POST(request) {
     // Ejecutar todas las operaciones
     await batch.commit();
 
-    console.log('Orden creada exitosamente:', orderRef.id);
     return NextResponse.json({
       success: true,
       message: 'Pago procesado correctamente',
@@ -239,10 +234,10 @@ export async function POST(request) {
       console.error('Error al guardar el error en Firestore:', dbError);
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: false,
       message: 'Error procesando webhook',
-      error: error.message 
-    }, { status: 200 }); // Mercado Pago espera un 200 incluso si hubo errores en el procesamiento
+      error: error.message
+    }, { status: 200 });
   }
 }
