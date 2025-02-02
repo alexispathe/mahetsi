@@ -4,7 +4,6 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { FaArrowLeft, FaShippingFast, FaEdit, FaClock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import Modal from '@/app/profile/user/Modal';
 import { AuthContext } from '@/context/AuthContext';
 import UpdateShippingModal from '../UpdateShippingModal';
 
@@ -217,6 +216,10 @@ export default function OrderDetailsPage() {
         <div className="overflow-x-auto bg-white border rounded-lg shadow-sm">
           <table className="min-w-full">
             <tbody>
+            <tr className="border-b">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Tipo de envio</th>
+                <td className="px-6 py-4 text-sm text-gray-700">{order.shippingType}</td>
+              </tr>
               <tr className="border-b">
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">Calle</th>
                 <td className="px-6 py-4 text-sm text-gray-700">{order.shippingAddress.address}</td>
