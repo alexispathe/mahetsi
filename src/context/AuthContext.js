@@ -53,7 +53,6 @@ export function AuthProvider({ children }) {
                 // Limpiar localStorage tras sincronizar
                 clearLocalCart();
                 clearLocalFavorites();
-                console.log('Sincronización exitosa.');
               } else {
                 const errorData = await syncRes.json();
                 console.error('Error al sincronizar items:', errorData.error);
