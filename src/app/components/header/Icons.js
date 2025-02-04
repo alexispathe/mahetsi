@@ -1,4 +1,4 @@
-import { FaSearch, FaHeart,  FaShoppingCart } from "react-icons/fa";
+import { BsCart3,BsHeart, BsSearch} from "react-icons/bs";
 import Link from "next/link";
 import UserMenu from "./UserMenu";
 
@@ -8,12 +8,12 @@ export default function Icons({isHovered, textColor, handleSearchClick, handleFa
 
     return (
         <div className="flex items-center space-x-4">
-            <FaSearch
+            <BsSearch
                 className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
                 onClick={handleSearchClick}
                 aria-label="Buscar"
             />
-            <FaHeart
+            <BsHeart
                 className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
                 onClick={handleFavoritesClick}
                 aria-label="Favoritos"
@@ -29,7 +29,7 @@ export default function Icons({isHovered, textColor, handleSearchClick, handleFa
                 />}
 
             <div className="relative">
-                <FaShoppingCart
+                <BsCart3
                     className={`cursor-pointer text-lg ${isHovered ? "text-black" : textColor} hover:text-gray-700`}
                     onClick={handleCartClick}
                     aria-label="Carrito de compras"

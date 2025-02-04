@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { AuthContext } from "@/context/AuthContext";
 import { CartContext } from "@/context/CartContext/CartContext";
 import { FavoritesContext } from "@/context/FavoritesContext";
-import { FaStar, FaRegStar, FaHeart, FaRegHeart, FaTimes, FaBox, FaShoppingCart } from 'react-icons/fa';
+import { BsStarFill, BsStar, BsHeartFill, BsHeart, BsX, BsBox, BsCart } from 'react-icons/bs';
 import { toast } from 'react-toastify'; // Importa toast desde react-toastify
 
 export default function ProductDetail({ productUrl }) {
@@ -325,9 +325,9 @@ export default function ProductDetail({ productUrl }) {
             <div className="flex text-yellow-500 text-lg">
               {[1, 2, 3, 4, 5].map((star) =>
                 star <= product.rating ? (
-                  <FaStar key={star} />
+                  <BsStarFill key={star} />
                 ) : (
-                  <FaRegStar key={star} />
+                  <BsStar key={star} />
                 )
               )}
             </div>
@@ -371,9 +371,9 @@ export default function ProductDetail({ productUrl }) {
               ) : (
                 <>
                   {isLiked ? (
-                    <FaHeart className="mr-2" />
+                    <BsHeartFill className="mr-2" />
                   ) : (
-                    <FaRegHeart className="mr-2" />
+                    <BsHeart className="mr-2" />
                   )}
                   Favorito
                 </>
@@ -389,7 +389,7 @@ export default function ProductDetail({ productUrl }) {
                 'Agregando...'
               ) : (
                 <>
-                  <FaShoppingCart className="mr-2" /> Agregar al carrito
+                  <BsCart className="mr-2" /> Agregar al carrito
                 </>
               )}
             </button>
@@ -397,7 +397,7 @@ export default function ProductDetail({ productUrl }) {
 
           {/* Info de envío */}
           <div className="text-sm text-gray-600 flex items-center">
-            <FaBox className="mr-1" />
+            <BsBox className="mr-1" />
             Envío gratis en pedidos superiores a $99. Envío al día siguiente por $9.99
           </div>
         </div>
@@ -424,7 +424,7 @@ export default function ProductDetail({ productUrl }) {
               className="absolute top-4 right-4 text-white text-4xl font-bold hover:text-pink-500 transition-colors duration-300"
               aria-label="Cerrar zoom"
             >
-              <FaTimes />
+              <BsX />
             </button>
           </div>
         </div>

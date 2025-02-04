@@ -5,7 +5,7 @@ import { useEffect, useState, useContext } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "react-toastify";
-import { FaShoppingCart, FaHeart, FaRegHeart } from "react-icons/fa";
+import { BsCart, BsHeartFill, BsHeart } from "react-icons/bs";
 
 // Importa los contextos para acceder a la lógica de carrito y favoritos
 import { CartContext } from "@/context/CartContext/CartContext";
@@ -263,9 +263,9 @@ export default function SearchModal({ isOpen, onClose }) {
                     aria-label="Agregar a favoritos"
                   >
                     {favoriteIDs.includes(product.uniqueID) ? (
-                      <FaHeart />
+                      <BsHeartFill />
                     ) : (
-                      <FaRegHeart />
+                      <BsHeart />
                     )}
                   </button>
                   <button
@@ -277,7 +277,7 @@ export default function SearchModal({ isOpen, onClose }) {
                     className="text-orange-600 hover:text-orange-800"
                     aria-label="Agregar al carrito"
                   >
-                    <FaShoppingCart />
+                    <BsCart />
                   </button>
                 </div>
               </div>
