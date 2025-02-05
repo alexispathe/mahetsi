@@ -28,10 +28,12 @@ export async function GET(request, context) {
     const brandRef = firestore.collection('brands').doc(productData.brandID);
     const brandDoc = await brandRef.get();
     const brandName = brandDoc.exists ? brandDoc.data().name : '';
+    const brandURL =   brandDoc.exists ? brandDoc.data().url : '';
 
     const typeRef = firestore.collection('types').doc(productData.typeID);
     const typeDoc = await typeRef.get();
     const typeName = typeDoc.exists ? typeDoc.data().name : '';
+    const typeURL = typeDoc.exists ? typeDoc.data().url : '';
 
     // Construir la respuesta
     const responseData = {
@@ -50,6 +52,8 @@ export async function GET(request, context) {
       },
       brandName,
       typeName,
+      brandURL,
+      typeURL
     };
 
     return NextResponse.json(responseData, { status: 200 });

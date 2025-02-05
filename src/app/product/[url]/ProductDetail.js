@@ -6,6 +6,7 @@ import { AuthContext } from "@/context/AuthContext";
 import { CartContext } from "@/context/CartContext/CartContext";
 import { FavoritesContext } from "@/context/FavoritesContext";
 import { FaHeart, FaRegHeart, FaTimes, FaBox, FaShoppingCart } from 'react-icons/fa';
+import Link from "next/link";
 import { toast } from 'react-toastify';
 import StarRating from '../../components/product/StarRating'; // Ajusta la ruta según corresponda
 
@@ -16,7 +17,9 @@ export default function ProductDetail({ productUrl }) {
 
   const [product, setProduct] = useState(null);
   const [brandName, setBrandName] = useState('');
+  const [brandURL, setBrandURL] = useState('')
   const [typeName, setTypeName] = useState('');
+  const [typeURL, setTypeURL] = useState('')
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mainImage, setMainImage] = useState(null);
@@ -60,6 +63,8 @@ export default function ProductDetail({ productUrl }) {
         setProduct(data.product);
         setBrandName(data.brandName);
         setTypeName(data.typeName);
+        setBrandURL(data.brandURL)
+        setTypeURL(data.typeURL)
         setMainImage(data.product.images[0]);
       } catch (err) {
         console.error('Error al obtener el producto:', err);
@@ -319,7 +324,7 @@ export default function ProductDetail({ productUrl }) {
         {/* Sección de Información */}
         <div className="space-y-6">
           <p className="text-gray-500 text-sm">
-            HOME / {brandName.toUpperCase()} / {typeName.toUpperCase()}
+           <Link href="/">INICIO /</Link><Link href={process.env.NEXT_PUBLIC_URL+"category/"+brandURL}> {brandName.toUpperCase()} </Link>  /<Link href={process.env.NEXT_PUBLIC_URL+"category?="+typeURL}> {typeName.toUpperCase()}</Link> 
           </p>
           <h1 className="text-3xl font-bold">{product.name}</h1>
 
