@@ -1,5 +1,6 @@
+// app/api/products/public/get/top-rated
 import { NextResponse } from 'next/server';
-import { firestore } from '@/libs/firebaseAdmin'; // Ajusta la ruta si tuvieras otra
+import { firestore } from '@/libs/firebaseAdmin'; 
 
 export async function GET() {
   try {

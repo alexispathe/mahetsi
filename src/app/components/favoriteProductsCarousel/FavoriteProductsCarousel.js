@@ -6,7 +6,7 @@ import { Navigation, A11y } from 'swiper/modules';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Link from 'next/link';
 import Image from 'next/image';
-
+import StarRating from '../product/StarRating';
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -81,14 +81,16 @@ export default function FavoriteProductsCarousel() {
           >
             {loading ? (
               // Skeleton loading
-              Array(5).fill(0).map((_, index) => (
-                <SwiperSlide key={index} className="flex flex-col items-center p-4">
-                  <div className="w-full h-72 bg-gray-200 rounded-md animate-pulse mb-4" />
-                  <div className="w-3/4 h-4 bg-gray-200 rounded-md animate-pulse mb-2" />
-                  <div className="w-1/2 h-4 bg-gray-200 rounded-md animate-pulse mb-2" />
-                  <div className="w-1/3 h-4 bg-gray-200 rounded-md animate-pulse" />
-                </SwiperSlide>
-              ))
+              Array(5)
+                .fill(0)
+                .map((_, index) => (
+                  <SwiperSlide key={index} className="flex flex-col items-center p-4">
+                    <div className="w-full h-72 bg-gray-200 rounded-md animate-pulse mb-4" />
+                    <div className="w-3/4 h-4 bg-gray-200 rounded-md animate-pulse mb-2" />
+                    <div className="w-1/2 h-4 bg-gray-200 rounded-md animate-pulse mb-2" />
+                    <div className="w-1/3 h-4 bg-gray-200 rounded-md animate-pulse" />
+                  </SwiperSlide>
+                ))
             ) : sortedProducts.length === 0 ? (
               <SwiperSlide>
                 <p className="text-gray-600">No hay productos disponibles.</p>
@@ -110,13 +112,7 @@ export default function FavoriteProductsCarousel() {
                     />
 
                     <div className="flex items-center mb-2">
-                      <div className="flex text-yellow-500">
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <span key={i}>
-                            {i < Math.round(product.averageRating) ? '★' : '☆'}
-                          </span>
-                        ))}
-                      </div>
+                      <StarRating rating={product.averageRating} />
                       <span className="text-gray-500 text-sm ml-2">
                         ({product.numReviews})
                       </span>

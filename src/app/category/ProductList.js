@@ -1,15 +1,14 @@
 'use client';
 import { useState, useMemo, useContext } from 'react';
-import { FaTimes, FaShoppingCart, FaHeart, FaRegHeart, FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa'; 
+import { FaTimes, FaShoppingCart, FaHeart, FaRegHeart } from 'react-icons/fa'; 
 import Link from 'next/link'; 
 import Pagination from './Pagination';
 import Image from 'next/image';
 import { AuthContext } from '@/context/AuthContext'; 
 import { CartContext } from '@/context/CartContext/CartContext';
 import { FavoritesContext } from '@/context/FavoritesContext';
-
 import { toast } from 'react-toastify';
-
+import StarRating from '../components/product/StarRating';
 export default function ProductList({ 
   products, 
   selectedCategories,
@@ -198,25 +197,6 @@ export default function ProductList({
     }
   };
 
-  // Renderizar estrellas basado en averageRating
-  const renderStars = (averageRating) => {
-    const stars = [];
-    const fullStars = Math.floor(averageRating);
-    const hasHalfStar = averageRating - fullStars >= 0.5;
-
-    for (let i = 0; i < fullStars; i++) {
-      stars.push(<FaStar key={`full-${i}`} className="text-yellow-500" />);
-    }
-    if (hasHalfStar) {
-      stars.push(<FaStarHalfAlt key="half" className="text-yellow-500" />);
-    }
-    const emptyStars = 5 - stars.length;
-    for (let i = 0; i < emptyStars; i++) {
-      stars.push(<FaRegStar key={`empty-${i}`} className="text-yellow-500" />);
-    }
-    return stars;
-  };
-
   return (
     <div>
       {/* Header de Filtro y Orden */}
@@ -227,8 +207,7 @@ export default function ProductList({
           {activeFilters.map((filter, index) => (
             <span key={index} className="flex items-center bg-gray-200 px-2 py-1 rounded-md mr-2 mb-2">
               <span className="text-xs">
-                {filter.type}: 
-                {filter.type === 'Subcategory' 
+                {filter.type}:{filter.type === 'Subcategory' 
                   ? ` ${subcategoryMap[filter.value] || 'Desconocida'}` 
                   : ` ${filter.value}`}
               </span>
@@ -313,7 +292,9 @@ export default function ProductList({
                     className="w-full h-48 object-cover mb-4 rounded-md"
                   />
                   <div className="flex justify-center mt-2">
-                    <div className="flex">{renderStars(product.averageRating)}</div>
+                    <div className="flex">
+                      <StarRating rating={product.averageRating} />
+                    </div>
                     <span className="text-xs text-gray-600 ml-2">({product.numReviews})</span>
                   </div>
                   <h4 className="text-sm sm:text-base font-semibold text-gray-800">{product.name}</h4>
@@ -342,7 +323,7 @@ export default function ProductList({
                       disabled={cartLoading[product.uniqueID]}
                     >
                       {cartLoading[product.uniqueID] ? (
-                        <FaShoppingCart className="h-5 w-5 animate-pulse" alt="agregar al carrito" />
+                        <FaShoppingCart className="h-5 w-5 animate-pulse" />
                       ) : (
                         <FaShoppingCart className="h-5 w-5" />
                       )}
@@ -352,7 +333,9 @@ export default function ProductList({
               </div>
             ))
           ) : (
-            <div className="col-span-full text-center text-gray-600">No se encontraron productos con los filtros seleccionados.</div>
+            <div className="col-span-full text-center text-gray-600">
+              No se encontraron productos con los filtros seleccionados.
+            </div>
           )
         )}
       </div>
@@ -364,7 +347,6 @@ export default function ProductList({
           onPageChange={setCurrentPage} 
         />
       )}
-
     </div>
   );
 }

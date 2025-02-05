@@ -5,29 +5,25 @@ import { useEffect, useState, useContext } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "react-toastify";
-import { BsCart, BsHeartFill, BsHeart } from "react-icons/bs";
+import { FaShoppingCart, FaHeart, FaRegHeart } from "react-icons/fa";
 
 // Importa los contextos para acceder a la lógica de carrito y favoritos
 import { CartContext } from "@/context/CartContext/CartContext";
 import { FavoritesContext } from "@/context/FavoritesContext";
 
 export default function SearchModal({ isOpen, onClose }) {
-  // Estados del modal, búsqueda y resultados
   const [searchQuery, setSearchQuery] = useState("");
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(isOpen);
   const [animation, setAnimation] = useState("");
 
-  // Estados para controlar la acción de agregar al carrito y alternar favorito (por producto)
-  const [addingCart, setAddingCart] = useState([]); // Array de uniqueIDs en proceso de agregar al carrito
-  const [togglingFavorite, setTogglingFavorite] = useState([]); // Array de uniqueIDs en proceso de toggle
+  const [addingCart, setAddingCart] = useState([]);
+  const [togglingFavorite, setTogglingFavorite] = useState([]);
 
-  // Obtén los métodos del carrito y favoritos desde sus respectivos contextos
   const { addItemToCart } = useContext(CartContext);
   const { addFavorite, removeFavorite, favoriteIDs } = useContext(FavoritesContext);
 
-  // --- Manejo de la visibilidad y animación del modal ---
   useEffect(() => {
     if (isOpen) {
       setVisible(true);
@@ -36,12 +32,11 @@ export default function SearchModal({ isOpen, onClose }) {
       setAnimation("animate-fadeOut");
       const timer = setTimeout(() => {
         setVisible(false);
-      }, 1000); // Espera a que termine la animación
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [isOpen, visible]);
 
-  // --- Búsqueda de productos según la query ---
   useEffect(() => {
     let abort = false;
     const fetchData = async () => {
@@ -76,7 +71,6 @@ export default function SearchModal({ isOpen, onClose }) {
     };
   }, [searchQuery]);
 
-  // --- Cerrar el modal al hacer clic fuera ---
   useEffect(() => {
     if (isOpen) {
       const handleClickOutside = (event) => {
@@ -94,9 +88,7 @@ export default function SearchModal({ isOpen, onClose }) {
 
   if (!visible) return null;
 
-  // --- Función para agregar un producto al carrito ---
   const handleAddToCart = async (product) => {
-    // Agrega el id del producto al estado para indicar que está en proceso
     setAddingCart((prev) => [...prev, product.uniqueID]);
 
     const cartItem = { uniqueID: product.uniqueID, qty: 1 };
@@ -120,14 +112,12 @@ export default function SearchModal({ isOpen, onClose }) {
       console.error("Error al agregar al carrito:", err);
       toast.error(`Error al agregar al carrito: ${err.message}`);
     } finally {
-      // Remueve el id del producto del estado de carga
       setAddingCart((prev) =>
         prev.filter((id) => id !== product.uniqueID)
       );
     }
   };
 
-  // --- Función para alternar favorito (agregar o eliminar) ---
   const handleToggleFavorite = async (product) => {
     setTogglingFavorite((prev) => [...prev, product.uniqueID]);
 
@@ -205,93 +195,40 @@ export default function SearchModal({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* Contenedor para los productos encontrados */}
         <div className="flex-1 overflow-y-auto space-y-4">
           {loading ? (
-            // Mostrar skeletons mientras carga
-            Array(5)
-              .fill(0)
-              .map((_, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-2 rounded-md hover:bg-gray-100"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 bg-gray-200 rounded-md animate-pulse"></div>
-                    <div>
-                      <div className="w-32 h-4 bg-gray-200 rounded-md animate-pulse mb-2"></div>
-                      <div className="w-24 h-4 bg-gray-200 rounded-md animate-pulse"></div>
-                    </div>
+            Array(5).fill(0).map((_, index) => (
+              <div key={index} className="flex items-center justify-between p-2 rounded-md hover:bg-gray-100">
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-md animate-pulse"></div>
+                  <div>
+                    <div className="w-32 h-4 bg-gray-200 rounded-md animate-pulse mb-2"></div>
+                    <div className="w-24 h-4 bg-gray-200 rounded-md animate-pulse"></div>
                   </div>
                 </div>
-              ))
+              </div>
+            ))
           ) : (
             filtered.map((product) => (
-              <div
-                key={product.uniqueID}
-                className="flex items-center justify-between hover:bg-gray-100 p-2 rounded-md transition-colors"
-              >
-                {/* Enlace al detalle del producto */}
-                <Link
-                  href={`/product/${product.url}`}
-                  className="flex items-center space-x-4"
-                >
-                  <Image
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="w-16 h-16 object-cover rounded-md"
-                    width={64}
-                    height={64}
-                  />
+              <div key={product.uniqueID} className="flex items-center justify-between hover:bg-gray-100 p-2 rounded-md transition-colors">
+                <Link href={`/product/${product.url}`} className="flex items-center space-x-4">
+                  <Image src={product.images[0]} alt={product.name} className="w-16 h-16 object-cover rounded-md" width={64} height={64} />
                   <div>
                     <p className="font-semibold">{product.name}</p>
-                    <p className="text-sm text-gray-600">
-                      ${product.price?.toFixed(2)}
-                    </p>
+                    <p className="text-sm text-gray-600">${product.price?.toFixed(2)}</p>
                   </div>
                 </Link>
-
-                {/* Botones para agregar a favoritos y carrito */}
                 <div className="flex items-center space-x-2">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleToggleFavorite(product);
-                    }}
-                    disabled={togglingFavorite.includes(product.uniqueID)}
-                    className="text-red-600 hover:text-red-800"
-                    aria-label="Agregar a favoritos"
-                  >
-                    {favoriteIDs.includes(product.uniqueID) ? (
-                      <BsHeartFill />
-                    ) : (
-                      <BsHeart />
-                    )}
+                  <button onClick={() => handleToggleFavorite(product)} className="text-red-600 hover:text-red-800">
+                    {favoriteIDs.includes(product.uniqueID) ? <FaHeart /> : <FaRegHeart />}
                   </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleAddToCart(product);
-                    }}
-                    disabled={addingCart.includes(product.uniqueID)}
-                    className="text-orange-600 hover:text-orange-800"
-                    aria-label="Agregar al carrito"
-                  >
-                    <BsCart />
+                  <button onClick={() => handleAddToCart(product)} className="text-orange-600 hover:text-orange-800">
+                    <FaShoppingCart />
                   </button>
                 </div>
               </div>
             ))
           )}
-        </div>
-
-        <div className="mt-4 text-center text-sm text-gray-600">
-          <p>
-            ¿No encontraste lo que buscabas?{" "}
-            <a href="#" className="text-blue-600">
-              Envíanos un mensaje.
-            </a>
-          </p>
         </div>
       </div>
     </div>

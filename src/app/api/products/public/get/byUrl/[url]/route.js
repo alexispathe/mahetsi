@@ -43,6 +43,7 @@ export async function GET(request, context) {
         brandID: productData.brandID,
         typeID: productData.typeID,
         url: productData.url,
+        averageRating: productData.averageRating,
         numReviews: productData.numReviews || 0,
         description: productData.description || '',
         // Agrega otros campos según tus necesidades

@@ -1,11 +1,13 @@
-'use client'; 
+// app/product/[url]/ProductDetail.jsx
+'use client';
 
 import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { AuthContext } from "@/context/AuthContext";
 import { CartContext } from "@/context/CartContext/CartContext";
 import { FavoritesContext } from "@/context/FavoritesContext";
-import { BsStarFill, BsStar, BsHeartFill, BsHeart, BsX, BsBox, BsCart } from 'react-icons/bs';
-import { toast } from 'react-toastify'; // Importa toast desde react-toastify
+import { FaHeart, FaRegHeart, FaTimes, FaBox, FaShoppingCart } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import StarRating from '../../components/product/StarRating'; // Ajusta la ruta según corresponda
 
 export default function ProductDetail({ productUrl }) {
   const { currentUser } = useContext(AuthContext);
@@ -154,7 +156,7 @@ export default function ProductDetail({ productUrl }) {
         </div>,
         {
           theme: "light",
-          icon: false, // Opcional: Oculta el icono predeterminado
+          icon: false,
         }
       );
     } catch (err) {
@@ -173,7 +175,6 @@ export default function ProductDetail({ productUrl }) {
     try {
       if (favoriteIDs.includes(product.uniqueID)) {
         await removeFavorite(product.uniqueID);
-        // Mostrar notificación de eliminación con imagen
         toast.error(
           <div className="flex items-center">
             <img 
@@ -187,12 +188,11 @@ export default function ProductDetail({ productUrl }) {
           </div>,
           {
             theme: 'light',
-            icon: false, // Opcional: Oculta el icono predeterminado
+            icon: false,
           }
         );
       } else {
         await addFavorite(product.uniqueID);
-        // Mostrar notificación de adición con imagen
         toast.success(
           <div className="flex items-center">
             <img 
@@ -206,7 +206,7 @@ export default function ProductDetail({ productUrl }) {
           </div>,
           {
             theme: 'light',
-            icon: false, // Opcional: Oculta el icono predeterminado
+            icon: false,
           }
         );
       }
@@ -271,7 +271,10 @@ export default function ProductDetail({ productUrl }) {
     );
   }
 
-  // Render principal
+  // Si el producto no trae una propiedad "rating", puedes ajustar el valor por defecto (por ejemplo, 0)
+  const productRating = product.averageRating
+   || 0;
+
   return (
     <div className="flex justify-center items-center my-10 px-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full max-w-6xl">
@@ -320,17 +323,9 @@ export default function ProductDetail({ productUrl }) {
           </p>
           <h1 className="text-3xl font-bold">{product.name}</h1>
 
-          {/* Rating */}
+          {/* Rating utilizando el componente StarRating */}
           <div className="flex items-center space-x-2">
-            <div className="flex text-yellow-500 text-lg">
-              {[1, 2, 3, 4, 5].map((star) =>
-                star <= product.rating ? (
-                  <BsStarFill key={star} />
-                ) : (
-                  <BsStar key={star} />
-                )
-              )}
-            </div>
+            <StarRating rating={productRating} />
             <p className="text-sm text-gray-600">
               ({product.numReviews} Reviews)
             </p>
@@ -371,9 +366,9 @@ export default function ProductDetail({ productUrl }) {
               ) : (
                 <>
                   {isLiked ? (
-                    <BsHeartFill className="mr-2" />
+                    <FaHeart className="mr-2" />
                   ) : (
-                    <BsHeart className="mr-2" />
+                    <FaRegHeart className="mr-2" />
                   )}
                   Favorito
                 </>
@@ -381,7 +376,7 @@ export default function ProductDetail({ productUrl }) {
             </button>
             <button
               className={`px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 ${isAddingToCart ? 'cursor-not-allowed opacity-50' : ''
-                } flex items-center`} // Asegura que los elementos estén en la misma fila
+                } flex items-center`}
               onClick={handleAddToCartClick}
               disabled={isAddingToCart}
             >
@@ -389,7 +384,7 @@ export default function ProductDetail({ productUrl }) {
                 'Agregando...'
               ) : (
                 <>
-                  <BsCart className="mr-2" /> Agregar al carrito
+                  <FaShoppingCart className="mr-2" /> Agregar al carrito
                 </>
               )}
             </button>
@@ -397,7 +392,7 @@ export default function ProductDetail({ productUrl }) {
 
           {/* Info de envío */}
           <div className="text-sm text-gray-600 flex items-center">
-            <BsBox className="mr-1" />
+            <FaBox className="mr-1" />
             Envío gratis en pedidos superiores a $99. Envío al día siguiente por $9.99
           </div>
         </div>
@@ -424,7 +419,7 @@ export default function ProductDetail({ productUrl }) {
               className="absolute top-4 right-4 text-white text-4xl font-bold hover:text-pink-500 transition-colors duration-300"
               aria-label="Cerrar zoom"
             >
-              <BsX />
+              <FaTimes />
             </button>
           </div>
         </div>

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-
+import StarRating from '../product/StarRating';
 export default function BestProducts() {
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,12 +58,8 @@ export default function BestProducts() {
                     className="w-full h-72 object-cover rounded-md mb-4"
                   />
                   <div className="flex text-yellow-500">
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <span key={i}>
-                            {i < Math.round(topProducts[0].averageRating) ? '★' : '☆'}
-                          </span>
-                        ))}
-                      </div>
+                    <StarRating rating={topProducts[0].averageRating} />
+                  </div>
                   <h3 className="text-lg font-semibold text-center">
                     {topProducts[0].name}
                   </h3>
@@ -80,15 +76,17 @@ export default function BestProducts() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {loading ? (
                 // Skeleton para los productos adicionales
-                Array(4).fill(0).map((_, index) => (
-                  <div key={index} className="flex flex-col items-center">
-                    <div className="w-full h-48 bg-gray-200 rounded-md animate-pulse mb-4" />
-                    <div className="w-3/4 h-4 bg-gray-200 rounded-md animate-pulse mb-2" />
-                    <div className="w-1/2 h-4 bg-gray-200 rounded-md animate-pulse" />
-                  </div>
-                ))
+                Array(4)
+                  .fill(0)
+                  .map((_, index) => (
+                    <div key={index} className="flex flex-col items-center">
+                      <div className="w-full h-48 bg-gray-200 rounded-md animate-pulse mb-4" />
+                      <div className="w-3/4 h-4 bg-gray-200 rounded-md animate-pulse mb-2" />
+                      <div className="w-1/2 h-4 bg-gray-200 rounded-md animate-pulse" />
+                    </div>
+                  ))
               ) : (
-                topProducts.slice(1).map((product, index) => (
+                topProducts.slice(1).map((product) => (
                   <div key={product.uniqueID} className="flex flex-col items-center">
                     <Link
                       href={`/product/${product.url}`}
@@ -102,11 +100,7 @@ export default function BestProducts() {
                         className="w-full h-48 object-cover rounded-md mb-4"
                       />
                       <div className="flex text-yellow-500">
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <span key={i}>
-                            {i < Math.round(product.averageRating) ? '★' : '☆'}
-                          </span>
-                        ))}
+                        <StarRating rating={product.averageRating} />
                       </div>
                       <h3 className="text-lg font-semibold text-center">
                         {product.name}
