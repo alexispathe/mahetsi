@@ -41,6 +41,7 @@ export default function MobileMenu({ categories, subcategories, isMenuOpen, togg
               </li>
             );
           })}
+           <li><Link href="/article" className="cursor-pointer hover:text-gray-700">Blog</Link></li>
           <li><Link href="/contacto" className="cursor-pointer hover:text-gray-700">Contacto</Link></li>
         </ul>
       </nav>

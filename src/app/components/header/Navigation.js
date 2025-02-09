@@ -89,7 +89,12 @@ export default function Navigation({
           );
         })
       )}
-
+      <Link
+        href="/article"
+        className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-yellow-500`}
+      >
+        Blog
+      </Link>
       {/* Link fijo de Contacto */}
       <Link
         href="/contacto"
