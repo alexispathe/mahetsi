@@ -1,3 +1,4 @@
+// src/app/blog/page.js
 import { articlesData } from "@/data/articlesData";
 import Link from "next/link";
 import Image from "next/image";

@@ -1,4 +1,4 @@
-// src/app/article/[id]/page.js
+// src/app/blog/[slug]/page.js
 import { articlesData } from "@/data/articlesData";
 import { notFound } from 'next/navigation';
 import Link from "next/link";
