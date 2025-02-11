@@ -20,7 +20,7 @@ export const articlesData = [
         </div>
 
         <h2 class="text-2xl font-bold">1. Poder Antioxidante 🛡️</h2>
-        <img src=https://cdn.pixabay.com/photo/2020/04/22/17/12/soap-5079181_1280.jpg" 
+        <img src="https://cdn.pixabay.com/photo/2018/08/02/00/17/soap-bubble-3578601_1280.jpg" 
              alt="Cuchara con miel derramándose" 
              class="rounded-xl my-4 shadow-lg" />
         
@@ -93,7 +93,7 @@ export const articlesData = [
         <h2 class="text-2xl font-bold">1. Uso Histórico ⏳</h2>
         <div class="lg:flex gap-4">
           <div class="flex-1">
-            <img src="https://cdn.pixabay.com/photo/2020/06/01/23/03/roman-5248727_1280.jpg" 
+            <img src="https://cdn.pixabay.com/photo/2020/03/13/05/58/herbal-soap-4926997_1280.jpg" 
                  alt="Fresco romano con lavanda" 
                  class="rounded-lg h-64 w-full object-cover" />
           </div>

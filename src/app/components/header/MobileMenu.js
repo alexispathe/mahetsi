@@ -14,7 +14,7 @@ export default function MobileMenu({ categories, subcategories, isMenuOpen, togg
             &times;
           </button>
         </div>
-        
+
         <ul className="flex flex-col space-y-4 p-4">
           {categories.map((category) => {
             const filteredSubcategories = subcategories[category.uniqueID] || [];
@@ -27,8 +27,8 @@ export default function MobileMenu({ categories, subcategories, isMenuOpen, togg
                   <ul className="pl-4 mt-2 space-y-2">
                     {filteredSubcategories.map((subcat) => (
                       <li key={subcat.uniqueID}>
-                        <Link 
-                          href={`/category/${category.url}/${subcat.url}`} 
+                        <Link
+                          href={`/category/${category.url}/${subcat.url}`}
                           className="cursor-pointer hover:text-gray-700 block text-sm"
                           aria-label={`Subcategoría ${subcat.name}`}
                         >
@@ -41,8 +41,11 @@ export default function MobileMenu({ categories, subcategories, isMenuOpen, togg
               </li>
             );
           })}
-           <li><Link href="/blog" className="cursor-pointer hover:text-gray-700">Blog</Link></li>
-          <li><Link href="/contacto" className="cursor-pointer hover:text-gray-700">Contacto</Link></li>
+          <Link href="/faq" className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-yellow-500`}>
+            Preguntas más comunes
+          </Link>
+          <li><Link href="/blog" className="cursor-pointer hover:text-gray-700">Blog</Link></li>
+          <li><Link href="/about" className="cursor-pointer hover:text-gray-700">Acerca de nosotros</Link></li>
         </ul>
       </nav>
     )

@@ -97,10 +97,16 @@ export default function Navigation({
       </Link>
       {/* Link fijo de Contacto */}
       <Link
-        href="/contacto"
+        href="/faq"
         className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-yellow-500`}
       >
-        Contacto
+        Preguntas más comunes
+      </Link>
+      <Link
+        href="/about"
+        className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-yellow-500`}
+      >
+        Acerca de nosotros
       </Link>
     </nav>
   );
