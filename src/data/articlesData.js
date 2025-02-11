@@ -7,7 +7,7 @@ export const articlesData = [
     description: "Análisis detallado de las propiedades terapéuticas de la miel natural respaldadas por la ciencia.",
     image: [
       "https://cdn.pixabay.com/photo/2017/05/23/16/23/soap-dispenser-2337697_640.jpg",
-      "https://cdn.pixabay.com/photo/2018/08/15/08/35/honey-3607194_1280.jpg"
+      "https://cdn.pixabay.com/photo/2020/04/22/17/12/soap-5079181_1280.jpg"
     ],
     category: "Salud Natural",
     author: "Dra. Laura Pérez - Nutricionista Integrativa",
@@ -20,7 +20,7 @@ export const articlesData = [
         </div>
 
         <h2 class="text-2xl font-bold">1. Poder Antioxidante 🛡️</h2>
-        <img src="https://cdn.pixabay.com/photo/2017/08/06/22/18/honey-2597255_1280.jpg" 
+        <img src=https://cdn.pixabay.com/photo/2020/04/22/17/12/soap-5079181_1280.jpg" 
              alt="Cuchara con miel derramándose" 
              class="rounded-xl my-4 shadow-lg" />
         
@@ -33,7 +33,7 @@ export const articlesData = [
         <h2 class="text-2xl font-bold mt-8">2. Salud Digestiva 🍯</h2>
         <div class="md:flex gap-4 mt-4">
           <div class="flex-1">
-            <img src="https://cdn.pixabay.com/photo/2017/06/28/10/11/honey-2450424_1280.jpg" 
+            <img src="https://cdn.pixabay.com/photo/2017/05/22/07/39/soap-2333412_1280.jpg" 
                  alt="Miel con probióticos" 
                  class="rounded-lg h-48 w-full object-cover" />
           </div>
@@ -78,8 +78,8 @@ export const articlesData = [
     slug: "datos-curiosos-lavanda",
     metaDescription: "Descubre usos sorprendentes de la lavanda en la historia, ciencia y vida moderna. ¡Desde conservar momias hasta viajes espaciales!",
     image: [
-      "https://cdn.pixabay.com/photo/2016/04/15/08/04/lavender-1331039_1280.jpg",
-      "https://cdn.pixabay.com/photo/2017/08/07/18/28/lavender-2605522_1280.jpg"
+      "https://cdn.pixabay.com/photo/2017/05/22/07/39/soap-2333412_1280.jpg",
+      "https://cdn.pixabay.com/photo/2020/03/13/03/58/handmade-soap-4926841_1280.jpg"
     ],
     category: "Plantas Aromáticas",
     tags: ["historia", "aromaterapia", "datos curiosos"],
@@ -109,7 +109,7 @@ export const articlesData = [
         <h2 class="text-2xl font-bold mt-8">2. Usos Modernos Sorprendentes 🔬</h2>
         <div class="grid md:grid-cols-2 gap-4">
           <div class="bg-white p-4 rounded-lg shadow-md">
-            <img src="https://cdn.pixabay.com/photo/2018/01/31/09/57/coffee-3120750_1280.jpg" 
+            <img src="https://cdn.pixabay.com/photo/2022/02/04/08/58/organic-soap-6992355_1280.jpg" 
                  alt="Café con flores de lavanda" 
                  class="rounded-lg h-48 w-full object-cover" />
             <h3 class="text-xl font-bold mt-2">En la Cocina</h3>
@@ -121,7 +121,7 @@ export const articlesData = [
           </div>
 
           <div class="bg-white p-4 rounded-lg shadow-md">
-            <img src="https://cdn.pixabay.com/photo/2016/11/19/12/54/essential-oils-1838984_1280.jpg" 
+            <img src="https://cdn.pixabay.com/photo/2020/03/28/14/39/soap-4977314_1280.jpg" 
                  alt="Aceite esencial de lavanda" 
                  class="rounded-lg h-48 w-full object-cover" />
             <h3 class="text-xl font-bold mt-2">Tecnología</h3>
