@@ -3,9 +3,9 @@ import { articlesData } from "@/data/articlesData";
 import { notFound } from 'next/navigation';
 import Link from "next/link";
 import Image from "next/image";
-
-export async function generateMetadata({ params }) {
-  const article = articlesData.find(a => a.slug === params.slug);
+export async function generateMetadata({params}) {
+  const {slug} = await params;
+  const article = articlesData.find(a => a.slug === slug);
   return {
     title: `${article.title} | Blog Natural`,
     description: article.metaDescription,
@@ -26,8 +26,10 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default function ArticlePage({ params }) {
-  const article = articlesData.find(a => a.slug === params.slug);
+export default async function ArticlePage({ params }) {
+  const {slug} = await params;
+  
+  const article = articlesData.find(a => a.slug === slug);
 
   if (!article) notFound();
 

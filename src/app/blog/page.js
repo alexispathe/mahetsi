@@ -40,7 +40,7 @@ export default function Home() {
               
               <h2 className="text-xl font-bold mb-2">
                 <Link 
-                  href={`/article/${article.slug}`}
+                  href={`/blog/${article.slug}`}
                   className="hover:text-green-700 transition-colors"
                 >
                   {article.title}
@@ -55,7 +55,7 @@ export default function Home() {
               </div>
               
               <Link
-                href={`/article/${article.slug}`}
+                href={`/blog/${article.slug}`}
                 className="mt-4 inline-block w-full text-center bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
               >
                 Leer Experiencia Completa →

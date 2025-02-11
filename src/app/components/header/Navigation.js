@@ -90,7 +90,7 @@ export default function Navigation({
         })
       )}
       <Link
-        href="/article"
+        href="/blog"
         className={`cursor-pointer ${isHovered ? "text-black" : textColor} hover:text-yellow-500`}
       >
         Blog
