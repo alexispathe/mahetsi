@@ -7,7 +7,7 @@ export default function AboutPage() {
       <section className="relative flex items-center justify-center h-[50vh] bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
         <div className="absolute inset-0 bg-black bg-opacity-40" />
         <div className="relative z-10 text-center max-w-2xl px-4">
-          <h1 className="text-4xl font-bold mb-4">Acerca de Mahets'i & Boh'o</h1>
+          <h1 className="text-4xl font-bold mb-4">Acerca de Mahets&#39;i & Boh&#39;o</h1>
           <p className="text-lg">
             Descubre nuestra historia, valores y el equipo apasionado que hace todo posible.
           </p>
@@ -20,7 +20,7 @@ export default function AboutPage() {
           <div className="md:w-1/2">
             <h2 className="text-3xl font-semibold text-indigo-700 mb-4">Nuestra Historia</h2>
             <p className="mb-4 leading-relaxed">
-              Mahets'i & Boh'o nació con la visión de transformar la experiencia de nuestros clientes, 
+              Mahets&#39;i & Boh&#39;o nació con la visión de transformar la experiencia de nuestros clientes, 
               ofreciendo productos y servicios únicos que mezclan tradición y modernidad. A lo largo 
               de los años, hemos evolucionado gracias a la confianza de quienes han creído en nuestra 
               propuesta y la dedicación de cada integrante del equipo.
@@ -94,7 +94,7 @@ export default function AboutPage() {
             <p className="text-sm text-indigo-600 mb-2">Fundador & CEO</p>
             <p className="text-center text-gray-600 text-sm">
               Apasionado de la innovación y el liderazgo, con años de experiencia impulsando el 
-              crecimiento de Mahets'i & Boh'o.
+              crecimiento de Mahets&#39;i & Boh&#39;o.
             </p>
           </div>
 
@@ -128,7 +128,7 @@ export default function AboutPage() {
             <p className="text-sm text-indigo-600 mb-2">Diseñador Creativo</p>
             <p className="text-center text-gray-600 text-sm">
               Responsable de la imagen y la experiencia visual, asegurando que cada detalle refleje 
-              la esencia de Mahets'i & Boh'o.
+              la esencia de Mahets&#39;i & Boh&#39;o.
             </p>
           </div>
         </div>
