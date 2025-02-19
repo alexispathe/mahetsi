@@ -54,7 +54,9 @@ const AdminSidebar = ({ activeSection, onSectionChange }) => {
                 activeSection === section.key ? "bg-gray-200" : ""
               }`}
             >
-              <span className={`${section.color} p-2 rounded-full`}>{section.icon}</span>
+              <span className={`${section.color} p-2 rounded-full`}>
+                {section.icon}
+              </span>
               <span className="ml-3 font-medium">{section.title}</span>
             </button>
           </li>

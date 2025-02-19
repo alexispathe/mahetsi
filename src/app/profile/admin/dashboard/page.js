@@ -32,6 +32,9 @@ import UpdateProductForm from "@/app/profile/admin/products/update/UpdateProduct
 // Componente de menú lateral
 import AdminSidebar from "./AdminSidebar";
 
+// Importamos react icons para el botón de actualizar
+import { FiEdit } from "react-icons/fi";
+
 const AdminDashboard = () => {
   const { currentUser, authLoading } = useContext(AuthContext);
   const router = useRouter();
@@ -65,7 +68,11 @@ const AdminDashboard = () => {
     loading: categoriesLoading,
     error: categoriesError,
     refetch: refetchCategories,
-  } = useGetData(shouldFetch ? "/api/categories/private/get/list" : null, "categories", shouldFetch);
+  } = useGetData(
+    shouldFetch ? "/api/categories/private/get/list" : null,
+    "categories",
+    shouldFetch
+  );
 
   const {
     data: brandsData,
@@ -79,7 +86,11 @@ const AdminDashboard = () => {
     loading: subcategoriesLoading,
     error: subcategoriesError,
     refetch: refetchSubCategories,
-  } = useGetData(shouldFetch ? "/api/categories/private/subCategories/get/list" : null, "subcategories", shouldFetch);
+  } = useGetData(
+    shouldFetch ? "/api/categories/private/subCategories/get/list" : null,
+    "subcategories",
+    shouldFetch
+  );
 
   const {
     data: typesData,
@@ -100,7 +111,11 @@ const AdminDashboard = () => {
     loading: productsLoading,
     error: productsError,
     refetch: refetchProducts,
-  } = useGetData(shouldFetch ? "/api/products/private/product/get/list" : null, "products", shouldFetch);
+  } = useGetData(
+    shouldFetch ? "/api/products/private/product/get/list" : null,
+    "products",
+    shouldFetch
+  );
 
   const loading =
     authLoading ||
@@ -130,7 +145,10 @@ const AdminDashboard = () => {
   if (error) {
     return (
       <div className="container mx-auto p-6">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"
+          role="alert"
+        >
           <strong className="font-bold">Error:</strong>
           <span className="ml-2">{error}</span>
         </div>
@@ -164,13 +182,15 @@ const AdminDashboard = () => {
       case "categories":
         return (
           <div>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Categorías</h2>
-              <div>
+              <div className="mt-2 sm:mt-0">
                 <button
                   onClick={() => setActiveTab("list")}
                   className={`mr-2 px-4 py-2 rounded ${
-                    activeTab === "list" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "list"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Listado
@@ -178,7 +198,9 @@ const AdminDashboard = () => {
                 <button
                   onClick={() => setActiveTab("create")}
                   className={`px-4 py-2 rounded ${
-                    activeTab === "create" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "create"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Crear
@@ -192,7 +214,10 @@ const AdminDashboard = () => {
                 ) : (
                   <ul className="space-y-3">
                     {categoriesData.categories.map((cat, index) => (
-                      <li key={index} className="flex justify-between items-center p-3 bg-white rounded shadow">
+                      <li
+                        key={index}
+                        className="flex justify-between items-center p-3 bg-white rounded shadow"
+                      >
                         <span className="text-gray-700">{cat.name}</span>
                         <button
                           onClick={() => {
@@ -201,20 +226,7 @@ const AdminDashboard = () => {
                           }}
                           className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors duration-200 flex items-center"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
+                          <FiEdit color="white" size={16} className="mr-1" />
                           Actualizar
                         </button>
                       </li>
@@ -245,13 +257,15 @@ const AdminDashboard = () => {
       case "brands":
         return (
           <div>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Marcas</h2>
-              <div>
+              <div className="mt-2 sm:mt-0">
                 <button
                   onClick={() => setActiveTab("list")}
                   className={`mr-2 px-4 py-2 rounded ${
-                    activeTab === "list" ? "bg-red-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "list"
+                      ? "bg-red-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Listado
@@ -259,7 +273,9 @@ const AdminDashboard = () => {
                 <button
                   onClick={() => setActiveTab("create")}
                   className={`px-4 py-2 rounded ${
-                    activeTab === "create" ? "bg-red-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "create"
+                      ? "bg-red-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Crear
@@ -273,7 +289,10 @@ const AdminDashboard = () => {
                 ) : (
                   <ul className="space-y-3">
                     {brandsData.brands.map((brand, index) => (
-                      <li key={index} className="flex justify-between items-center p-3 bg-white rounded shadow">
+                      <li
+                        key={index}
+                        className="flex justify-between items-center p-3 bg-white rounded shadow"
+                      >
                         <span className="text-gray-700">{brand.name}</span>
                         <button
                           onClick={() => {
@@ -282,20 +301,7 @@ const AdminDashboard = () => {
                           }}
                           className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors duration-200 flex items-center"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
+                          <FiEdit color="white" size={16} className="mr-1" />
                           Actualizar
                         </button>
                       </li>
@@ -328,13 +334,15 @@ const AdminDashboard = () => {
       case "subcategories":
         return (
           <div>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Subcategorías</h2>
-              <div>
+              <div className="mt-2 sm:mt-0">
                 <button
                   onClick={() => setActiveTab("list")}
                   className={`mr-2 px-4 py-2 rounded ${
-                    activeTab === "list" ? "bg-purple-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "list"
+                      ? "bg-purple-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Listado
@@ -342,7 +350,9 @@ const AdminDashboard = () => {
                 <button
                   onClick={() => setActiveTab("create")}
                   className={`px-4 py-2 rounded ${
-                    activeTab === "create" ? "bg-purple-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "create"
+                      ? "bg-purple-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Crear
@@ -356,7 +366,10 @@ const AdminDashboard = () => {
                 ) : (
                   <ul className="space-y-3">
                     {subcategoriesData.subcategories.map((subcat, index) => (
-                      <li key={index} className="flex justify-between items-center p-3 bg-white rounded shadow">
+                      <li
+                        key={index}
+                        className="flex justify-between items-center p-3 bg-white rounded shadow"
+                      >
                         <span className="text-gray-700">{subcat.name}</span>
                         <button
                           onClick={() => {
@@ -365,20 +378,7 @@ const AdminDashboard = () => {
                           }}
                           className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 transition-colors duration-200 flex items-center"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
+                          <FiEdit color="white" size={16} className="mr-1" />
                           Actualizar
                         </button>
                       </li>
@@ -412,13 +412,15 @@ const AdminDashboard = () => {
       case "types":
         return (
           <div>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Tipos</h2>
-              <div>
+              <div className="mt-2 sm:mt-0">
                 <button
                   onClick={() => setActiveTab("list")}
                   className={`mr-2 px-4 py-2 rounded ${
-                    activeTab === "list" ? "bg-yellow-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "list"
+                      ? "bg-yellow-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Listado
@@ -426,7 +428,9 @@ const AdminDashboard = () => {
                 <button
                   onClick={() => setActiveTab("create")}
                   className={`px-4 py-2 rounded ${
-                    activeTab === "create" ? "bg-yellow-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "create"
+                      ? "bg-yellow-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Crear
@@ -440,7 +444,10 @@ const AdminDashboard = () => {
                 ) : (
                   <ul className="space-y-3">
                     {typesData.types.map((type, index) => (
-                      <li key={index} className="flex justify-between items-center p-3 bg-white rounded shadow">
+                      <li
+                        key={index}
+                        className="flex justify-between items-center p-3 bg-white rounded shadow"
+                      >
                         <span className="text-gray-700">{type.name}</span>
                         <button
                           onClick={() => {
@@ -449,20 +456,7 @@ const AdminDashboard = () => {
                           }}
                           className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition-colors duration-200 flex items-center"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
+                          <FiEdit color="white" size={16} className="mr-1" />
                           Actualizar
                         </button>
                       </li>
@@ -495,14 +489,16 @@ const AdminDashboard = () => {
       case "roles":
         return (
           <div>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Roles</h2>
-              <div>
-                {/* Sólo se permite crear roles */}
+              <div className="mt-2 sm:mt-0">
+                {/* Solo se permite crear roles */}
                 <button
                   onClick={() => setActiveTab("create")}
                   className={`px-4 py-2 rounded ${
-                    activeTab === "create" ? "bg-teal-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "create"
+                      ? "bg-teal-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Crear
@@ -522,13 +518,15 @@ const AdminDashboard = () => {
       case "products":
         return (
           <div>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Productos</h2>
-              <div>
+              <div className="mt-2 sm:mt-0">
                 <button
                   onClick={() => setActiveTab("list")}
                   className={`mr-2 px-4 py-2 rounded ${
-                    activeTab === "list" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "list"
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Listado
@@ -536,7 +534,9 @@ const AdminDashboard = () => {
                 <button
                   onClick={() => setActiveTab("create")}
                   className={`px-4 py-2 rounded ${
-                    activeTab === "create" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700"
+                    activeTab === "create"
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200 text-gray-700"
                   }`}
                 >
                   Crear
@@ -550,7 +550,10 @@ const AdminDashboard = () => {
                 ) : (
                   <ul className="space-y-3">
                     {productsData.products.map((product, index) => (
-                      <li key={index} className="flex justify-between items-center p-3 bg-white rounded shadow">
+                      <li
+                        key={index}
+                        className="flex justify-between items-center p-3 bg-white rounded shadow"
+                      >
                         <span className="text-gray-700">{product.name}</span>
                         <button
                           onClick={() => {
@@ -559,20 +562,7 @@ const AdminDashboard = () => {
                           }}
                           className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors duration-200 flex items-center"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
+                          <FiEdit color="white" size={16} className="mr-1" />
                           Actualizar
                         </button>
                       </li>
@@ -610,14 +600,16 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto p-6">
-        <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">Panel de Administración</h1>
-        <div className="flex gap-6">
+        <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">
+          Panel de Administración
+        </h1>
+        <div className="flex flex-col md:flex-row gap-6">
           {/* Menú lateral */}
-          <div className="w-1/4">
+          <div className="w-full md:w-1/4 mb-6 md:mb-0">
             <AdminSidebar activeSection={activeSection} onSectionChange={handleSectionChange} />
           </div>
           {/* Panel de contenido */}
-          <div className="w-3/4 bg-white shadow-lg rounded-lg p-6">
+          <div className="w-full md:w-3/4 bg-white shadow-lg rounded-lg p-6">
             {renderContent()}
           </div>
         </div>
