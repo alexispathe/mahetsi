@@ -42,7 +42,8 @@ export async function GET(request) {
           rolID,
           permissions,
 
-        }
+        },
+        exp: decodedToken.exp  // Se envía la fecha de expiración (en segundos).
       }, { status: 200 });
     } catch (verificationError) {
       // Si la cookie es inválida o expirada, responde con 401 y elimina la cookie

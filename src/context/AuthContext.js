@@ -20,11 +20,11 @@ export function AuthProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    // Se suscribe a los cambios en el estado de autenticación de Firebase
+    // Se suscribe a los cambios en el estado de autenticación de Firebase.
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          // Verificamos si la cookie es válida
+          // Verificar la cookie de sesión en el servidor.
           const res = await fetch('/api/verify-session', {
             method: 'GET',
             credentials: 'include',
@@ -32,9 +32,34 @@ export function AuthProvider({ children }) {
 
           if (res.ok) {
             const data = await res.json();
+
+            // Si se incluye el campo 'exp' en la respuesta, se revisa la proximidad de la expiración.
+            if (data.exp) {
+              const tiempoRestante = data.exp * 1000 - Date.now();
+              // Si quedan menos de 5 minutos, se intenta renovar la sesión.
+              if (tiempoRestante < 5 * 60 * 1000) {
+                try {
+                  const newIdToken = await user.getIdToken(true);
+                  const renewRes = await fetch('/api/renew-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ idToken: newIdToken }),
+                  });
+                  if (renewRes.ok) {
+                    console.log('Sesión renovada exitosamente');
+                  } else {
+                    console.error('Fallo en la renovación de sesión');
+                  }
+                } catch (renewError) {
+                  console.error('Error al renovar la sesión:', renewError.message);
+                }
+              }
+            }
+
             setCurrentUser(data.user || null);
 
-            // En este punto podemos sincronizar carrito/favoritos:
+            // Sincronización de carrito y favoritos.
             const localCart = getLocalCart();
             const localFavorites = getLocalFavorites();
 
@@ -50,7 +75,6 @@ export function AuthProvider({ children }) {
               });
 
               if (syncRes.ok) {
-                // Limpiar localStorage tras sincronizar
                 clearLocalCart();
                 clearLocalFavorites();
               } else {
@@ -69,7 +93,7 @@ export function AuthProvider({ children }) {
           setAuthLoading(false);
         }
       } else {
-        // Usuario no logueado (o se cerró sesión)
+        // Usuario no logueado o se cerró sesión.
         setCurrentUser(null);
         setAuthLoading(false);
       }
