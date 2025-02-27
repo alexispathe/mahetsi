@@ -97,8 +97,8 @@ function LoginContent() {
           {/* Panel decorativo lateral - solo visible en md y superiores */}
           <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-amber-500 to-orange-400 justify-center items-center p-8">
             <div className="max-w-md text-center">
-              <h1 className="text-5xl font-bold text-white mb-4 tracking-wide">Mahets'i & Boh'o</h1>
-              <p className="text-white text-xl opacity-90 mb-6">Bienvenido a nuestra plataforma. Descubre experiencias únicas.</p>
+              <h1 className="text-5xl font-bold text-white mb-4 tracking-wide">Mahets&#39;i & Boh&#39;o</h1>
+              <p className="text-white text-xl opacity-90 mb-6">Bienvenido a nuestra plataforma. Descubre experiencias únicas para el cuidado de piel.</p>
               <div className="w-32 h-32 mx-auto mb-8 bg-white rounded-full flex items-center justify-center">
                 <div className="w-24 h-24 rounded-full bg-amber-400"></div>
               </div>
@@ -124,7 +124,7 @@ function LoginContent() {
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
               {/* Logo versión móvil */}
               <div className="md:hidden text-center mb-8">
-                <h1 className="text-3xl font-bold text-amber-600 mb-2">Mahets'i & Boh'o</h1>
+                <h1 className="text-3xl font-bold text-amber-600 mb-2">Mahets&#39;i & Boh&#39;o</h1>
                 <div className="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 to-orange-400 rounded-full flex items-center justify-center">
                   <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
                     <div className="w-12 h-12 rounded-full bg-amber-300"></div>
