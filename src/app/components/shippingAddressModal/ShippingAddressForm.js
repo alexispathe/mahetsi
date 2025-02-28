@@ -1,6 +1,7 @@
+// Formulario de direccion para el modal
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
@@ -37,6 +38,7 @@ export default function ShippingAddressForm({
       setValue('phone', shippingAddress.phone);
       setValue('address', shippingAddress.address);
       setValue('interiorNumber', shippingAddress.interiorNumber || '');
+      setValue('number', shippingAddress.number || ''); // nuevo campo
       setValue('colonia', shippingAddress.colonia);
       setValue('city', shippingAddress.city);
       setValue('state', shippingAddress.state);
@@ -145,7 +147,7 @@ export default function ShippingAddressForm({
 
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="address">
-          Calle y Número Exterior
+          Calle
         </label>
         <input
           type="text"
@@ -154,7 +156,7 @@ export default function ShippingAddressForm({
           className={`w-full p-2 border rounded ${
             errors.address ? 'border-red-500' : 'border-gray-300'
           }`}
-          placeholder="Calle y Número Exterior"
+          placeholder="Calle"
           disabled={isSubmitting}
         />
         {errors.address && (
@@ -163,6 +165,24 @@ export default function ShippingAddressForm({
       </div>
 
       <div>
+      <div>
+        <label className="block text-sm font-medium mb-1" htmlFor="number">
+          Número exterior
+        </label>
+        <input
+          type="text"
+          id="number"
+          {...register('number')}
+          className={`w-full p-2 border rounded ${
+            errors.number ? 'border-red-500' : 'border-gray-300'
+          }`}
+          placeholder="Número exterior"
+          disabled={isSubmitting}
+        />
+        {errors.number && (
+          <p className="text-red-500 text-sm">{errors.number.message}</p>
+        )}
+      </div>
         <label className="block text-sm font-medium mb-1" htmlFor="interiorNumber">
           Número Interior (Opcional)
         </label>
@@ -175,6 +195,8 @@ export default function ShippingAddressForm({
           disabled={isSubmitting}
         />
       </div>
+
+      
 
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="colonia">

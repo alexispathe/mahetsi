@@ -1,3 +1,4 @@
+//Formulario para agregar una direccion desde el perfil o checkout
 'use client';
 
 import React, { useEffect } from 'react';
@@ -47,9 +48,8 @@ export default function AddressForm({
             type="text"
             id="firstName"
             {...register('firstName')}
-            className={`w-full p-2 border rounded ${
-              errors.firstName ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={`w-full p-2 border rounded ${errors.firstName ? 'border-red-500' : 'border-gray-300'
+              }`}
             placeholder="Nombre"
             disabled={isSubmitting}
           />
@@ -67,9 +67,8 @@ export default function AddressForm({
             type="text"
             id="lastName"
             {...register('lastName')}
-            className={`w-full p-2 border rounded ${
-              errors.lastName ? 'border-red-500' : 'border-gray-300'
-            }`}
+            className={`w-full p-2 border rounded ${errors.lastName ? 'border-red-500' : 'border-gray-300'
+              }`}
             placeholder="Apellido"
             disabled={isSubmitting}
           />
@@ -88,9 +87,8 @@ export default function AddressForm({
           type="email"
           id="email"
           {...register('email')}
-          className={`w-full p-2 border rounded ${
-            errors.email ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.email ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="you@example.com"
           disabled={isSubmitting}
         />
@@ -108,9 +106,8 @@ export default function AddressForm({
           type="tel"
           id="phone"
           {...register('phone')}
-          className={`w-full p-2 border rounded ${
-            errors.phone ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.phone ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Ej. 5512345678"
           disabled={isSubmitting}
         />
@@ -122,23 +119,39 @@ export default function AddressForm({
       {/* Dirección */}
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="address">
-          Calle y Número Exterior
+          Calle 
         </label>
         <input
           type="text"
           id="address"
           {...register('address')}
-          className={`w-full p-2 border rounded ${
-            errors.address ? 'border-red-500' : 'border-gray-300'
-          }`}
-          placeholder="Calle y Número Exterior"
+          className={`w-full p-2 border rounded ${errors.address ? 'border-red-500' : 'border-gray-300'
+            }`}
+          placeholder="Calle"
           disabled={isSubmitting}
         />
         {errors.address && (
           <p className="text-red-500 text-sm">{errors.address.message}</p>
         )}
       </div>
-
+      {/* Número de Apartamento */}
+      <div>
+        <label className="block text-sm font-medium mb-1" htmlFor="number">
+          Número exterior
+        </label>
+        <input
+          type="text"
+          id="number"
+          {...register('number')}
+          className={`w-full p-2 border rounded ${errors.number ? 'border-red-500' : 'border-gray-300'
+            }`}
+          placeholder="Número de Apartamento"
+          disabled={isSubmitting}
+        />
+        {errors.number && (
+          <p className="text-red-500 text-sm">{errors.number.message}</p>
+        )}
+      </div>
       {/* Número Interior (Opcional) */}
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="interiorNumber">
@@ -154,6 +167,8 @@ export default function AddressForm({
         />
       </div>
 
+
+
       {/* Colonia */}
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="colonia">
@@ -163,9 +178,8 @@ export default function AddressForm({
           type="text"
           id="colonia"
           {...register('colonia')}
-          className={`w-full p-2 border rounded ${
-            errors.colonia ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.colonia ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Colonia"
           disabled={isSubmitting}
         />
@@ -183,9 +197,8 @@ export default function AddressForm({
           type="text"
           id="city"
           {...register('city')}
-          className={`w-full p-2 border rounded ${
-            errors.city ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.city ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Ciudad o Municipio"
           disabled={isSubmitting}
         />
@@ -202,9 +215,8 @@ export default function AddressForm({
         <select
           id="state"
           {...register('state')}
-          className={`w-full p-2 border rounded ${
-            errors.state ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.state ? 'border-red-500' : 'border-gray-300'
+            }`}
           disabled={isSubmitting}
         >
           <option value="">Selecciona un estado...</option>
@@ -228,9 +240,8 @@ export default function AddressForm({
           type="text"
           id="zipcode"
           {...register('zipcode')}
-          className={`w-full p-2 border rounded ${
-            errors.zipcode ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.zipcode ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Código Postal"
           disabled={isSubmitting}
         />
@@ -248,9 +259,8 @@ export default function AddressForm({
           type="text"
           id="reference"
           {...register('reference')}
-          className={`w-full p-2 border rounded ${
-            errors.reference ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.reference ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Casa, dificultad, etc."
           disabled={isSubmitting}
         />
@@ -268,9 +278,8 @@ export default function AddressForm({
           type="text"
           id="betweenStreets"
           {...register('betweenStreets')}
-          className={`w-full p-2 border rounded ${
-            errors.betweenStreets ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.betweenStreets ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Entre calles"
           disabled={isSubmitting}
         />
@@ -306,18 +315,16 @@ export default function AddressForm({
       <div className="flex space-x-4 mt-4">
         <button
           type="submit"
-          className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center ${
-            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           disabled={isSubmitting}
         >
           {isEditing ? 'Actualizar Dirección' : 'Guardar Dirección'}
         </button>
         <button
           type="button"
-          className={`bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 flex items-center ${
-            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          className={`bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 flex items-center ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           onClick={onCancel}
           disabled={isSubmitting}
         >

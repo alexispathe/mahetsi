@@ -1,10 +1,9 @@
+//Fomulario para agregar codigo postal para invitados
 'use client';
 
 import React from 'react';
 
 export default function ShippingOptions({
-  subtotal,
-  shippingThreshold,
   shippingQuotes,
   selectedQuote,
   loadingShipping,
