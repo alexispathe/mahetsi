@@ -3,6 +3,7 @@ import { articlesData } from "@/data/articlesData";
 import { notFound } from 'next/navigation';
 import Link from "next/link";
 import Image from "next/image";
+
 export async function generateMetadata({params}) {
   const {slug} = await params;
   const article = articlesData.find(a => a.slug === slug);
@@ -34,133 +35,142 @@ export default async function ArticlePage({ params }) {
   if (!article) notFound();
 
   return (
-    <article className="container mx-auto px-4 py-8 max-w-3xl">
-      {/* Encabezado */}
-      <header className="mb-8">
-        <div className="relative h-64 mb-6">
-          <Image
-            src={article.image[0]}
-            alt={article.featuredImageAlt}
-            fill
-            className="rounded-xl object-cover"
-            sizes="100vw"
-          />
-        </div>
-        
-        <div className="flex flex-wrap gap-2 mb-4">
-          {article.tags.map((tag) => (
-            <span 
-              key={tag}
-              className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
-            >
-              #{tag}
-            </span>
-          ))}
-        </div>
-        
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-          {article.title}
-        </h1>
-        
-        <div className="flex items-center gap-4 text-gray-600">
-          <span className="flex items-center gap-1">
-            ✍️ {article.author}
-          </span>
-          <time 
-            dateTime={article.publishedDate}
-            className="text-sm"
-          >
-            📅 {new Date(article.publishedDate).toLocaleDateString('es-ES', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </time>
-        </div>
-      </header>
-
-      {/* Contenido */}
-      <section 
-        className="prose lg:prose-lg max-w-none"
-        dangerouslySetInnerHTML={{ __html: article.body }}
-      />
-
-      {/* FAQ */}
-      {article.faq && (
-        <section className="mt-12 bg-blue-50 p-6 rounded-xl">
-          <h2 className="text-2xl font-bold mb-4">Preguntas Frecuentes</h2>
-          <div className="space-y-4">
-            {article.faq.map((item, index) => (
-              <div key={index} className="bg-white p-4 rounded-lg shadow-sm">
-                <p className="font-semibold">❓ {item.question}</p>
-                <p className="mt-2">💡 {item.answer}</p>
-              </div>
+    <article className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-12 max-w-3xl">
+        {/* Encabezado */}
+        <header className="mb-12">
+          <div className="relative h-80 mb-8 rounded-2xl overflow-hidden shadow-lg border border-amber-50">
+            <Image
+              src={article.image[0]}
+              alt={article.featuredImageAlt}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="100vw"
+            />
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mb-6">
+            {article.tags.map((tag) => (
+              <span 
+                key={tag}
+                className="px-3 py-1 bg-amber-100 text-amber-800 text-sm rounded-full font-medium"
+              >
+                #{tag}
+              </span>
             ))}
           </div>
-        </section>
-      )}
-
-      {/* Artículos Relacionados */}
-      {article.relatedArticles && (
-        <section className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Más Tips que Te Podrían Gustar</h2>
-          <div className="grid gap-4">
-            {articlesData
-              .filter(a => article.relatedArticles.includes(a.id))
-              .map((related) => (
-                <Link
-                  key={related.id}
-                  href={`/article/${related.slug}`}
-                  className="group flex gap-4 bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="relative w-24 h-24 flex-shrink-0">
-                    <Image
-                      src={related.image[0]}
-                      alt={related.featuredImageAlt}
-                      fill
-                      className="rounded-lg object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold group-hover:text-green-700 transition-colors">
-                      {related.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                      {related.metaDescription}
-                    </p>
-                  </div>
-                </Link>
-              ))}
+          
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+            {article.title}
+            <div className="mt-2 w-20 h-1.5 bg-amber-400 rounded-full" />
+          </h1>
+          
+          <div className="flex items-center gap-4 text-gray-600">
+            <span className="flex items-center gap-1.5">
+              <span className="text-amber-600">✍️</span> {article.author}
+            </span>
+            <time 
+              dateTime={article.publishedDate}
+              className="text-sm flex items-center gap-1.5"
+            >
+              <span className="text-amber-600">📅</span> {new Date(article.publishedDate).toLocaleDateString('es-ES', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </time>
           </div>
-        </section>
-      )}
+        </header>
 
-      {/* Schema Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            "headline": article.title,
-            "description": article.metaDescription,
-            "author": {
-              "@type": "Person",
-              "name": article.author
-            },
-            "datePublished": article.publishedDate,
-            "image": article.image[0],
-            "publisher": {
-              "@type": "Organization",
-              "name": "Blog Natural",
-              "logo": {
-                "@type": "ImageObject",
-                "url": "https://tublog.com/logo.png"
+        {/* Contenido */}
+        <section 
+          className="prose lg:prose-lg max-w-none mb-12"
+          dangerouslySetInnerHTML={{ __html: article.body }}
+        />
+
+        {/* FAQ */}
+        {article.faq && (
+          <section className="mt-12 bg-amber-50 p-8 rounded-2xl shadow-md border border-amber-100">
+            <h2 className="text-2xl font-bold mb-6 text-amber-800">
+              Preguntas Frecuentes
+              <div className="mt-1 w-16 h-1 bg-amber-400 rounded-full" />
+            </h2>
+            <div className="space-y-5">
+              {article.faq.map((item, index) => (
+                <div key={index} className="bg-white p-5 rounded-xl shadow-sm border border-amber-50">
+                  <p className="font-semibold text-amber-700">❓ {item.question}</p>
+                  <p className="mt-2 text-gray-600">💡 {item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Artículos Relacionados */}
+        {article.relatedArticles && (
+          <section className="mt-12">
+            <h2 className="text-2xl font-bold mb-6 text-amber-800">
+              Más Tips que Te Podrían Gustar
+              <div className="mt-1 w-24 h-1 bg-amber-400 rounded-full" />
+            </h2>
+            <div className="grid gap-5">
+              {articlesData
+                .filter(a => article.relatedArticles.includes(a.id))
+                .map((related) => (
+                  <Link
+                    key={related.id}
+                    href={`/article/${related.slug}`}
+                    className="group flex gap-5 bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all border border-amber-50"
+                  >
+                    <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden">
+                      <Image
+                        src={related.image[0]}
+                        alt={related.featuredImageAlt}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold group-hover:text-amber-700 transition-colors">
+                        {related.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        {related.metaDescription}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+          </section>
+        )}
+
+        {/* Schema Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BlogPosting",
+              "headline": article.title,
+              "description": article.metaDescription,
+              "author": {
+                "@type": "Person",
+                "name": article.author
+              },
+              "datePublished": article.publishedDate,
+              "image": article.image[0],
+              "publisher": {
+                "@type": "Organization",
+                "name": "Blog Natural",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": "https://tublog.com/logo.png"
+                }
               }
-            }
-          })
-        }}
-      />
+            })
+          }}
+        />
+      </div>
     </article>
   );
 }

@@ -1,3 +1,4 @@
+// src/app/login/page.js
 'use client';
 
 import React, { Suspense, useContext, useState, useEffect } from 'react';
@@ -5,11 +6,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '@/libs/firebaseClient';
 import { AuthContext } from '@/context/AuthContext';
-import Image from 'next/image';
 import { FcGoogle } from 'react-icons/fc';
 import { BsCheck2Circle } from 'react-icons/bs';
 import { BiSolidUser } from 'react-icons/bi';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import Link from 'next/link';
 
 export default function LoginPage() {
   return (
@@ -28,21 +29,44 @@ export default function LoginPage() {
   );
 }
 
+// Componente Modal reutilizable
+function Modal({ isOpen, onClose, title, children }) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Overlay semitransparente */}
+      <div className="fixed inset-0 bg-black opacity-50" onClick={onClose}></div>
+      {/* Contenedor del modal */}
+      <div className="bg-white rounded-lg shadow-lg z-10 max-w-lg w-full mx-4 p-6 relative">
+        {/* Botón para cerrar */}
+        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        {title && <h2 className="text-xl font-bold mb-4">{title}</h2>}
+        <div className="max-h-80 overflow-y-auto">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LoginContent() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect');
   const { currentUser, authLoading } = useContext(AuthContext);
   const [loginLoading, setLoginLoading] = useState(false);
   const router = useRouter();
+  // Estados para controlar la visibilidad de cada modal
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
-  // Si ya estamos autenticados, no tiene caso mostrar el botón de login
+  // Si ya estamos autenticados, redireccionamos
   useEffect(() => {
     if (!authLoading && currentUser) {
-      if (redirect) {
-        window.location.href = redirect;
-      } else {
-        window.location.href = '/profile/user';
-      }
+      window.location.href = redirect ? redirect : '/profile/user';
     }
   }, [authLoading, currentUser, redirect]);
 
@@ -54,7 +78,6 @@ function LoginContent() {
 
       if (user) {
         const idToken = await user.getIdToken();
-
         // Crear la sesión en el server
         const res = await fetch('/api/sessionLogin', {
           method: 'POST',
@@ -64,13 +87,7 @@ function LoginContent() {
         });
 
         if (res.ok) {
-          // En este punto, la cookie ya está en el navegador (Set-Cookie).
-          // Redireccionamos sin necesidad de setTimeout.
-          if (redirect) {
-            window.location.href = redirect;
-          } else {
-            window.location.href = '/profile/user';
-          }
+          window.location.href = redirect ? redirect : '/profile/user';
         } else {
           const errorData = await res.json();
           console.error('Error al crear sesión:', errorData.error);
@@ -97,8 +114,10 @@ function LoginContent() {
           {/* Panel decorativo lateral - solo visible en md y superiores */}
           <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-amber-500 to-orange-400 justify-center items-center p-8">
             <div className="max-w-md text-center">
-              <h1 className="text-5xl font-bold text-white mb-4 tracking-wide">Mahets&#39;i & Boh&#39;o</h1>
-              <p className="text-white text-xl opacity-90 mb-6">Bienvenido a nuestra plataforma. Descubre experiencias únicas para el cuidado de piel.</p>
+              <h1 className="text-5xl font-bold text-white mb-4 tracking-wide">Mahets&#39;i &amp; Boh&#39;o</h1>
+              <p className="text-white text-xl opacity-90 mb-6">
+                Bienvenido a nuestra plataforma. Descubre experiencias únicas para el cuidado de piel.
+              </p>
               <div className="w-32 h-32 mx-auto mb-8 bg-white rounded-full flex items-center justify-center">
                 <div className="w-24 h-24 rounded-full bg-amber-400"></div>
               </div>
@@ -124,7 +143,7 @@ function LoginContent() {
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
               {/* Logo versión móvil */}
               <div className="md:hidden text-center mb-8">
-                <h1 className="text-3xl font-bold text-amber-600 mb-2">Mahets&#39;i & Boh&#39;o</h1>
+                <h1 className="text-3xl font-bold text-amber-600 mb-2">Mahets&#39;i &amp; Boh&#39;o</h1>
                 <div className="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 to-orange-400 rounded-full flex items-center justify-center">
                   <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
                     <div className="w-12 h-12 rounded-full bg-amber-300"></div>
@@ -158,34 +177,46 @@ function LoginContent() {
 
                 <div className="relative flex items-center justify-center mt-6">
                   <div className="border-t border-gray-300 w-full"></div>
-                  <div className="bg-white px-3 text-gray-500 text-sm absolute">
-                    O
-                  </div>
+                  <div className="bg-white px-3 text-gray-500 text-sm absolute">O</div>
                 </div>
 
-                <button
+                <Link
                   className="w-full py-3 px-4 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow flex items-center justify-center"
-                  onClick={() => alert('Funcionalidad no implementada')}
+                  href="/"
                 >
                   <BiSolidUser className="text-xl mr-2 text-gray-500" />
                   <span>Continuar como invitado</span>
-                </button>
+                </Link>
               </div>
 
               <p className="text-center mt-8 text-sm text-gray-500">
                 Al continuar, aceptas nuestros{' '}
-                <a href="#" className="text-amber-600 hover:underline">
+                <button type="button" onClick={() => setShowTerms(true)} className="text-amber-600 hover:underline">
                   Términos de servicio
-                </a>{' '}
+                </button>{' '}
                 y{' '}
-                <a href="#" className="text-amber-600 hover:underline">
+                <button type="button" onClick={() => setShowPrivacy(true)} className="text-amber-600 hover:underline">
                   Política de privacidad
-                </a>
+                </button>
               </p>
             </div>
           </div>
         </div>
       )}
+
+      {/* Modal de Términos de Servicio */}
+      <Modal isOpen={showTerms} onClose={() => setShowTerms(false)} title="Términos de Servicio">
+        <p className="text-gray-700 text-sm">
+          Aquí irían los términos de servicio de la aplicación. Puedes incluir toda la información relevante sobre el uso del servicio, derechos y obligaciones, y otros detalles legales necesarios.
+        </p>
+      </Modal>
+
+      {/* Modal de Política de Privacidad */}
+      <Modal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} title="Política de Privacidad">
+        <p className="text-gray-700 text-sm">
+          Aquí iría la política de privacidad de la aplicación. Detalla cómo se manejan los datos personales, las medidas de seguridad implementadas y otros aspectos relacionados con la privacidad.
+        </p>
+      </Modal>
     </>
   );
 }
