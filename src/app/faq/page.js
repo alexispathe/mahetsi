@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 import { useState } from "react";
 import { FaPlus, FaMinus } from "react-icons/fa";
 
@@ -50,16 +50,16 @@ export default function FaqPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <main className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center">
       <section className="max-w-3xl w-full mx-auto p-4">
-        <h1 className="text-3xl font-bold text-indigo-700 mb-8 text-center">
+        <h1 className="text-3xl font-bold text-center text-amber-600 mb-8">
           Preguntas Frecuentes
         </h1>
         <div className="space-y-4">
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg shadow p-4 transition-all"
+              className="bg-white rounded-lg shadow p-4 transition-all hover:shadow-lg"
             >
               <button
                 onClick={() => toggleFaq(index)}
@@ -69,21 +69,18 @@ export default function FaqPage() {
                   {faq.question}
                 </span>
                 {activeIndex === index ? (
-                  <FaMinus className="text-indigo-600" />
+                  <FaMinus className="text-amber-600" />
                 ) : (
-                  <FaPlus className="text-indigo-600" />
+                  <FaPlus className="text-amber-600" />
                 )}
               </button>
-
-              {/* Contenido siempre presente, pero con altura dinámica y transición */}
+              {/* Contenido con transición dinámica */}
               <div
                 className={`mt-2 text-gray-600 overflow-hidden transition-[max-height] duration-300 ease-in-out ${
                   activeIndex === index ? "max-h-40" : "max-h-0"
                 }`}
               >
-                <p className="py-2">
-                  {faq.answer}
-                </p>
+                <p className="py-2">{faq.answer}</p>
               </div>
             </div>
           ))}
