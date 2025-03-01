@@ -34,7 +34,7 @@ export default function CategoryPage() {
   
   // Usamos el hook para obtener la subcategoría según la URL (se espera un arreglo; usamos el primer elemento si existe)
   const { subcategory } = useSubcategoryByURL(currentCategory?.uniqueID, subcategoryURL);
- 
+ console.log("Esta es la subcategoria ",subcategory)
   // Se pasa el subcategoryID (si existe) al hook que obtiene los productos filtrados por subcategoría
   const { isLoadingProducts, products } = useProducts(
     currentCategory,

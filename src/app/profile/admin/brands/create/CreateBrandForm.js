@@ -103,7 +103,7 @@ const CreateBrandForm = ({ categories, onSuccess }) => {
             <option value="">Selecciona una categoría</option>
             {categories.map((cat) => (
               <option key={cat.uniqueID} value={cat.uniqueID}>
-                {cat.name}
+                {cat.name} 
               </option>
             ))}
           </select>
