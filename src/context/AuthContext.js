@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
           if (res.ok) {
             const data = await res.json();
 
-            // Si se incluye el campo 'exp' en la respuesta, se revisa la proximidad de la expiración.
+            // se revisa la proximidad de la expiración.
             if (data.exp) {
               const tiempoRestante = data.exp * 1000 - Date.now();
               // Si quedan menos de 5 minutos, se intenta renovar la sesión.
