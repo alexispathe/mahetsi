@@ -50,9 +50,9 @@ export default function FaqPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center">
+    <main className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center">
       <section className="max-w-3xl w-full mx-auto p-4">
-        <h1 className="text-3xl font-bold text-center text-amber-600 mb-8">
+        <h1 className="text-3xl font-bold text-center text-green-600 mb-8">
           Preguntas Frecuentes
         </h1>
         <div className="space-y-4">
@@ -69,9 +69,9 @@ export default function FaqPage() {
                   {faq.question}
                 </span>
                 {activeIndex === index ? (
-                  <FaMinus className="text-amber-600" />
+                  <FaMinus className="text-green-600" />
                 ) : (
-                  <FaPlus className="text-amber-600" />
+                  <FaPlus className="text-green-600" />
                 )}
               </button>
               {/* Contenido con transición dinámica */}

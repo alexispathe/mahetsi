@@ -4,8 +4,8 @@ import { notFound } from 'next/navigation';
 import Link from "next/link";
 import Image from "next/image";
 
-export async function generateMetadata({params}) {
-  const {slug} = await params;
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
   const article = articlesData.find(a => a.slug === slug);
   return {
     title: `${article.title} | Blog Natural`,
@@ -28,7 +28,7 @@ export async function generateMetadata({params}) {
 }
 
 export default async function ArticlePage({ params }) {
-  const {slug} = await params;
+  const { slug } = await params;
   
   const article = articlesData.find(a => a.slug === slug);
 
@@ -39,7 +39,7 @@ export default async function ArticlePage({ params }) {
       <div className="container mx-auto px-4 py-12 max-w-3xl">
         {/* Encabezado */}
         <header className="mb-12">
-          <div className="relative h-80 mb-8 rounded-2xl overflow-hidden shadow-lg border border-amber-50">
+          <div className="relative h-80 mb-8 rounded-2xl overflow-hidden shadow-lg border border-green-50">
             <Image
               src={article.image[0]}
               alt={article.featuredImageAlt}
@@ -53,7 +53,7 @@ export default async function ArticlePage({ params }) {
             {article.tags.map((tag) => (
               <span 
                 key={tag}
-                className="px-3 py-1 bg-amber-100 text-amber-800 text-sm rounded-full font-medium"
+                className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full font-medium"
               >
                 #{tag}
               </span>
@@ -62,18 +62,18 @@ export default async function ArticlePage({ params }) {
           
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
             {article.title}
-            <div className="mt-2 w-20 h-1.5 bg-amber-400 rounded-full" />
+            <div className="mt-2 w-20 h-1.5 bg-green-400 rounded-full" />
           </h1>
           
           <div className="flex items-center gap-4 text-gray-600">
             <span className="flex items-center gap-1.5">
-              <span className="text-amber-600">✍️</span> {article.author}
+              <span className="text-green-600">✍️</span> {article.author}
             </span>
             <time 
               dateTime={article.publishedDate}
               className="text-sm flex items-center gap-1.5"
             >
-              <span className="text-amber-600">📅</span> {new Date(article.publishedDate).toLocaleDateString('es-ES', { 
+              <span className="text-green-600">📅</span> {new Date(article.publishedDate).toLocaleDateString('es-ES', { 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
@@ -90,15 +90,15 @@ export default async function ArticlePage({ params }) {
 
         {/* FAQ */}
         {article.faq && (
-          <section className="mt-12 bg-amber-50 p-8 rounded-2xl shadow-md border border-amber-100">
-            <h2 className="text-2xl font-bold mb-6 text-amber-800">
+          <section className="mt-12 bg-green-50 p-8 rounded-2xl shadow-md border border-green-100">
+            <h2 className="text-2xl font-bold mb-6 text-green-800">
               Preguntas Frecuentes
-              <div className="mt-1 w-16 h-1 bg-amber-400 rounded-full" />
+              <div className="mt-1 w-16 h-1 bg-green-400 rounded-full" />
             </h2>
             <div className="space-y-5">
               {article.faq.map((item, index) => (
-                <div key={index} className="bg-white p-5 rounded-xl shadow-sm border border-amber-50">
-                  <p className="font-semibold text-amber-700">❓ {item.question}</p>
+                <div key={index} className="bg-white p-5 rounded-xl shadow-sm border border-green-50">
+                  <p className="font-semibold text-green-700">❓ {item.question}</p>
                   <p className="mt-2 text-gray-600">💡 {item.answer}</p>
                 </div>
               ))}
@@ -109,9 +109,9 @@ export default async function ArticlePage({ params }) {
         {/* Artículos Relacionados */}
         {article.relatedArticles && (
           <section className="mt-12">
-            <h2 className="text-2xl font-bold mb-6 text-amber-800">
+            <h2 className="text-2xl font-bold mb-6 text-green-800">
               Más Tips que Te Podrían Gustar
-              <div className="mt-1 w-24 h-1 bg-amber-400 rounded-full" />
+              <div className="mt-1 w-24 h-1 bg-green-400 rounded-full" />
             </h2>
             <div className="grid gap-5">
               {articlesData
@@ -120,7 +120,7 @@ export default async function ArticlePage({ params }) {
                   <Link
                     key={related.id}
                     href={`/article/${related.slug}`}
-                    className="group flex gap-5 bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all border border-amber-50"
+                    className="group flex gap-5 bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all border border-green-50"
                   >
                     <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden">
                       <Image
@@ -131,7 +131,7 @@ export default async function ArticlePage({ params }) {
                       />
                     </div>
                     <div>
-                      <h3 className="font-semibold group-hover:text-amber-700 transition-colors">
+                      <h3 className="font-semibold group-hover:text-green-700 transition-colors">
                         {related.title}
                       </h3>
                       <p className="text-sm text-gray-600 mt-1 line-clamp-2">

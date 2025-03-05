@@ -16,10 +16,10 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+        <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-100 to-white">
           <div className="animate-pulse flex flex-col items-center">
-            <div className="w-12 h-12 rounded-full bg-amber-300 mb-4"></div>
-            <p className="text-amber-800 font-medium">Cargando...</p>
+            <div className="w-12 h-12 rounded-full bg-green-300 mb-4"></div>
+            <p className="text-green-600 font-medium">Cargando...</p>
           </div>
         </div>
       }
@@ -105,21 +105,21 @@ function LoginContent() {
   return (
     <>
       {authLoading ? (
-        <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
-          <AiOutlineLoading3Quarters className="animate-spin text-amber-600 text-3xl mr-3" />
-          <p className="text-amber-800 font-medium">Verificando sesión...</p>
+        <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-100 to-white">
+          <AiOutlineLoading3Quarters className="animate-spin text-green-600 text-3xl mr-3" />
+          <p className="text-green-600 font-medium">Verificando sesión...</p>
         </div>
       ) : (
         <div className="flex flex-col md:flex-row min-h-screen">
           {/* Panel decorativo lateral - solo visible en md y superiores */}
-          <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-amber-500 to-orange-400 justify-center items-center p-8">
+          <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-green-600 to-green-400 justify-center items-center p-8">
             <div className="max-w-md text-center">
               <h1 className="text-5xl font-bold text-white mb-4 tracking-wide">Mahets&#39;i &amp; Boh&#39;o</h1>
               <p className="text-white text-xl opacity-90 mb-6">
-                Bienvenido a nuestra plataforma. Descubre experiencias únicas para el cuidado de piel.
+                Bienvenido a nuestra tienda de jabones naturales. Descubre experiencias únicas para el cuidado de tu piel.
               </p>
               <div className="w-32 h-32 mx-auto mb-8 bg-white rounded-full flex items-center justify-center">
-                <div className="w-24 h-24 rounded-full bg-amber-400"></div>
+                <div className="w-24 h-24 rounded-full bg-green-400"></div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center">
@@ -128,7 +128,7 @@ function LoginContent() {
                 </div>
                 <div className="flex items-center">
                   <BsCheck2Circle className="text-white text-xl mr-3" />
-                  <p className="text-white text-left">Servicios personalizados</p>
+                  <p className="text-white text-left">Productos naturales y auténticos</p>
                 </div>
                 <div className="flex items-center">
                   <BsCheck2Circle className="text-white text-xl mr-3" />
@@ -139,20 +139,20 @@ function LoginContent() {
           </div>
 
           {/* Formulario de login */}
-          <div className="w-full md:w-1/2 flex justify-center items-center p-4 sm:p-8 bg-gradient-to-br from-amber-50 to-orange-100">
+          <div className="w-full md:w-1/2 flex justify-center items-center p-4 sm:p-8 bg-gradient-to-br from-green-100 to-white">
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
               {/* Logo versión móvil */}
               <div className="md:hidden text-center mb-8">
-                <h1 className="text-3xl font-bold text-amber-600 mb-2">Mahets&#39;i &amp; Boh&#39;o</h1>
-                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 to-orange-400 rounded-full flex items-center justify-center">
+                <h1 className="text-3xl font-bold text-green-600 mb-2">Mahets&#39;i &amp; Boh&#39;o</h1>
+                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-green-600 to-green-400 rounded-full flex items-center justify-center">
                   <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-amber-300"></div>
+                    <div className="w-12 h-12 rounded-full bg-green-300"></div>
                   </div>
                 </div>
               </div>
 
-              <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Iniciar Sesión</h2>
-              <p className="text-center text-gray-500 mb-8">
+              <h2 className="text-2xl font-bold text-black mb-2 text-center">Iniciar Sesión</h2>
+              <p className="text-center text-black mb-8">
                 Ingresa con tu cuenta para acceder a todas las funcionalidades
               </p>
 
@@ -160,7 +160,7 @@ function LoginContent() {
                 <button
                   onClick={handleGoogleLogin}
                   disabled={loginLoading}
-                  className="w-full py-3 px-4 rounded-lg flex items-center justify-center text-white font-semibold bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+                  className="w-full py-3 px-4 rounded-lg flex items-center justify-center text-white font-semibold bg-green-600 hover:bg-green-700 disabled:bg-green-300 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1"
                 >
                   {loginLoading ? (
                     <>
@@ -176,26 +176,26 @@ function LoginContent() {
                 </button>
 
                 <div className="relative flex items-center justify-center mt-6">
-                  <div className="border-t border-gray-300 w-full"></div>
-                  <div className="bg-white px-3 text-gray-500 text-sm absolute">O</div>
+                  <div className="border-t border-black w-full"></div>
+                  <div className="bg-white px-3 text-black text-sm absolute">O</div>
                 </div>
 
                 <Link
-                  className="w-full py-3 px-4 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow flex items-center justify-center"
+                  className="w-full py-3 px-4 rounded-lg border border-black text-black font-semibold hover:bg-black hover:text-white transition-all duration-300 shadow-sm flex items-center justify-center"
                   href="/"
                 >
-                  <BiSolidUser className="text-xl mr-2 text-gray-500" />
+                  <BiSolidUser className="text-xl mr-2 text-black" />
                   <span>Continuar como invitado</span>
                 </Link>
               </div>
 
-              <p className="text-center mt-8 text-sm text-gray-500">
+              <p className="text-center mt-8 text-sm text-black">
                 Al continuar, aceptas nuestros{' '}
-                <button type="button" onClick={() => setShowTerms(true)} className="text-amber-600 hover:underline">
+                <button type="button" onClick={() => setShowTerms(true)} className="text-green-600 hover:underline">
                   Términos de servicio
                 </button>{' '}
                 y{' '}
-                <button type="button" onClick={() => setShowPrivacy(true)} className="text-amber-600 hover:underline">
+                <button type="button" onClick={() => setShowPrivacy(true)} className="text-green-600 hover:underline">
                   Política de privacidad
                 </button>
               </p>
@@ -206,14 +206,14 @@ function LoginContent() {
 
       {/* Modal de Términos de Servicio */}
       <Modal isOpen={showTerms} onClose={() => setShowTerms(false)} title="Términos de Servicio">
-        <p className="text-gray-700 text-sm">
+        <p className="text-black text-sm">
           Aquí irían los términos de servicio de la aplicación. Puedes incluir toda la información relevante sobre el uso del servicio, derechos y obligaciones, y otros detalles legales necesarios.
         </p>
       </Modal>
 
       {/* Modal de Política de Privacidad */}
       <Modal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} title="Política de Privacidad">
-        <p className="text-gray-700 text-sm">
+        <p className="text-black text-sm">
           Aquí iría la política de privacidad de la aplicación. Detalla cómo se manejan los datos personales, las medidas de seguridad implementadas y otros aspectos relacionados con la privacidad.
         </p>
       </Modal>

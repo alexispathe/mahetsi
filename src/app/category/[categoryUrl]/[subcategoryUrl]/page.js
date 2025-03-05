@@ -1,4 +1,4 @@
-//Category/[categoryURL]/[subcategoryURL]/page.js
+//Category/[categoryUrl]/[subcategoryURL]/page.js
 'use client';
 
 import { useParams } from 'next/navigation';
