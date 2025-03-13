@@ -68,7 +68,7 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
             <input
               type="text"
               id="zip"
-              className="w-full p-2 border border-gray-300 rounded"
+              className="w-full p-2 border border-green-300 rounded focus:outline-none focus:border-green-600"
               value={localZip}
               onChange={(e) => setLocalZip(e.target.value)}
               placeholder="Ej. 12345"
@@ -79,7 +79,7 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
           <div className="flex space-x-4 mt-4">
             <button
               type="submit"
-              className={`flex items-center justify-center bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-300 ${
+              className={`flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors duration-300 ${
                 isSaving ? 'cursor-not-allowed opacity-50' : ''
               }`}
               disabled={isSaving}
@@ -95,7 +95,7 @@ export default function ZipCodeModal({ isOpen, onClose, onZipSaved }) {
             </button>
             <button
               type="button"
-              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors duration-300"
+              className="bg-green-100 text-green-700 px-4 py-2 rounded hover:bg-green-200 transition-colors duration-300"
               onClick={onClose}
               disabled={isSaving}
             >

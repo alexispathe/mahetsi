@@ -6,6 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import { FaShoppingCart, FaHeart, FaRegHeart } from "react-icons/fa";
+import { IoClose } from 'react-icons/io5';
+
 
 // Importa los contextos para acceder a la lógica de carrito y favoritos
 import { CartContext } from "@/context/CartContext/CartContext";
@@ -173,7 +175,7 @@ export default function SearchModal({ isOpen, onClose }) {
           className="absolute top-4 right-4 text-lg text-gray-600 hover:text-gray-900"
           aria-label="Cerrar búsqueda"
         >
-          ❌
+         <IoClose />
         </button>
 
         <h2 className="text-xl font-semibold mb-4">¿Qué estás buscando?</h2>
@@ -219,12 +221,21 @@ export default function SearchModal({ isOpen, onClose }) {
                   </div>
                 </Link>
                 <div className="flex items-center space-x-2">
-                  <button onClick={() => handleToggleFavorite(product)} className="text-red-600 hover:text-red-800">
+                  <button
+                    onClick={() => handleToggleFavorite(product)}
+                    className={`hover:text-green-800 ${favoriteIDs.includes(product.uniqueID) ? 'text-red-500' : 'text-green-600'
+                      }`}
+                  >
                     {favoriteIDs.includes(product.uniqueID) ? <FaHeart /> : <FaRegHeart />}
                   </button>
-                  <button onClick={() => handleAddToCart(product)} className="text-orange-600 hover:text-orange-800">
+
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className="text-green-600 hover:text-green-800"
+                  >
                     <FaShoppingCart />
                   </button>
+
                 </div>
               </div>
             ))

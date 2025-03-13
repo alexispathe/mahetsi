@@ -18,7 +18,7 @@ export default function ShippingOptions({
   // Para usuarios invitados sin código postal guardado, mostramos un mensaje con el botón para agregar CP.
   if (!currentUser && !guestZipCode) {
     return (
-      <div className="p-4 bg-gray-100 rounded">
+      <div className="p-4  rounded">
         <p className="text-sm text-gray-600 mb-2">
           Ingresa tu código postal para cotizar el envío.
         </p>

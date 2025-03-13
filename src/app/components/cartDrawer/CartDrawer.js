@@ -1,5 +1,4 @@
 // src/app/components/cartDrawer/CartDrawer.js
-// src/app/components/cartDrawer/CartDrawer.js
 'use client';
 
 import { useContext, useState, useEffect, useRef } from 'react';
@@ -16,6 +15,9 @@ import ActionButtons from './ActionButtons';
 // Modales
 import ShippingAddressModal from '../shippingAddressModal/ShippingAddressModal.js.js';
 import ZipCodeModal from './ZipCodeModal';
+
+// Importamos el ícono de cerrar de react-icons
+import { IoClose } from 'react-icons/io5';
 
 export default function CartDrawer({ isOpen, onClose }) {
   // Contextos
@@ -184,14 +186,14 @@ export default function CartDrawer({ isOpen, onClose }) {
       >
         <div
           ref={drawerRef}
-          className={`relative bg-white w-full sm:w-3/4 md:w-2/3 lg:w-1/3 p-6 overflow-y-auto rounded-xl shadow-lg text-[#1c1f28] ${animation}`}
+          className={`relative bg-white w-full sm:w-3/4 md:w-2/3 lg:w-1/3 p-6 overflow-y-auto rounded-xl shadow-lg text-gray-800 ${animation}`}
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-2xl text-gray-600 hover:text-gray-800 transition-colors duration-300"
+            className="absolute top-4 right-4 text-2xl text-gray-600 hover:text-gray-900 transition-colors duration-300"
             aria-label="Cerrar carrito"
           >
-            ❌
+            <IoClose />
           </button>
 
           <h2 className="text-2xl font-bold mb-4">Tu carrito</h2>
@@ -245,8 +247,8 @@ export default function CartDrawer({ isOpen, onClose }) {
                 selectedQuote={selectedQuote}
               />
 
-              {/* Botones de acción */}
-              <ActionButtons />
+              {/* Botones de acción (se pasa onClose para cerrar el Drawer al pagar) */}
+              <ActionButtons onClose={onClose} />
             </>
           )}
         </div>
