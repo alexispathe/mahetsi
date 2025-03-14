@@ -119,7 +119,7 @@ export default function AddressForm({
       {/* Dirección */}
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="address">
-          Calle 
+          Calle
         </label>
         <input
           type="text"
@@ -310,27 +310,28 @@ export default function AddressForm({
           Usar esta dirección para facturación
         </label>
       </div>
-
       {/* Botones de acción */}
-      <div className="flex space-x-4 mt-4">
-        <button
-          type="submit"
-          className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          disabled={isSubmitting}
-        >
-          {isEditing ? 'Actualizar Dirección' : 'Guardar Dirección'}
-        </button>
+      <div className="flex justify-end space-x-4 mt-4">
         <button
           type="button"
-          className={`bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 flex items-center ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+          className={`bg-green-100 text-green-700 px-4 py-2 rounded hover:bg-green-200 transition-colors duration-300 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           onClick={onCancel}
           disabled={isSubmitting}
         >
           Cancelar
         </button>
+
+        <button
+          type="submit"
+          className={`bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center transition-colors duration-300 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          disabled={isSubmitting}
+        >
+          {isEditing ? 'Actualizar Dirección' : 'Guardar Dirección'}
+        </button>
       </div>
+
     </form>
   );
 }

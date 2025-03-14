@@ -77,9 +77,8 @@ export default function ShippingAddressForm({
           type="text"
           id="firstName"
           {...register('firstName')}
-          className={`w-full p-2 border rounded ${
-            errors.firstName ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.firstName ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Nombre"
           disabled={isSubmitting}
         />
@@ -96,9 +95,8 @@ export default function ShippingAddressForm({
           type="text"
           id="lastName"
           {...register('lastName')}
-          className={`w-full p-2 border rounded ${
-            errors.lastName ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.lastName ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Apellido"
           disabled={isSubmitting}
         />
@@ -115,9 +113,8 @@ export default function ShippingAddressForm({
           type="email"
           id="email"
           {...register('email')}
-          className={`w-full p-2 border rounded ${
-            errors.email ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.email ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="you@example.com"
           disabled={isSubmitting}
         />
@@ -134,9 +131,8 @@ export default function ShippingAddressForm({
           type="tel"
           id="phone"
           {...register('phone')}
-          className={`w-full p-2 border rounded ${
-            errors.phone ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.phone ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Ej. 5512345678"
           disabled={isSubmitting}
         />
@@ -153,9 +149,8 @@ export default function ShippingAddressForm({
           type="text"
           id="address"
           {...register('address')}
-          className={`w-full p-2 border rounded ${
-            errors.address ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.address ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Calle"
           disabled={isSubmitting}
         />
@@ -165,24 +160,23 @@ export default function ShippingAddressForm({
       </div>
 
       <div>
-      <div>
-        <label className="block text-sm font-medium mb-1" htmlFor="number">
-          Número exterior
-        </label>
-        <input
-          type="text"
-          id="number"
-          {...register('number')}
-          className={`w-full p-2 border rounded ${
-            errors.number ? 'border-red-500' : 'border-gray-300'
-          }`}
-          placeholder="Número exterior"
-          disabled={isSubmitting}
-        />
-        {errors.number && (
-          <p className="text-red-500 text-sm">{errors.number.message}</p>
-        )}
-      </div>
+        <div>
+          <label className="block text-sm font-medium mb-1" htmlFor="number">
+            Número exterior
+          </label>
+          <input
+            type="text"
+            id="number"
+            {...register('number')}
+            className={`w-full p-2 border rounded ${errors.number ? 'border-red-500' : 'border-gray-300'
+              }`}
+            placeholder="Número exterior"
+            disabled={isSubmitting}
+          />
+          {errors.number && (
+            <p className="text-red-500 text-sm">{errors.number.message}</p>
+          )}
+        </div>
         <label className="block text-sm font-medium mb-1" htmlFor="interiorNumber">
           Número Interior (Opcional)
         </label>
@@ -196,7 +190,7 @@ export default function ShippingAddressForm({
         />
       </div>
 
-      
+
 
       <div>
         <label className="block text-sm font-medium mb-1" htmlFor="colonia">
@@ -206,9 +200,8 @@ export default function ShippingAddressForm({
           type="text"
           id="colonia"
           {...register('colonia')}
-          className={`w-full p-2 border rounded ${
-            errors.colonia ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.colonia ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Colonia"
           disabled={isSubmitting}
         />
@@ -225,9 +218,8 @@ export default function ShippingAddressForm({
           type="text"
           id="city"
           {...register('city')}
-          className={`w-full p-2 border rounded ${
-            errors.city ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.city ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Ciudad o Municipio"
           disabled={isSubmitting}
         />
@@ -243,9 +235,8 @@ export default function ShippingAddressForm({
         <select
           id="state"
           {...register('state')}
-          className={`w-full p-2 border rounded ${
-            errors.state ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.state ? 'border-red-500' : 'border-gray-300'
+            }`}
           disabled={isSubmitting}
         >
           <option value="">Selecciona un estado...</option>
@@ -268,9 +259,8 @@ export default function ShippingAddressForm({
           type="text"
           id="zipcode"
           {...register('zipcode')}
-          className={`w-full p-2 border rounded ${
-            errors.zipcode ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.zipcode ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Código Postal"
           disabled={isSubmitting}
         />
@@ -287,9 +277,8 @@ export default function ShippingAddressForm({
           type="text"
           id="reference"
           {...register('reference')}
-          className={`w-full p-2 border rounded ${
-            errors.reference ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.reference ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Casa, dificultad, etc."
           disabled={isSubmitting}
         />
@@ -306,9 +295,8 @@ export default function ShippingAddressForm({
           type="text"
           id="betweenStreets"
           {...register('betweenStreets')}
-          className={`w-full p-2 border rounded ${
-            errors.betweenStreets ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded ${errors.betweenStreets ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="Entre calles"
           disabled={isSubmitting}
         />
@@ -339,12 +327,23 @@ export default function ShippingAddressForm({
         </label>
       </div>
 
-      <div className="flex space-x-4 mt-4">
+      <div className="flex justify-end space-x-4 mt-4">
+        <button
+          type="button"
+          className="bg-green-100 text-green-700 px-4 py-2 rounded hover:bg-green-200 transition-colors duration-300"
+          onClick={() => {
+            reset();
+            onClose();
+          }}
+          disabled={isSubmitting}
+        >
+          Cancelar
+        </button>
+
         <button
           type="submit"
-          className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center ${
-            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          className={`bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center transition-colors duration-300 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           disabled={isSubmitting}
         >
           {isSubmitting ? (
@@ -355,18 +354,8 @@ export default function ShippingAddressForm({
             'Guardar Dirección'
           )}
         </button>
-        <button
-          type="button"
-          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 flex items-center"
-          onClick={() => {
-            reset();
-            onClose();
-          }}
-          disabled={isSubmitting}
-        >
-          Cancelar
-        </button>
       </div>
+
     </form>
   );
 }
