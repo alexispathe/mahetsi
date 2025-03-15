@@ -11,7 +11,7 @@ export default function ActionButtons({ onClose }) {
   return (
     <div className="mt-6 space-y-4">
       <Link href="/cart">
-        <button className="w-full bg-green-100 text-green-700 py-3 rounded-lg hover:bg-green-200 transition-colors duration-300">
+        <button onClick={onClose} className="w-full bg-green-100 text-green-700 py-3 rounded-lg hover:bg-green-200 transition-colors duration-300">
           Ver resumen del carrito
         </button>
       </Link>

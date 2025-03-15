@@ -6,8 +6,8 @@ import { useEffect, useRef, useContext, useState } from 'react';
 import Link from 'next/link';
 import { FavoritesContext } from '@/context/FavoritesContext'; // Asegúrate de que la ruta sea correcta
 import { FaTimes } from 'react-icons/fa'; // Icono para cerrar
+import { IoClose } from 'react-icons/io5';
 import Image from 'next/image'; // Para optimizar imágenes
-import { toast } from 'react-toastify';
 
 export default function FavoritesModal({ isOpen, onClose }) {
   const modalRef = useRef(null);
@@ -125,10 +125,10 @@ export default function FavoritesModal({ isOpen, onClose }) {
                     removeFavorite(product.uniqueID);
                     
                   }}
-                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xl"
+                  className="absolute top-2 right-2 text-white hover:text-red-900 text-xl"
                   aria-label="Eliminar favorito"
                 >
-                  ✖
+                  <IoClose/>
                 </button>
               </div>
             ))}

@@ -324,7 +324,7 @@ export default function ProductDetail({ productUrl }) {
         {/* Sección de Información */}
         <div className="space-y-6">
           <p className="text-gray-500 text-sm">
-           <Link href="/">INICIO /</Link><Link href={process.env.NEXT_PUBLIC_URL+"category/"+brandURL}> {brandName.toUpperCase()} </Link>  /<Link href={process.env.NEXT_PUBLIC_URL+"category?="+typeURL}> {typeName.toUpperCase()}</Link> 
+           <Link href="/">INICIO /</Link><Link href={process.env.NEXT_PUBLIC_BASE_URL+"category/"+brandURL}> {brandName.toUpperCase()} </Link>  /<Link href={process.env.NEXT_PUBLIC_BASE_URL+"category?="+typeURL}> {typeName.toUpperCase()}</Link> 
           </p>
           <h1 className="text-3xl font-bold">{product.name}</h1>
 
@@ -380,7 +380,7 @@ export default function ProductDetail({ productUrl }) {
               )}
             </button>
             <button
-              className={`px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 ${isAddingToCart ? 'cursor-not-allowed opacity-50' : ''
+              className={`px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700  ${isAddingToCart ? 'cursor-not-allowed opacity-50' : ''
                 } flex items-center`}
               onClick={handleAddToCartClick}
               disabled={isAddingToCart}
@@ -398,7 +398,7 @@ export default function ProductDetail({ productUrl }) {
           {/* Info de envío */}
           <div className="text-sm text-gray-600 flex items-center">
             <FaBox className="mr-1" />
-            Envío gratis en pedidos superiores a $99. Envío al día siguiente por $9.99
+            Envío gratis en pedidos superiores a $999 MXN
           </div>
         </div>
       </div>
