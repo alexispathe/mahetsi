@@ -353,7 +353,7 @@ export default function ProductDetail({ productUrl }) {
           <div>
             <div className="mb-4">
               <p className="text-sm font-medium">
-                CATEGORÍA: {typeName}
+                CATEGORÍAs: {typeName}
               </p>
             </div>
           </div>

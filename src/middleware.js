@@ -1,34 +1,39 @@
 // middleware.js
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'
 
 export function middleware(req) {
-  // Extrae la cookie 'session'
-  const sessionCookie = req.cookies.get('session');
-  const { pathname } = req.nextUrl;
+  const url = req.nextUrl.clone()
 
-  // Si el usuario ya tiene la cookie y accede a /login, redirige a la página principal (u otra ruta)
-  if (pathname === '/login' && sessionCookie) {
-    return NextResponse.redirect(new URL('/profile/user', req.url));
+  // 1. Forzar HTTPS en todas las peticiones
+  if (req.nextUrl.protocol === 'http:') {
+    url.protocol = 'https:'
+    return NextResponse.redirect(url)
   }
 
-  // Rutas protegidas: /profile/* y /checkout
-  const protectedPaths = ['/profile', '/checkout'];
+  const sessionCookie = req.cookies.get('session')?.value
+  const { pathname } = req.nextUrl
 
-  // Si la ruta solicitada es protegida y no hay cookie, redirige a login
+  // 2. Si ya hay sesión y el usuario va a /login, redirigir a su perfil
+  if (pathname === '/login' && sessionCookie) {
+    return NextResponse.redirect(new URL('/profile/user', req.url))
+  }
+
+  // 3. Comprobar rutas protegidas
+  const protectedPaths = ['/profile', '/checkout']
   if (protectedPaths.some((path) => pathname.startsWith(path))) {
     if (!sessionCookie) {
-      const loginUrl = new URL('/login', req.url);
-      // Agrega la URL actual para redirigir de vuelta después del login
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
+      // Redirigir a login y guardar la ruta original
+      const loginUrl = new URL('/login', req.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
     }
   }
 
-  // Si todo está correcto, continúa con la petición
-  return NextResponse.next();
+  // 4. Si no hay redirección, continuar con la petición
+  return NextResponse.next()
 }
 
-// Define para qué rutas se ejecuta el middleware
 export const config = {
-  matcher: ['/profile/:path*', '/checkout', '/login'],
-};
+  // Ejecutar middleware en todas las rutas para forzar HTTPS y en las rutas de login/profile/checkout
+  matcher: ['/:path*']
+}

@@ -39,7 +39,7 @@ export default function ProfilePage() {
     if (currentUser && !authLoading && !sessionInitializing) {
       fetchOrders();
       fetchUserReviews();
-      // Podrías cargar direcciones aquí si quieres
+      
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, authLoading, sessionInitializing]);
